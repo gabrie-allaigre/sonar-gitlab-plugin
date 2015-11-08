@@ -32,9 +32,7 @@ import javax.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
 import java.io.StringReader;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -49,7 +47,7 @@ public class CommitFacade implements BatchComponent {
     private final GitLabPluginConfiguration config;
     private File gitBaseDir;
     private GitLabAPI gitLabAPI;
-    private Map<String, Map<Integer, Integer>> patchPositionMappingByFile;
+    private Map<String, Set<Integer>> patchPositionMappingByFile;
 
     public CommitFacade(GitLabPluginConfiguration config) {
         this.config = config;
@@ -78,10 +76,10 @@ public class CommitFacade implements BatchComponent {
         return findGitBaseDir(baseDir.getParentFile());
     }
 
-    private static Map<String, Map<Integer, Integer>> mapPatchPositionsToLines(List<GitLabCommitDiff> diffs) throws IOException {
-        Map<String, Map<Integer, Integer>> patchPositionMappingByFile = new HashMap<>();
+    private static Map<String, Set<Integer>> mapPatchPositionsToLines(List<GitLabCommitDiff> diffs) throws IOException {
+        Map<String, Set<Integer>> patchPositionMappingByFile = new HashMap<>();
         for (GitLabCommitDiff file : diffs) {
-            Map<Integer, Integer> patchLocationMapping = new HashMap<>();
+            Set<Integer> patchLocationMapping = new HashSet<>();
             patchPositionMappingByFile.put(file.getNewPath(), patchLocationMapping);
             String patch = file.getDiff();
             if (patch == null) {
@@ -92,9 +90,8 @@ public class CommitFacade implements BatchComponent {
         return patchPositionMappingByFile;
     }
 
-    private static void processPatch(Map<Integer, Integer> patchLocationMapping, String patch) throws IOException {
+    private static void processPatch(Set<Integer> patchLocationMapping, String patch) throws IOException {
         int currentLine = -1;
-        int patchLocation = 0;
         for (String line : IOUtils.readLines(new StringReader(patch))) {
             if (line.startsWith("@")) {
                 // http://en.wikipedia.org/wiki/Diff_utility#Unified_format
@@ -107,13 +104,12 @@ public class CommitFacade implements BatchComponent {
                 // Skip removed lines
             } else if (line.startsWith("+") || line.startsWith(" ")) {
                 // Count added and unmodified lines
-                patchLocationMapping.put(currentLine, patchLocation);
+                patchLocationMapping.add(currentLine);
                 currentLine++;
             } else if (line.startsWith("\\")) {
                 // I'm only aware of \ No newline at end of file
                 // Ignore
             }
-            patchLocation++;
         }
     }
 
@@ -139,10 +135,10 @@ public class CommitFacade implements BatchComponent {
 
     public void createOrUpdateReviewComment(InputFile inputFile, Integer line, String body) {
         String fullpath = getPath(inputFile);
-        Integer lineInPatch = patchPositionMappingByFile.get(fullpath).get(line);
-        System.out.println("Review : "+fullpath+" line : "+lineInPatch);
+        //Integer lineInPatch = patchPositionMappingByFile.get(fullpath).get(line);
+        System.out.println("Review : "+fullpath+" line : "+line);
         try {
-            gitLabAPI.getGitLabAPICommits().postCommitComments(config.projectId(), config.commitSHA(), body, fullpath, lineInPatch, "new");
+            gitLabAPI.getGitLabAPICommits().postCommitComments(config.projectId(), config.commitSHA(), body, fullpath, line, "new");
         } catch (IOException e) {
             throw new IllegalStateException("Unable to create or update review comment in file " + fullpath + " at line " + line, e);
         }
