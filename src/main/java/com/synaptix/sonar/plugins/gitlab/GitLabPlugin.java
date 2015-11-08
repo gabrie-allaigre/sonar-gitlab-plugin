@@ -47,7 +47,7 @@ import java.util.List;
         name = "GitLab Project ID",
         description = "The unique id of the current project that GitLab CI uses internally",
         global = false,
-        project = false, module = false), @Property(key = GitLabPlugin.GITLAB_COMMIT_SHA,
+        project = true), @Property(key = GitLabPlugin.GITLAB_COMMIT_SHA,
         name = "GitLab Commit SHA",
         description = "The commit revision for which project is built",
         global = false,
