@@ -21,6 +21,7 @@ package com.synaptix.sonar.plugins.gitlab;
 
 import com.synaptix.gitlab.api.GitLabAPI;
 import com.synaptix.gitlab.api.models.commits.GitLabCommitDiff;
+import com.synaptix.gitlab.api.models.projects.GitLabProject;
 import org.apache.commons.io.IOUtils;
 import org.sonar.api.BatchComponent;
 import org.sonar.api.batch.InstantiationStrategy;
@@ -47,6 +48,7 @@ public class CommitFacade implements BatchComponent {
     private final GitLabPluginConfiguration config;
     private File gitBaseDir;
     private GitLabAPI gitLabAPI;
+    private GitLabProject gitLabProject;
     private Map<String, Set<Integer>> patchPositionMappingByFile;
 
     public CommitFacade(GitLabPluginConfiguration config) {
@@ -59,6 +61,8 @@ public class CommitFacade implements BatchComponent {
         }
         gitLabAPI = GitLabAPI.connect(config.url(), config.userToken());
         try {
+            gitLabProject = gitLabAPI.getGitLabAPIProjects().getProject(config.projectId());
+
             patchPositionMappingByFile = mapPatchPositionsToLines(gitLabAPI.getGitLabAPICommits().getCommitDiffs(config.projectId(), config.commitSHA()));
         } catch (IOException e) {
             throw new IllegalStateException("Unable to perform GitHub WS operation", e);
@@ -95,7 +99,7 @@ public class CommitFacade implements BatchComponent {
         for (String line : IOUtils.readLines(new StringReader(patch))) {
             if (line.startsWith("@")) {
                 // http://en.wikipedia.org/wiki/Diff_utility#Unified_format
-                Matcher matcher = Pattern.compile("@@\\p{IsWhite_Space}-[0-9]+(?:,[0-9]+)?\\p{IsWhite_Space}\\+([0-9]+)(?:,[0-9]+)?\\p{IsWhite_Space}@@.*").matcher(line);
+                Matcher matcher = Pattern.compile("@@\\p{Space}-[0-9]+(?:,[0-9]+)?\\p{Space}\\+([0-9]+)(?:,[0-9]+)?\\p{Space}@@.*").matcher(line);
                 if (!matcher.matches()) {
                     throw new IllegalStateException("Unable to parse patch line " + line + "\nFull patch: \n" + patch);
                 }
@@ -115,7 +119,7 @@ public class CommitFacade implements BatchComponent {
 
     public void createOrUpdateSonarQubeStatus(String status, String statusDescription) {
         try {
-            gitLabAPI.getGitLabAPICommits().postCommitStatus(config.projectId(), config.commitSHA(), status, config.ref(), COMMIT_CONTEXT, null, statusDescription);
+            gitLabAPI.getGitLabAPICommits().postCommitStatus(config.projectId(), config.commitSHA(), status, config.refName(), COMMIT_CONTEXT, null, statusDescription);
         } catch (IOException e) {
             throw new IllegalStateException("Unable to update commit status", e);
         }
@@ -130,6 +134,10 @@ public class CommitFacade implements BatchComponent {
     }
 
     public String getGitLabUrl(InputFile inputFile, Integer issueLine) {
+        if (inputFile != null) {
+            String path = getPath(inputFile);
+            return gitLabProject.getWebUrl() + "/blob/" + config.commitSHA() + "/" + path + (issueLine != null ? ("#L" + issueLine) : "");
+        }
         return null;
     }
 

@@ -25,13 +25,17 @@ import org.sonar.api.rule.Severity;
 import javax.annotation.Nullable;
 
 public class GlobalReport {
+    private final GitLabPluginConfiguration gitLabPluginConfiguration;
     private final MarkDownUtils markDownUtils;
     private int[] newIssuesBySeverity = new int[Severity.ALL.size()];
     private StringBuilder notReportedOnDiff = new StringBuilder();
     private int notReportedIssueCount = 0;
     private int notReportedDisplayedIssueCount = 0;
 
-    public GlobalReport(MarkDownUtils markDownUtils) {
+    public GlobalReport(GitLabPluginConfiguration gitLabPluginConfiguration, MarkDownUtils markDownUtils) {
+        super();
+
+        this.gitLabPluginConfiguration = gitLabPluginConfiguration;
         this.markDownUtils = markDownUtils;
     }
 
@@ -49,8 +53,8 @@ public class GlobalReport {
             sb.append("\nNote: the following issues could not be reported as comments because they are located on lines that are not displayed in this pull request:\n")
                     .append(notReportedOnDiff.toString());
 
-            if (notReportedIssueCount >= GitLabPluginConfiguration.MAX_GLOBAL_ISSUES) {
-                sb.append("* ... ").append(notReportedIssueCount - GitLabPluginConfiguration.MAX_GLOBAL_ISSUES).append(" more\n");
+            if (notReportedIssueCount >= gitLabPluginConfiguration.maxGlobalIssues()) {
+                sb.append("* ... ").append(notReportedIssueCount - gitLabPluginConfiguration.maxGlobalIssues()).append(" more\n");
             }
         }
         return sb.toString();
@@ -121,13 +125,13 @@ public class GlobalReport {
         }
     }
 
-    public void process(Issue issue, @Nullable String githubUrl, boolean reportedOnDiff) {
+    public void process(Issue issue, @Nullable String gitLabUrl, boolean reportedOnDiff) {
         increment(issue.severity());
         if (!reportedOnDiff) {
             notReportedIssueCount++;
 
-            if (notReportedDisplayedIssueCount < GitLabPluginConfiguration.MAX_GLOBAL_ISSUES) {
-                notReportedOnDiff.append("* ").append(markDownUtils.globalIssue(issue.severity(), issue.message(), issue.ruleKey().toString(), githubUrl, issue.componentKey())).append("\n");
+            if (notReportedDisplayedIssueCount < gitLabPluginConfiguration.maxGlobalIssues()) {
+                notReportedOnDiff.append("* ").append(markDownUtils.globalIssue(issue.severity(), issue.message(), issue.ruleKey().toString(), gitLabUrl, issue.componentKey())).append("\n");
                 notReportedDisplayedIssueCount++;
             }
         }

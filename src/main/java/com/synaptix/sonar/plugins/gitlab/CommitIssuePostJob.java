@@ -56,7 +56,7 @@ public class CommitIssuePostJob implements org.sonar.api.batch.PostJob, CheckPro
 
     @Override
     public void executeOn(Project project, SensorContext context) {
-        GlobalReport report = new GlobalReport(markDownUtils);
+        GlobalReport report = new GlobalReport(gitLabPluginConfiguration,markDownUtils);
 
         Map<InputFile, Map<Integer, StringBuilder>> commentsToBeAddedByLine = processIssues(report);
 

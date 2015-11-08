@@ -21,6 +21,7 @@ package com.synaptix.sonar.plugins.gitlab;
 
 import org.sonar.api.Properties;
 import org.sonar.api.Property;
+import org.sonar.api.PropertyType;
 import org.sonar.api.SonarPlugin;
 
 import java.util.Arrays;
@@ -29,25 +30,31 @@ import java.util.List;
 @Properties({ @Property(
         key = GitLabPlugin.GITLAB_URL,
         name = "GitLab URL",
-        description = "URL to access GitLab.",
+        description = "URL to access GitLab",
         defaultValue = "https://gitlab.com",
+        global = true), @Property(
+        key = GitLabPlugin.GITLAB_MAX_GLOBAL_ISSUES,
+        name = "GitLab Max Global GitLab",
+        description = "Max issues to show in global comment",
+        defaultValue = "10",
+        type = PropertyType.INTEGER,
         global = true), @Property(
         key = GitLabPlugin.GITLAB_USER_TOKEN,
         name = "GitLab User Token",
-        description = "GitLab user token is reporter role.",
-        global = false), @Property(
+        description = "GitLab user token is reporter role",
+        global = true), @Property(
         key = GitLabPlugin.GITLAB_PROJECT_ID,
         name = "GitLab Project ID",
-        description = "Project ID",
+        description = "The unique id of the current project that GitLab CI uses internally",
         global = false,
         project = false, module = false), @Property(key = GitLabPlugin.GITLAB_COMMIT_SHA,
         name = "GitLab Commit SHA",
-        description = "Commit SHA",
+        description = "The commit revision for which project is built",
         global = false,
         project = false,
-        module = false), @Property(key = GitLabPlugin.GITLAB_REF,
-        name = "GitLab Ref",
-        description = "Ref",
+        module = false), @Property(key = GitLabPlugin.GITLAB_REF_NAME,
+        name = "GitLab Ref Name",
+        description = "The commit revision for which project is built",
         global = false,
         project = false,
         module = false) })
@@ -55,10 +62,11 @@ import java.util.List;
 public class GitLabPlugin extends SonarPlugin {
 
     public static final String GITLAB_URL = "sonar.gitlab.url";
+    public static final String GITLAB_MAX_GLOBAL_ISSUES = "sonar.gitlab.max_global_issues";
     public static final String GITLAB_USER_TOKEN = "sonar.gitlab.user_token";
     public static final String GITLAB_PROJECT_ID = "sonar.gitlab.project_id";
     public static final String GITLAB_COMMIT_SHA = "sonar.gitlab.commit_sha";
-    public static final String GITLAB_REF = "sonar.gitlab.ref";
+    public static final String GITLAB_REF_NAME = "sonar.gitlab.ref_name";
 
     @Override
     public List getExtensions() {

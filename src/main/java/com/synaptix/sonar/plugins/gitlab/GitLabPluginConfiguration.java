@@ -28,8 +28,6 @@ import javax.annotation.CheckForNull;
 @InstantiationStrategy(InstantiationStrategy.PER_BATCH)
 public class GitLabPluginConfiguration implements BatchComponent {
 
-    public static final int MAX_GLOBAL_ISSUES = 10;
-
     private Settings settings;
 
     public GitLabPluginConfiguration(Settings settings) {
@@ -47,8 +45,8 @@ public class GitLabPluginConfiguration implements BatchComponent {
     }
 
     @CheckForNull
-    public String ref() {
-        return settings.getString(GitLabPlugin.GITLAB_REF);
+    public String refName() {
+        return settings.getString(GitLabPlugin.GITLAB_REF_NAME);
     }
 
     @CheckForNull
@@ -64,4 +62,10 @@ public class GitLabPluginConfiguration implements BatchComponent {
     public String url() {
         return settings.getString(GitLabPlugin.GITLAB_URL);
     }
+
+    @CheckForNull
+    public int maxGlobalIssues() {
+        return settings.getInt(GitLabPlugin.GITLAB_MAX_GLOBAL_ISSUES);
+    }
+
 }
