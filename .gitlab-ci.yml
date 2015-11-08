@@ -1,0 +1,31 @@
+image: maven:3.3.3-jdk-8
+stages:
+  - build
+  - deploy
+build_job:
+  stage: build
+  only:
+    - master
+  script:
+    - mvn --batch-mode compile -Dmaven.test.skip=true
+build_merge_job:
+  stage: build
+  except:
+    - master
+    - tags
+  script:
+    - git merge origin master
+    - mvn --batch-mode compile -Dmaven.test.skip=true
+deploy_job:
+  stage: deploy
+  only:
+    - master
+  script:
+    - mvn --batch-mode deploy -Dmaven.test.skip=true
+deploy_tags_job:
+  stage: deploy
+  only:
+    - tags
+  script:
+    - mvn --batch-mode org.codehaus.mojo:versions-maven-plugin:2.1:set -DnewVersion=$CI_BUILD_REF_NAME -DgenerateBackupPoms=false
+    - mvn --batch-mode deploy -Dmaven.test.skip=true
