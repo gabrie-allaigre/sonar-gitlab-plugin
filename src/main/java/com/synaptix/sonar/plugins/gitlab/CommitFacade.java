@@ -126,7 +126,7 @@ public class CommitFacade implements BatchComponent {
     }
 
     public boolean hasFileLine(InputFile inputFile, int line) {
-        return patchPositionMappingByFile.get(getPath(inputFile)).containsKey(line);
+        return patchPositionMappingByFile.get(getPath(inputFile)).contains(line);
     }
 
     public String getGitLabUrl(InputFile inputFile, Integer issueLine) {
@@ -135,8 +135,7 @@ public class CommitFacade implements BatchComponent {
 
     public void createOrUpdateReviewComment(InputFile inputFile, Integer line, String body) {
         String fullpath = getPath(inputFile);
-        //Integer lineInPatch = patchPositionMappingByFile.get(fullpath).get(line);
-        System.out.println("Review : "+fullpath+" line : "+line);
+        //System.out.println("Review : "+fullpath+" line : "+line);
         try {
             gitLabAPI.getGitLabAPICommits().postCommitComments(config.projectId(), config.commitSHA(), body, fullpath, line, "new");
         } catch (IOException e) {
