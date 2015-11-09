@@ -42,8 +42,7 @@ import java.util.List;
         key = GitLabPlugin.GITLAB_USER_TOKEN,
         name = "GitLab User Token",
         description = "GitLab user token is reporter role",
-        global = true,
-        project = true), @Property(
+        global = true), @Property(
         key = GitLabPlugin.GITLAB_PROJECT_ID,
         name = "GitLab Project id",
         description = "The unique id, path with namespace, name with namespace, web url, ssh url or http url of the current project that GitLab",
