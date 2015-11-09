@@ -40,8 +40,7 @@ public class CommitIssuePostJob implements org.sonar.api.batch.PostJob, CheckPro
     private final InputFileCache inputFileCache;
     private final MarkDownUtils markDownUtils;
 
-    public CommitIssuePostJob(GitLabPluginConfiguration gitLabPluginConfiguration,CommitFacade commitFacade, ProjectIssues projectIssues, InputFileCache inputFileCache,
-            MarkDownUtils markDownUtils) {
+    public CommitIssuePostJob(GitLabPluginConfiguration gitLabPluginConfiguration, CommitFacade commitFacade, ProjectIssues projectIssues, InputFileCache inputFileCache, MarkDownUtils markDownUtils) {
         this.gitLabPluginConfiguration = gitLabPluginConfiguration;
         this.commitFacade = commitFacade;
         this.projectIssues = projectIssues;
@@ -56,7 +55,7 @@ public class CommitIssuePostJob implements org.sonar.api.batch.PostJob, CheckPro
 
     @Override
     public void executeOn(Project project, SensorContext context) {
-        GlobalReport report = new GlobalReport(gitLabPluginConfiguration,markDownUtils);
+        GlobalReport report = new GlobalReport(gitLabPluginConfiguration, markDownUtils);
 
         Map<InputFile, Map<Integer, StringBuilder>> commentsToBeAddedByLine = processIssues(report);
 

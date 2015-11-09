@@ -82,13 +82,18 @@ public class CommitFacade implements BatchComponent {
     }
 
     private GitLabProject getGitLabProject() throws IOException {
+        if (config.projectId() == null) {
+            throw new IllegalStateException("Unable found project for null project name");
+        }
         List<GitLabProject> projects = gitLabAPI.getGitLabAPIProjects().getProjects(null, null, null, null, null).stream()
-                .filter(project -> isEqualsNameWithNamespace(project.getNameWithNamespace(), config.projectName())).collect(Collectors.toList());
+                .filter(project -> config.projectId().equals(project.getId()) || config.projectId().equals(project.getPathWithNamespace()) || config.projectId().equals(project.getHttpUrl())
+                        || config.projectId().equals(project.getSshUrl()) || config.projectId().equals(project.getWebUrl()) || config.projectId().equals(project.getNameWithNamespace()))
+                .collect(Collectors.toList());
         if (projects.isEmpty()) {
-            throw new IllegalStateException("Unable found project for " + config.projectName());
+            throw new IllegalStateException("Unable found project for " + config.projectId());
         }
         if (projects.size() > 1) {
-            throw new IllegalStateException("Multiple found projects for " + config.projectName());
+            throw new IllegalStateException("Multiple found projects for " + config.projectId());
         }
         return projects.get(0);
     }

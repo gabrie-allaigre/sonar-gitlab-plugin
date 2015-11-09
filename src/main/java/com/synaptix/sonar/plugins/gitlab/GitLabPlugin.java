@@ -44,9 +44,9 @@ import java.util.List;
         description = "GitLab user token is reporter role",
         global = true,
         project = true), @Property(
-        key = GitLabPlugin.GITLAB_PROJECT_NAME,
-        name = "GitLab Project name with namespace",
-        description = "The unique name with namespace of the current project that GitLab",
+        key = GitLabPlugin.GITLAB_PROJECT_ID,
+        name = "GitLab Project id",
+        description = "The unique id, path with namespace, name with namespace, web url, ssh url or http url of the current project that GitLab",
         global = false,
         project = true), @Property(key = GitLabPlugin.GITLAB_COMMIT_SHA,
         name = "GitLab Commit SHA",
@@ -65,7 +65,7 @@ public class GitLabPlugin extends SonarPlugin {
     public static final String GITLAB_URL = "sonar.gitlab.url";
     public static final String GITLAB_MAX_GLOBAL_ISSUES = "sonar.gitlab.max_global_issues";
     public static final String GITLAB_USER_TOKEN = "sonar.gitlab.user_token";
-    public static final String GITLAB_PROJECT_NAME = "sonar.gitlab.project_name";
+    public static final String GITLAB_PROJECT_ID = "sonar.gitlab.project_name";
     public static final String GITLAB_COMMIT_SHA = "sonar.gitlab.commit_sha";
     public static final String GITLAB_REF_NAME = "sonar.gitlab.ref_name";
 

@@ -14,7 +14,7 @@ build_merge_job:
     - master
     - tags
   script:
-    - git merge origin master
+    - git merge origin master --no-commit --no-ff
     - mvn --batch-mode compile -Dmaven.test.skip=true
 deploy_job:
   stage: deploy
