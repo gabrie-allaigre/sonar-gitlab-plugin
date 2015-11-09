@@ -65,7 +65,7 @@ public class GitLabPlugin extends SonarPlugin {
     public static final String GITLAB_URL = "sonar.gitlab.url";
     public static final String GITLAB_MAX_GLOBAL_ISSUES = "sonar.gitlab.max_global_issues";
     public static final String GITLAB_USER_TOKEN = "sonar.gitlab.user_token";
-    public static final String GITLAB_PROJECT_ID = "sonar.gitlab.project_name";
+    public static final String GITLAB_PROJECT_ID = "sonar.gitlab.project_id";
     public static final String GITLAB_COMMIT_SHA = "sonar.gitlab.commit_sha";
     public static final String GITLAB_REF_NAME = "sonar.gitlab.ref_name";
 
