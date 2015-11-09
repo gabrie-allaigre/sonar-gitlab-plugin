@@ -13,7 +13,7 @@ Ajoute pour chaque **commit** dans GitLab, un commentaire global sur les nouvell
 
 Pour ajouter le plugin SonarQube :
 
-- Télécharger la dernière version du plugin http://nexus.synaptix-labs.com/service/local/repo_groups/public_release/content/com/synaptix/sonar-gitlab-plugin/1.0.0/sonar-gitlab-plugin-1.1.0.jar
+- Télécharger la dernière version du plugin http://nexus.synaptix-labs.com/service/local/repo_groups/public_release/content/com/synaptix/sonar-gitlab-plugin/1.1.0/sonar-gitlab-plugin-1.1.0.jar
 - Copier le fichier dans le répertoire `SONARQUBE_HOME/extensions/plugins`
 - Relancer SonarQube 
 
