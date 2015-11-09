@@ -22,7 +22,7 @@
     <properties>
         <jdk.min.version>1.8</jdk.min.version>
 
-        <java-gitlab-api.version>1.3.0</java-gitlab-api.version>
+        <java-gitlab-api.version>1.4.0</java-gitlab-api.version>
         <license.mailto>contact@synaptix-labs.com</license.mailto>
 
         <sonar.version>5.1</sonar.version>

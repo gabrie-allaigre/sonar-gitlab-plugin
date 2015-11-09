@@ -35,8 +35,8 @@ public class GitLabPluginConfiguration implements BatchComponent {
     }
 
     @CheckForNull
-    public String projectId() {
-        return settings.getString(GitLabPlugin.GITLAB_PROJECT_ID);
+    public String projectName() {
+        return settings.getString(GitLabPlugin.GITLAB_PROJECT_NAME);
     }
 
     @CheckForNull

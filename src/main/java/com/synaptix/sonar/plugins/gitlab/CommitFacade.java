@@ -36,6 +36,7 @@ import java.io.StringReader;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 /**
  * Facade for all WS interaction with GitLab.
@@ -61,11 +62,11 @@ public class CommitFacade implements BatchComponent {
         }
         gitLabAPI = GitLabAPI.connect(config.url(), config.userToken());
         try {
-            gitLabProject = gitLabAPI.getGitLabAPIProjects().getProject(config.projectId());
+            gitLabProject = getGitLabProject();
 
-            patchPositionMappingByFile = mapPatchPositionsToLines(gitLabAPI.getGitLabAPICommits().getCommitDiffs(config.projectId(), config.commitSHA()));
+            patchPositionMappingByFile = mapPatchPositionsToLines(gitLabAPI.getGitLabAPICommits().getCommitDiffs(gitLabProject.getId(), config.commitSHA()));
         } catch (IOException e) {
-            throw new IllegalStateException("Unable to perform GitHub WS operation", e);
+            throw new IllegalStateException("Unable to perform GitLab WS operation", e);
         }
     }
 
@@ -78,6 +79,25 @@ public class CommitFacade implements BatchComponent {
             return baseDir;
         }
         return findGitBaseDir(baseDir.getParentFile());
+    }
+
+    private GitLabProject getGitLabProject() throws IOException {
+        List<GitLabProject> projects = gitLabAPI.getGitLabAPIProjects().getProjects(null, null, null, null, null).stream()
+                .filter(project -> isEqualsNameWithNamespace(project.getNameWithNamespace(), config.projectName())).collect(Collectors.toList());
+        if (projects.isEmpty()) {
+            throw new IllegalStateException("Unable found project for " + config.projectName());
+        }
+        if (projects.size() > 1) {
+            throw new IllegalStateException("Multiple found projects for " + config.projectName());
+        }
+        return projects.get(0);
+    }
+
+    private static boolean isEqualsNameWithNamespace(String current, String f) {
+        if (current == null || f == null) {
+            return false;
+        }
+        return current.replaceAll(" ", "").equalsIgnoreCase(f.replaceAll(" ", ""));
     }
 
     private static Map<String, Set<Integer>> mapPatchPositionsToLines(List<GitLabCommitDiff> diffs) throws IOException {
@@ -119,7 +139,7 @@ public class CommitFacade implements BatchComponent {
 
     public void createOrUpdateSonarQubeStatus(String status, String statusDescription) {
         try {
-            gitLabAPI.getGitLabAPICommits().postCommitStatus(config.projectId(), config.commitSHA(), status, config.refName(), COMMIT_CONTEXT, null, statusDescription);
+            gitLabAPI.getGitLabAPICommits().postCommitStatus(gitLabProject.getId(), config.commitSHA(), status, config.refName(), COMMIT_CONTEXT, null, statusDescription);
         } catch (IOException e) {
             throw new IllegalStateException("Unable to update commit status", e);
         }
@@ -145,7 +165,7 @@ public class CommitFacade implements BatchComponent {
         String fullpath = getPath(inputFile);
         //System.out.println("Review : "+fullpath+" line : "+line);
         try {
-            gitLabAPI.getGitLabAPICommits().postCommitComments(config.projectId(), config.commitSHA(), body, fullpath, line, "new");
+            gitLabAPI.getGitLabAPICommits().postCommitComments(gitLabProject.getId(), config.commitSHA(), body, fullpath, line, "new");
         } catch (IOException e) {
             throw new IllegalStateException("Unable to create or update review comment in file " + fullpath + " at line " + line, e);
         }
@@ -157,7 +177,7 @@ public class CommitFacade implements BatchComponent {
 
     public void addGlobalComment(String comment) {
         try {
-            gitLabAPI.getGitLabAPICommits().postCommitComments(config.projectId(), config.commitSHA(), comment, null, null, null);
+            gitLabAPI.getGitLabAPICommits().postCommitComments(gitLabProject.getId(), config.commitSHA(), comment, null, null, null);
         } catch (IOException e) {
             throw new IllegalStateException("Unable to comment the commit", e);
         }
