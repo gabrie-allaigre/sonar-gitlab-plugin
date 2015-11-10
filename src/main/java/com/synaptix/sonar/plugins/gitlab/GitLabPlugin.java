@@ -57,6 +57,13 @@ import java.util.List;
         description = "The commit revision for which project is built",
         global = false,
         project = false,
+        module = false), @Property(key = GitLabPlugin.GITLAB_IGNORE_FILE,
+        name = "GitLab Ingore file",
+        description = "Ignore issues on files no modified by the commit",
+        defaultValue = "false",
+        type = PropertyType.BOOLEAN,
+        global = false,
+        project = false,
         module = false) })
 
 public class GitLabPlugin extends SonarPlugin {
@@ -67,6 +74,7 @@ public class GitLabPlugin extends SonarPlugin {
     public static final String GITLAB_PROJECT_ID = "sonar.gitlab.project_id";
     public static final String GITLAB_COMMIT_SHA = "sonar.gitlab.commit_sha";
     public static final String GITLAB_REF_NAME = "sonar.gitlab.ref_name";
+    public static final String GITLAB_IGNORE_FILE = "sonar.gitlab.ignore_file";
 
     @Override
     public List getExtensions() {

@@ -155,7 +155,7 @@ public class CommitFacade implements BatchComponent {
     }
 
     public boolean hasFileLine(InputFile inputFile, int line) {
-        return patchPositionMappingByFile.get(getPath(inputFile)).contains(line);
+        return hasFile(inputFile) && patchPositionMappingByFile.get(getPath(inputFile)).contains(line);
     }
 
     public String getGitLabUrl(InputFile inputFile, Integer issueLine) {

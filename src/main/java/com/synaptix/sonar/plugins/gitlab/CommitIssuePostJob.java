@@ -83,7 +83,7 @@ public class CommitIssuePostJob implements org.sonar.api.batch.PostJob, CheckPro
             }
             Integer issueLine = issue.line();
             InputFile inputFile = inputFileCache.byKey(issue.componentKey());
-            if (inputFile != null && !commitFacade.hasFile(inputFile)) {
+            if (gitLabPluginConfiguration.ignoreFileNotModified() && inputFile != null && !commitFacade.hasFile(inputFile)) {
                 // SONARGITUB-13 Ignore issues on files no modified by the P/R
                 continue;
             }

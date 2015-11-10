@@ -68,4 +68,8 @@ public class GitLabPluginConfiguration implements BatchComponent {
         return settings.getInt(GitLabPlugin.GITLAB_MAX_GLOBAL_ISSUES);
     }
 
+    @CheckForNull
+    public boolean ignoreFileNotModified() {
+        return settings.getBoolean(GitLabPlugin.GITLAB_IGNORE_FILE);
+    }
 }
