@@ -46,7 +46,7 @@ public class InputFileCache implements BatchComponent {
 
   @Override
   public String toString() {
-    return "GitHub Plugin InputFile Cache";
+    return "GitLab Plugin InputFile Cache";
   }
 
 }

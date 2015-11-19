@@ -54,7 +54,7 @@ public class InputFileCacheSensor implements Sensor {
 
   @Override
   public String toString() {
-    return "GitHub Plugin InputFile Cache";
+    return "GitLab Plugin InputFile Cache";
   }
 
 }
