@@ -8,6 +8,8 @@ build_job:
     - master
   script:
     - mvn --batch-mode compile -Dmaven.test.skip=true
+  tags:
+    - docker
 build_merge_job:
   stage: build
   except:
@@ -16,12 +18,16 @@ build_merge_job:
   script:
     - git merge origin master --no-commit --no-ff
     - mvn --batch-mode compile -Dmaven.test.skip=true
+  tags:
+    - docker
 deploy_job:
   stage: deploy
   only:
     - master
   script:
     - mvn --batch-mode deploy -Dmaven.test.skip=true
+  tags:
+    - docker
 deploy_tags_job:
   stage: deploy
   only:
@@ -29,3 +35,5 @@ deploy_tags_job:
   script:
     - mvn --batch-mode org.codehaus.mojo:versions-maven-plugin:2.1:set -DnewVersion=$CI_BUILD_REF_NAME -DgenerateBackupPoms=false
     - mvn --batch-mode deploy -Dmaven.test.skip=true
+  tags:
+    - docker
