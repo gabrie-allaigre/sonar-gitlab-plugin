@@ -26,6 +26,9 @@ deploy_job:
     - master
   script:
     - mvn --batch-mode deploy -Dmaven.test.skip=true
+  artifacts:
+    paths:
+      - /target/sonar-gitlab-plugin-*-SNAPSHOT.jar
   tags:
     - docker
 deploy_tags_job:
@@ -35,5 +38,8 @@ deploy_tags_job:
   script:
     - mvn --batch-mode org.codehaus.mojo:versions-maven-plugin:2.1:set -DnewVersion=$CI_BUILD_REF_NAME -DgenerateBackupPoms=false
     - mvn --batch-mode deploy -Dmaven.test.skip=true
+  artifacts:
+    paths:
+      - /target/sonar-gitlab-plugin-$CI_BUILD_REF_NAME.jar
   tags:
     - docker
