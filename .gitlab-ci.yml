@@ -28,7 +28,7 @@ deploy_job:
     - mvn --batch-mode deploy -Dmaven.test.skip=true
   artifacts:
     paths:
-      - /target/sonar-gitlab-plugin-*-SNAPSHOT.jar
+      - /target/sonar-gitlab-plugin-1.3.0-SNAPSHOT.jar
   tags:
     - docker
 deploy_tags_job:
