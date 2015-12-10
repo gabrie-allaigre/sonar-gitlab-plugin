@@ -5,35 +5,44 @@ Sonar GitLab Plugin
 
 Fork to https://github.com/SonarCommunity/sonar-github
 
-# But
+# Goal
 
-Ajoute pour chaque **commit** dans GitLab, un commentaire global sur les nouvelles anomalies ajoutées par ce **commit** et commente les lignes des fichiers.
+Add to each **commit** GitLab in a global commentary on the new anomalies added by this **commit** and add comment lines of modified files.
+
+Comment commits:
+![Comment commits](doc/comment_commits.jpg)
+
+Comment line:
+![Comment line](doc/comment_line.jpg)
+
+Add build line:
+![Add buids](doc/builds.jpg)
 
 # Usage
 
-Pour ajouter le plugin SonarQube :
+For add plugin in SonarQube :
 
-- Télécharger la dernière version du plugin http://nexus.synaptix-labs.com/service/local/repo_groups/public_release/content/com/synaptix/sonar-gitlab-plugin/1.4.0/sonar-gitlab-plugin-1.4.0.jar
-- Copier le fichier dans le répertoire `SONARQUBE_HOME/extensions/plugins`
-- Relancer SonarQube 
+- Download last version http://nexus.synaptix-labs.com/service/local/repo_groups/public_release/content/com/synaptix/sonar-gitlab-plugin/1.4.0/sonar-gitlab-plugin-1.4.0.jar
+- Copy file in extensions directory `SONARQUBE_HOME/extensions/plugins`
+- Restart SonarQube 
 
-# Ligne de commande
+# Command line
 
-Exemple :
+Example :
 
 ``` shell
 mvn --batch-mode verify sonar:sonar -Dsonar.host.url=$SONAR_URL -Dsonar.analysis.mode=preview -Dsonar.issuesReport.console.enable=true -Dsonar.gitlab.commit_sha=$CI_BUILD_REF -Dsonar.gitlab.ref=CI_BUILD_REF_NAME
 ```
 
-| Variable | Commentaire | Type |
+| Variable | Comment | Type |
 | -------- | ----------- | ---- |
-| sonar.gitlab.url | Adresse du GitLab | Administration, Variable |
-| sonar.gitlab.max_global_issues | Nombre maximum d'anomalie à afficher dans le commentaire global |  Administration, Variable |
-| sonar.gitlab.user_token | Token de l'utilisateur qui peut faire des rapports sur le projet, soit global ou par projet |  Administration, Projet, Variable |
-| sonar.gitlab.project_id | Identifiant du projet dans GitLab, soit id interne, soit namespace+name, soit namespace+path, soit http url, soit ssh url ou soit web url | Projet, Variable |
-| sonar.gitlab.commit_sha | SHA du commit à commenter | Variable |
-| sonar.gitlab.ref_name | nom de la branche ou reference du commit | Variable |
+| sonar.gitlab.url | GitLab url | Administration, Variable |
+| sonar.gitlab.max_global_issues | Maximum number of anomalies to be displayed in the global comment |  Administration, Variable |
+| sonar.gitlab.user_token | Token of the user who can make reports on the project, either global or per project |  Administration, Projet, Variable |
+| sonar.gitlab.project_id | Project ID in GitLab or internal id or namespace + name or namespace + path or url http or ssh url or url or web | Projet, Variable |
+| sonar.gitlab.commit_sha | SHA of the commit comment | Variable |
+| sonar.gitlab.ref_name | Branch name or reference of the commit | Variable |
 
-- Administration : Dans les **Settings** globals de SonarQube
-- Projet : Dans les **Settings** du projet de SonarQube
-- Variable : En variable d'environement, soit dans le `pom.xml` soit en ligne de commande avec `-D`
+- Administration : **Settings** globals in SonarQube
+- Projet : **Settings** of projet in SonarQube
+- Variable : In an environment variable or in the `pom.xml` either from the command line with` -D`
