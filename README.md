@@ -38,11 +38,11 @@ mvn --batch-mode verify sonar:sonar -Dsonar.host.url=$SONAR_URL -Dsonar.analysis
 | -------- | ----------- | ---- |
 | sonar.gitlab.url | GitLab url | Administration, Variable |
 | sonar.gitlab.max_global_issues | Maximum number of anomalies to be displayed in the global comment |  Administration, Variable |
-| sonar.gitlab.user_token | Token of the user who can make reports on the project, either global or per project |  Administration, Projet, Variable |
-| sonar.gitlab.project_id | Project ID in GitLab or internal id or namespace + name or namespace + path or url http or ssh url or url or web | Projet, Variable |
+| sonar.gitlab.user_token | Token of the user who can make reports on the project, either global or per project |  Administration, Project, Variable |
+| sonar.gitlab.project_id | Project ID in GitLab or internal id or namespace + name or namespace + path or url http or ssh url or url or web | Project, Variable |
 | sonar.gitlab.commit_sha | SHA of the commit comment | Variable |
 | sonar.gitlab.ref_name | Branch name or reference of the commit | Variable |
 
 - Administration : **Settings** globals in SonarQube
-- Projet : **Settings** of projet in SonarQube
+- Project : **Settings** of project in SonarQube
 - Variable : In an environment variable or in the `pom.xml` either from the command line with` -D`
