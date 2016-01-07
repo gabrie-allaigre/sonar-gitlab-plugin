@@ -19,10 +19,8 @@
  */
 package com.synaptix.sonar.plugins.gitlab;
 
-import org.sonar.api.CoreProperties;
 import org.sonar.api.batch.bootstrap.ProjectBuilder;
 import org.sonar.api.config.Settings;
-import org.sonar.api.utils.MessageException;
 
 /**
  * Trigger load of pull request metadata at the very beginning of SQ analysis. Also
@@ -45,23 +43,9 @@ public class CommitProjectBuilder extends ProjectBuilder {
         if (!gitLabPluginConfiguration.isEnabled()) {
             return;
         }
-        checkMode();
 
         commitFacade.init(context.projectReactor().getRoot().getBaseDir());
 
         commitFacade.createOrUpdateSonarQubeStatus("pending", "SonarQube analysis in progress");
     }
-
-    private void checkMode() {
-        boolean isIssues =
-                settings.getBoolean(CoreProperties.DRY_RUN) || CoreProperties.ANALYSIS_MODE_PREVIEW.equals(settings.getString(CoreProperties.ANALYSIS_MODE)) || CoreProperties.ANALYSIS_MODE_INCREMENTAL
-                        .equals(settings.getString(CoreProperties.ANALYSIS_MODE))
-                        // 5.2+
-                        || "issues".equals(settings.getString(CoreProperties.ANALYSIS_MODE));
-        if (!isIssues) {
-            throw MessageException.of("The GitLab plugin is only intended to be used in preview or issues mode. Please set '" + CoreProperties.ANALYSIS_MODE + "'.");
-        }
-
-    }
-
 }
