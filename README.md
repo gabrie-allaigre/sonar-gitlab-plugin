@@ -1,8 +1,6 @@
 Sonar GitLab Plugin
 ===================
 
-[![build status](https://gitlab.synaptix-labs.com/ci/projects/12/status.png?ref=master)](https://gitlab.synaptix-labs.com/ci/projects/12?ref=master)
-
 Fork to https://github.com/SonarCommunity/sonar-github
 
 # Goal
@@ -22,7 +20,7 @@ Add build line:
 
 For add plugin in SonarQube :
 
-- Download last version http://nexus.synaptix-labs.com/service/local/repo_groups/public_release/content/com/synaptix/sonar-gitlab-plugin/1.4.0/sonar-gitlab-plugin-1.4.0.jar
+- Download last version http://nexus.synaptix-labs.com/service/local/repo_groups/public_release/content/com/synaptix/sonar-gitlab-plugin/1.5.0/sonar-gitlab-plugin-1.5.0.jar
 - Copy file in extensions directory `SONARQUBE_HOME/extensions/plugins`
 - Restart SonarQube 
 
