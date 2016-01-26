@@ -72,4 +72,15 @@ public class GitLabPluginConfiguration implements BatchComponent {
     public boolean ignoreFileNotModified() {
         return settings.getBoolean(GitLabPlugin.GITLAB_IGNORE_FILE);
     }
+
+    @CheckForNull
+    public String globalTemplate() {
+        return settings.getString(GitLabPlugin.GITLAB_GLOBAL_TEMPLATE);
+    }
+
+    @CheckForNull
+    public String inlineTemplate() {
+        return settings.getString(GitLabPlugin.GITLAB_INLINE_TEMPLATE);
+    }
+
 }

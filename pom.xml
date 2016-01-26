@@ -32,6 +32,8 @@
         <animal-sniffer.signature.groupId>org.kaazing.mojo.signature</animal-sniffer.signature.groupId>
         <animal-sniffer.signature.artifactId>java18</animal-sniffer.signature.artifactId>
         <animal-sniffer.signature.version>1.0</animal-sniffer.signature.version>
+
+        <freemarker.version>2.3.23</freemarker.version>
     </properties>
     <developers>
         <developer>
@@ -116,6 +118,11 @@
             <groupId>com.synaptix</groupId>
             <artifactId>java-gitlab-api</artifactId>
             <version>${java-gitlab-api.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.freemarker</groupId>
+            <artifactId>freemarker</artifactId>
+            <version>${freemarker.version}</version>
         </dependency>
 
         <!-- unit tests -->

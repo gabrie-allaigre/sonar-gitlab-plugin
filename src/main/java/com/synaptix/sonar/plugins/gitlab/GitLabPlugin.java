@@ -64,7 +64,19 @@ import java.util.List;
         type = PropertyType.BOOLEAN,
         global = false,
         project = false,
-        module = false) })
+        module = false), @Property(
+        key = GitLabPlugin.GITLAB_GLOBAL_TEMPLATE,
+        name = "GitLab Global Template",
+        description = "Global Template for GitLab",
+        type = PropertyType.TEXT,
+        global = true,
+        project = false), @Property(
+        key = GitLabPlugin.GITLAB_INLINE_TEMPLATE,
+        name = "GitLab Inline Template",
+        description = "Inline Template for GitLab",
+        type = PropertyType.TEXT,
+        global = true,
+        project = false) })
 
 public class GitLabPlugin extends SonarPlugin {
 
@@ -75,6 +87,8 @@ public class GitLabPlugin extends SonarPlugin {
     public static final String GITLAB_COMMIT_SHA = "sonar.gitlab.commit_sha";
     public static final String GITLAB_REF_NAME = "sonar.gitlab.ref_name";
     public static final String GITLAB_IGNORE_FILE = "sonar.gitlab.ignore_file";
+    public static final String GITLAB_GLOBAL_TEMPLATE = "sonar.gitlab.global_template";
+    public static final String GITLAB_INLINE_TEMPLATE = "sonar.gitlab.inline_template";
 
     @Override
     public List getExtensions() {
