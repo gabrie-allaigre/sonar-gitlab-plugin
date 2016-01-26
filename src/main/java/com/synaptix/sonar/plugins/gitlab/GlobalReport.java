@@ -23,14 +23,20 @@ import org.sonar.api.issue.Issue;
 import org.sonar.api.rule.Severity;
 
 import javax.annotation.Nullable;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class GlobalReport {
+
+    private static final String[] SEVERITIES = { Severity.BLOCKER, Severity.CRITICAL, Severity.MAJOR, Severity.MINOR, Severity.INFO };
+
     private final GitLabPluginConfiguration gitLabPluginConfiguration;
     private final MarkDownUtils markDownUtils;
     private int[] newIssuesBySeverity = new int[Severity.ALL.size()];
-    private StringBuilder notReportedOnDiff = new StringBuilder();
+    private Map<String, List<String>> notReportedOnDiffMap = new HashMap<>();
     private int notReportedIssueCount = 0;
-    private int notReportedDisplayedIssueCount = 0;
 
     public GlobalReport(GitLabPluginConfiguration gitLabPluginConfiguration, MarkDownUtils markDownUtils) {
         super();
@@ -49,12 +55,27 @@ public class GlobalReport {
         if (hasNewIssue()) {
             sb.append("\nWatch the comments in this conversation to review them.");
         }
-        if (notReportedOnDiff.length() > 0) {
-            sb.append("\nNote: the following issues could not be reported as comments because they are located on lines that are not displayed in this commit:\n")
-                    .append(notReportedOnDiff.toString());
+        if (notReportedIssueCount > 0) {
+            sb.append("\nNote: the following issues could not be reported as comments because they are located on lines that are not displayed in this commit:\n");
 
-            if (notReportedIssueCount >= gitLabPluginConfiguration.maxGlobalIssues()) {
-                sb.append("* ... ").append(notReportedIssueCount - gitLabPluginConfiguration.maxGlobalIssues()).append(" more\n");
+            int notReportedDisplayedIssueCount = 0;
+            int i = 0;
+            for (String severity : SEVERITIES) {
+                List<String> ss = notReportedOnDiffMap.get(severity);
+                if (ss != null && !ss.isEmpty()) {
+                    for (String s : ss) {
+                        if (i > gitLabPluginConfiguration.maxGlobalIssues()) {
+                            sb.append(s).append("\n");
+                        } else {
+                            notReportedDisplayedIssueCount++;
+                        }
+                        i++;
+                    }
+                }
+            }
+
+            if (notReportedDisplayedIssueCount > 0) {
+                sb.append("* ... ").append(notReportedDisplayedIssueCount).append(" more\n");
             }
         }
         return sb.toString();
@@ -79,11 +100,9 @@ public class GlobalReport {
         int newIssues = newIssues(Severity.BLOCKER) + newIssues(Severity.CRITICAL) + newIssues(Severity.MAJOR) + newIssues(Severity.MINOR) + newIssues(Severity.INFO);
         if (newIssues > 0) {
             sb.append(newIssues).append(" issue" + (newIssues > 1 ? "s" : "")).append(":\n");
-            printNewIssuesForMarkdown(sb, Severity.BLOCKER);
-            printNewIssuesForMarkdown(sb, Severity.CRITICAL);
-            printNewIssuesForMarkdown(sb, Severity.MAJOR);
-            printNewIssuesForMarkdown(sb, Severity.MINOR);
-            printNewIssuesForMarkdown(sb, Severity.INFO);
+            for (String severity : SEVERITIES) {
+                printNewIssuesForMarkdown(sb, severity);
+            }
         } else {
             sb.append("no issues.");
         }
@@ -130,10 +149,19 @@ public class GlobalReport {
         if (!reportedOnDiff) {
             notReportedIssueCount++;
 
-            if (notReportedDisplayedIssueCount < gitLabPluginConfiguration.maxGlobalIssues()) {
+            List<String> notReportedOnDiffs = notReportedOnDiffMap.get(issue.severity());
+            if (notReportedOnDiffs == null) {
+                notReportedOnDiffs = new ArrayList<>();
+                notReportedOnDiffMap.put(issue.severity(), notReportedOnDiffs);
+            }
+
+            notReportedOnDiffs
+                    .add(new StringBuilder().append("* ").append(markDownUtils.globalIssue(issue.severity(), issue.message(), issue.ruleKey().toString(), gitLabUrl, issue.componentKey())).toString());
+
+            /*if (notReportedDisplayedIssueCount < gitLabPluginConfiguration.maxGlobalIssues()) {
                 notReportedOnDiff.append("* ").append(markDownUtils.globalIssue(issue.severity(), issue.message(), issue.ruleKey().toString(), gitLabUrl, issue.componentKey())).append("\n");
                 notReportedDisplayedIssueCount++;
-            }
+            }*/
         }
     }
 
