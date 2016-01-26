@@ -19,6 +19,7 @@
         <name>Synaptix-Labs</name>
         <url>http://www.synaptix-labs.com</url>
     </organization>
+    <url>https://gitlab.synaptix-labs.com/gabriel.allaigre/sonar-gitlab-plugin</url>
     <properties>
         <jdk.min.version>1.8</jdk.min.version>
 

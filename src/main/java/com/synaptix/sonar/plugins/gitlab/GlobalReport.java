@@ -64,7 +64,7 @@ public class GlobalReport {
                 List<String> ss = notReportedOnDiffMap.get(severity);
                 if (ss != null && !ss.isEmpty()) {
                     for (String s : ss) {
-                        if (i > gitLabPluginConfiguration.maxGlobalIssues()) {
+                        if (i < gitLabPluginConfiguration.maxGlobalIssues()) {
                             sb.append(s).append("\n");
                         } else {
                             notReportedDisplayedIssueCount++;

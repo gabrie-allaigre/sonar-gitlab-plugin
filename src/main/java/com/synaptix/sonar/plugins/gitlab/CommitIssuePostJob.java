@@ -84,7 +84,6 @@ public class CommitIssuePostJob implements org.sonar.api.batch.PostJob, CheckPro
             Integer issueLine = issue.line();
             InputFile inputFile = inputFileCache.byKey(issue.componentKey());
             if (gitLabPluginConfiguration.ignoreFileNotModified() && inputFile != null && !commitFacade.hasFile(inputFile)) {
-                // SONARGITUB-13 Ignore issues on files no modified by the P/R
                 continue;
             }
             boolean reportedInline = false;
@@ -94,7 +93,7 @@ public class CommitIssuePostJob implements org.sonar.api.batch.PostJob, CheckPro
                     String message = issue.message();
                     String ruleKey = issue.ruleKey().toString();
                     if (!commentToBeAddedByFileAndByLine.containsKey(inputFile)) {
-                        commentToBeAddedByFileAndByLine.put(inputFile, new HashMap<Integer, StringBuilder>());
+                        commentToBeAddedByFileAndByLine.put(inputFile, new HashMap<>());
                     }
                     Map<Integer, StringBuilder> commentsByLine = commentToBeAddedByFileAndByLine.get(inputFile);
                     if (!commentsByLine.containsKey(line)) {
