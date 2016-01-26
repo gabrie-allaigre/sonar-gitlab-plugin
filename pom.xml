@@ -19,7 +19,7 @@
         <name>Synaptix-Labs</name>
         <url>http://www.synaptix-labs.com</url>
     </organization>
-    <url>https://gitlab.synaptix-labs.com/gabriel.allaigre/sonar-gitlab-plugin</url>
+    <url>https://gitlab.synaptix-labs.com/gabriel-allaigre/sonar-gitlab-plugin</url>
     <properties>
         <jdk.min.version>1.8</jdk.min.version>
 
@@ -44,16 +44,16 @@
         </developer>
     </developers>
     <scm>
-        <url>https://gitlab.synaptix-labs.com/gabriel.allaigre/sonar-gitlab-plugin</url>
-        <connection>scm:git:https://gitlab.synaptix-labs.com/gabriel.allaigre/sonar-gitlab-plugin.git</connection>
+        <url>https://gitlab.synaptix-labs.com/gabriel-allaigre/sonar-gitlab-plugin</url>
+        <connection>scm:git:https://gitlab.synaptix-labs.com/gabriel-allaigre/sonar-gitlab-plugin.git</connection>
     </scm>
     <ciManagement>
         <system>gitlab-ci</system>
-        <url>https://gitlab.synaptix-labs.com/ci/projects/12</url>
+        <url>https://gitlab.synaptix-labs.com/gabriel-allaigre/sonar-gitlab-plugin/builds</url>
     </ciManagement>
     <issueManagement>
         <system>gitlab</system>
-        <url>https://gitlab.synaptix-labs.com/gabriel.allaigre/sonar-gitlab-plugin/issues</url>
+        <url>https://gitlab.synaptix-labs.com/gabriel-allaigre/sonar-gitlab-plugin/issues</url>
     </issueManagement>
     <repositories>
         <repository>
