@@ -157,11 +157,6 @@ public class GlobalReport {
 
             notReportedOnDiffs
                     .add(new StringBuilder().append("* ").append(markDownUtils.globalIssue(issue.severity(), issue.message(), issue.ruleKey().toString(), gitLabUrl, issue.componentKey())).toString());
-
-            /*if (notReportedDisplayedIssueCount < gitLabPluginConfiguration.maxGlobalIssues()) {
-                notReportedOnDiff.append("* ").append(markDownUtils.globalIssue(issue.severity(), issue.message(), issue.ruleKey().toString(), gitLabUrl, issue.componentKey())).append("\n");
-                notReportedDisplayedIssueCount++;
-            }*/
         }
     }
 
