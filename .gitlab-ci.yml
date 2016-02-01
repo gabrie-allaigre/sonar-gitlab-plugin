@@ -28,7 +28,7 @@ test_sonar_preview_job:
     - tags
   script:
     - git merge origin master --no-commit --no-ff
-    - mvn --batch-mode verify org.codehaus.mojo:sonar-maven-plugin:2.7.1:sonar -Dsonar.host.url=http://stx-th2-dev03.vlan-admin.private:9000 -Dsonar.analysis.mode=preview -Dsonar.issuesReport.console.enable=true -Dsonar.gitlab.commit_sha=$CI_BUILD_REF -Dsonar.gitlab.ref=$CI_BUILD_REF_NAME
+    - mvn --batch-mode verify org.sonarsource.scanner.maven:sonar-maven-plugin:3.0.1:sonar -Dsonar.host.url=http://stx-th2-dev03.vlan-admin.private:9000 -Dsonar.login=$SONAR_LOGIN -Dsonar.analysis.mode=preview -Dsonar.issuesReport.console.enable=true -Dsonar.gitlab.commit_sha=$CI_BUILD_REF -Dsonar.gitlab.ref=$CI_BUILD_REF_NAME
   tags:
     - docker
 test_sonar_job:
@@ -36,7 +36,7 @@ test_sonar_job:
   only:
     - master
   script:
-    - mvn --batch-mode verify org.codehaus.mojo:sonar-maven-plugin:2.7.1:sonar -Dsonar.host.url=http://stx-th2-dev03.vlan-admin.private:9000
+    - mvn --batch-mode verify org.sonarsource.scanner.maven:sonar-maven-plugin:3.0.1:sonar -Dsonar.host.url=http://stx-th2-dev03.vlan-admin.private:9000 -Dsonar.login=$SONAR_LOGIN
   tags:
     - docker
 deploy_job:
