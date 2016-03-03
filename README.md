@@ -8,13 +8,13 @@ Fork to https://github.com/SonarCommunity/sonar-github
 Add to each **commit** GitLab in a global commentary on the new anomalies added by this **commit** and add comment lines of modified files.
 
 Comment commits:
-![Comment commits](./doc/comment_commits.jpg)
+![Comment commits](doc/comment_commits.jpg)
 
 Comment line:
-![Comment line](./doc/comment_line.jpg)
+![Comment line](doc/comment_line.jpg)
 
 Add build line:
-![Add buids](./doc/builds.jpg)
+![Add buids](doc/builds.jpg)
 
 # Usage
 
