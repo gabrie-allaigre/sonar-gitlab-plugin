@@ -8,19 +8,19 @@ Fork to https://github.com/SonarCommunity/sonar-github
 Add to each **commit** GitLab in a global commentary on the new anomalies added by this **commit** and add comment lines of modified files.
 
 Comment commits:
-![Comment commits](doc/comment_commits.jpg)
+![Comment commits](./doc/comment_commits.jpg)
 
 Comment line:
-![Comment line](doc/comment_line.jpg)
+![Comment line](./doc/comment_line.jpg)
 
 Add build line:
-![Add buids](doc/builds.jpg)
+![Add buids](./doc/builds.jpg)
 
 # Usage
 
 For add plugin in SonarQube :
 
-- Download last version http://nexus.synaptix-labs.com/service/local/repo_groups/public_release/content/com/synaptix/sonar-gitlab-plugin/1.6.5/sonar-gitlab-plugin-1.6.5.jar
+- Download last version http://nexus.talanlabs.com/service/local/repo_groups/public_release/content/com/synaptix/sonar-gitlab-plugin/1.6.5/sonar-gitlab-plugin-1.6.5.jar
 - Copy file in extensions directory `SONARQUBE_HOME/extensions/plugins`
 - Restart SonarQube 
 
