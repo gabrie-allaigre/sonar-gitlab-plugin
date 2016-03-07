@@ -16,15 +16,15 @@
     <packaging>sonar-plugin</packaging>
     <inceptionYear>2015</inceptionYear>
     <organization>
-        <name>Synaptix-Labs</name>
-        <url>http://www.synaptix-labs.com</url>
+        <name>Talanlabs</name>
+        <url>http://www.talanlabs.com</url>
     </organization>
-    <url>https://gitlab.synaptix-labs.com/gabriel-allaigre/sonar-gitlab-plugin</url>
+    <url>https://gitlab.talanlabs.com/gabriel-allaigre/sonar-gitlab-plugin</url>
     <properties>
         <jdk.min.version>1.8</jdk.min.version>
 
         <java-gitlab-api.version>1.4.0</java-gitlab-api.version>
-        <license.mailto>contact@synaptix-labs.com</license.mailto>
+        <license.mailto>contact@talanlabs.com</license.mailto>
 
         <sonar.version>5.1</sonar.version>
         <sonar.pluginName>GitLab</sonar.pluginName>
@@ -38,43 +38,43 @@
     </properties>
     <developers>
         <developer>
-            <id>gabriel.allaigre@synaptix-labs.com</id>
+            <id>gabriel.allaigre@talanlabs.com</id>
             <name>Gabriel Allaigre</name>
-            <email>gabriel.allaigre@synaptix-labs.com</email>
+            <email>gabriel.allaigre@talanlabs.com</email>
         </developer>
     </developers>
     <scm>
-        <url>https://gitlab.synaptix-labs.com/gabriel-allaigre/sonar-gitlab-plugin</url>
-        <connection>scm:git:https://gitlab.synaptix-labs.com/gabriel-allaigre/sonar-gitlab-plugin.git</connection>
+        <url>https://gitlab.talanlabs.com/gabriel-allaigre/sonar-gitlab-plugin</url>
+        <connection>scm:git:https://gitlab.talanlabs.com/gabriel-allaigre/sonar-gitlab-plugin.git</connection>
     </scm>
     <ciManagement>
         <system>gitlab-ci</system>
-        <url>https://gitlab.synaptix-labs.com/gabriel-allaigre/sonar-gitlab-plugin/builds</url>
+        <url>https://gitlab.talanlabs.com/gabriel-allaigre/sonar-gitlab-plugin/builds</url>
     </ciManagement>
     <issueManagement>
         <system>gitlab</system>
-        <url>https://gitlab.synaptix-labs.com/gabriel-allaigre/sonar-gitlab-plugin/issues</url>
+        <url>https://gitlab.talanlabs.com/gabriel-allaigre/sonar-gitlab-plugin/issues</url>
     </issueManagement>
     <repositories>
         <repository>
-            <id>synaptix-releases-repository</id>
+            <id>talanlabs-releases-repository</id>
             <releases>
                 <enabled>true</enabled>
             </releases>
             <snapshots>
                 <enabled>false</enabled>
             </snapshots>
-            <url>http://nexus.synaptix-labs.com/content/groups/public_release</url>
+            <url>http://nexus.talanlabs.com/content/groups/public_release</url>
         </repository>
         <repository>
-            <id>synaptix-snapshots-repository</id>
+            <id>talanlabs-snapshots-repository</id>
             <releases>
                 <enabled>false</enabled>
             </releases>
             <snapshots>
                 <enabled>true</enabled>
             </snapshots>
-            <url>http://nexus.synaptix-labs.com/content/groups/public_snapshots</url>
+            <url>http://nexus.talanlabs.com/content/groups/public_snapshots</url>
         </repository>
     </repositories>
     <build>
@@ -160,12 +160,12 @@
     </dependencies>
     <distributionManagement>
         <repository>
-            <id>synaptix-releases-repository</id>
-            <url>http://nexus.synaptix-labs.com/content/repositories/releases/</url>
+            <id>talanlabs-releases-repository</id>
+            <url>http://nexus.talanlabs.com/content/repositories/releases/</url>
         </repository>
         <snapshotRepository>
-            <id>synaptix-snapshots-repository</id>
-            <url>http://nexus.synaptix-labs.com/content/repositories/snapshots/</url>
+            <id>talanlabs-snapshots-repository</id>
+            <url>http://nexus.talanlabs.com/content/repositories/snapshots/</url>
         </snapshotRepository>
     </distributionManagement>
 </project>
