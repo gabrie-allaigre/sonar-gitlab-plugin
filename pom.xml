@@ -14,7 +14,7 @@
     <version>1.7.0-SNAPSHOT</version>
     <name>SonarQube :: GitLab Plugin</name>
     <packaging>sonar-plugin</packaging>
-    <inceptionYear>2015</inceptionYear>
+    <inceptionYear>2016</inceptionYear>
     <organization>
         <name>Talanlabs</name>
         <url>http://www.talanlabs.com</url>
@@ -24,7 +24,7 @@
         <jdk.min.version>1.8</jdk.min.version>
 
         <java-gitlab-api.version>1.4.0</java-gitlab-api.version>
-        <license.mailto>contact@talanlabs.com</license.mailto>
+        <license.mailto>gabriel.allaigre@talanlabs.com</license.mailto>
 
         <sonar.version>5.1</sonar.version>
         <sonar.pluginName>GitLab</sonar.pluginName>

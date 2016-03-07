@@ -1,7 +1,7 @@
 /*
  * SonarQube :: GitLab Plugin
- * Copyright (C) 2015 Synaptix-Labs
- * contact@synaptix-labs.com
+ * Copyright (C) 2016 Talanlabs
+ * gabriel.allaigre@synaptix-labs.com
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
