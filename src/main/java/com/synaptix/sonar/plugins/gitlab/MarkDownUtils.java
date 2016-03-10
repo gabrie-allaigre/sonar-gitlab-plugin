@@ -31,7 +31,7 @@ import java.net.URLEncoder;
 @InstantiationStrategy(InstantiationStrategy.PER_BATCH)
 public class MarkDownUtils implements BatchComponent {
 
-  private static final String IMAGES_ROOT_URL = "https://gitlab.synaptix-labs.com/gabriel-allaigre/sonar-gitlab-plugin/raw/master/images/";
+  private static final String IMAGES_ROOT_URL = "https://gitlab.talanlabs.com/gabriel-allaigre/sonar-gitlab-plugin/raw/master/images/";
   private final String ruleUrlPrefix;
 
   public MarkDownUtils(Settings settings) {
