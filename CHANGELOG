@@ -1,5 +1,8 @@
-V 1.7.0:
+V 1.7.0: (unrelease)
    - Add template for Global and Inline message
+
+V 1.6.6:
+  - Fix url image
 
 V 1.6.0:
    - Sort issues in Markdown for not reported on diff
