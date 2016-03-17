@@ -20,21 +20,15 @@
     </organization>
     <url>https://gitlab.talanlabs.com/gabriel-allaigre/sonar-gitlab-plugin</url>
     <properties>
-        <jdk.min.version>1.7</jdk.min.version>
-
         <java-gitlab-api.version>1.4.0</java-gitlab-api.version>
+        <freemarker.version>2.3.23</freemarker.version>
+
         <license.mailto>gabriel.allaigre@talanlabs.com</license.mailto>
         <license.owner>Talanlabs</license.owner>
 
         <sonar.version>5.4-RC1</sonar.version>
         <sonar.pluginName>GitLab</sonar.pluginName>
         <sonar.pluginClass>com.synaptix.sonar.plugins.gitlab.GitLabPlugin</sonar.pluginClass>
-
-        <animal-sniffer.signature.groupId>org.kaazing.mojo.signature</animal-sniffer.signature.groupId>
-        <animal-sniffer.signature.artifactId>java18</animal-sniffer.signature.artifactId>
-        <animal-sniffer.signature.version>1.0</animal-sniffer.signature.version>
-
-        <freemarker.version>2.3.23</freemarker.version>
     </properties>
     <developers>
         <developer>
@@ -77,21 +71,6 @@
             <url>http://nexus.talanlabs.com/content/groups/public_snapshots</url>
         </repository>
     </repositories>
-    <build>
-        <pluginManagement>
-            <plugins>
-                <!-- Plugins ordered by shortname (archetype, assembly ...) -->
-                <plugin>
-                    <groupId>org.codehaus.mojo</groupId>
-                    <artifactId>animal-sniffer-maven-plugin</artifactId>
-                    <version>${version.animal-sniffer.plugin}</version>
-                    <configuration>
-                        <skip>true</skip>
-                    </configuration>
-                </plugin>
-            </plugins>
-        </pluginManagement>
-    </build>
     <dependencies>
         <dependency>
             <groupId>org.sonarsource.sonarqube</groupId>
