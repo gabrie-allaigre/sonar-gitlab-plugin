@@ -1,6 +1,6 @@
 /*
  * SonarQube :: GitLab Plugin
- * Copyright (C) 2016 Talanlabs
+ * Copyright (C) 2016-2016 Talanlabs
  * gabriel.allaigre@talanlabs.com
  *
  * This program is free software; you can redistribute it and/or
@@ -13,70 +13,19 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * Lesser General Public License for more details.
  *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 package com.synaptix.sonar.plugins.gitlab;
 
-import org.sonar.api.Properties;
-import org.sonar.api.Property;
 import org.sonar.api.PropertyType;
 import org.sonar.api.SonarPlugin;
+import org.sonar.api.config.PropertyDefinition;
+import org.sonar.api.resources.Qualifiers;
 
 import java.util.Arrays;
 import java.util.List;
-
-@Properties({ @Property(
-        key = GitLabPlugin.GITLAB_URL,
-        name = "GitLab URL",
-        description = "URL to access GitLab",
-        defaultValue = "https://gitlab.com",
-        global = true), @Property(
-        key = GitLabPlugin.GITLAB_MAX_GLOBAL_ISSUES,
-        name = "GitLab Max Global GitLab",
-        description = "Max issues to show in global comment",
-        defaultValue = "10",
-        type = PropertyType.INTEGER,
-        global = true), @Property(
-        key = GitLabPlugin.GITLAB_USER_TOKEN,
-        name = "GitLab User Token",
-        description = "GitLab user token is reporter role",
-        global = true), @Property(
-        key = GitLabPlugin.GITLAB_PROJECT_ID,
-        name = "GitLab Project id",
-        description = "The unique id, path with namespace, name with namespace, web url, ssh url or http url of the current project that GitLab",
-        global = false,
-        project = true), @Property(key = GitLabPlugin.GITLAB_COMMIT_SHA,
-        name = "GitLab Commit SHA",
-        description = "The commit revision for which project is built",
-        global = false,
-        project = false,
-        module = false), @Property(key = GitLabPlugin.GITLAB_REF_NAME,
-        name = "GitLab Ref Name",
-        description = "The commit revision for which project is built",
-        global = false,
-        project = false,
-        module = false), @Property(key = GitLabPlugin.GITLAB_IGNORE_FILE,
-        name = "GitLab Ingore file",
-        description = "Ignore issues on files no modified by the commit",
-        defaultValue = "false",
-        type = PropertyType.BOOLEAN,
-        global = false,
-        project = false,
-        module = false), @Property(
-        key = GitLabPlugin.GITLAB_GLOBAL_TEMPLATE,
-        name = "GitLab Global Template",
-        description = "Global Template for GitLab",
-        type = PropertyType.TEXT,
-        global = true,
-        project = false), @Property(
-        key = GitLabPlugin.GITLAB_INLINE_TEMPLATE,
-        name = "GitLab Inline Template",
-        description = "Inline Template for GitLab",
-        type = PropertyType.TEXT,
-        global = true,
-        project = false) })
 
 public class GitLabPlugin extends SonarPlugin {
 
@@ -90,10 +39,33 @@ public class GitLabPlugin extends SonarPlugin {
     public static final String GITLAB_GLOBAL_TEMPLATE = "sonar.gitlab.global_template";
     public static final String GITLAB_INLINE_TEMPLATE = "sonar.gitlab.inline_template";
 
+    public static final String CATEGORY = "gitlab";
+    public static final String SUBCATEGORY = "report";
+
+    private static List<PropertyDefinition> definitions() {
+        return Arrays
+                .asList(PropertyDefinition.builder(GITLAB_URL).name("GitLab url").description("URL to access GitLab.").category(CATEGORY).subCategory(SUBCATEGORY).defaultValue("https://gitlab.com")
+                                .index(1).build(), PropertyDefinition.builder(GITLAB_MAX_GLOBAL_ISSUES).name("GitLab Max Global Issues").description("Max issues to show in global comment.").category(CATEGORY)
+                                .subCategory(SUBCATEGORY).type(PropertyType.INTEGER).defaultValue(String.valueOf(10)).index(2).build(),
+                        PropertyDefinition.builder(GITLAB_USER_TOKEN).name("GitLab User Token").description("GitLab user token is developer role.").category(CATEGORY).subCategory(SUBCATEGORY).index(3)
+                                .build(), PropertyDefinition.builder(GITLAB_PROJECT_ID).name("GitLab Project id")
+                                .description("The unique id, path with namespace, name with namespace, web url, ssh url or http url of the current project that GitLab.").category(CATEGORY)
+                                .subCategory(SUBCATEGORY).index(4).onlyOnQualifiers(Qualifiers.PROJECT).build(),
+                        PropertyDefinition.builder(GITLAB_COMMIT_SHA).name("GitLab Commit SHA").description("The commit revision for which project is built.").category(CATEGORY)
+                                .subCategory(SUBCATEGORY).index(5).hidden().build(),
+                        PropertyDefinition.builder(GITLAB_REF_NAME).name("GitLab Ref Name").description("The commit revision for which project is built.").category(CATEGORY).subCategory(SUBCATEGORY)
+                                .index(6).hidden().build(),
+                        PropertyDefinition.builder(GITLAB_IGNORE_FILE).name("GitLab Ingore file").description("Ignore issues on files no modified by the commit").category(CATEGORY)
+                                .subCategory(SUBCATEGORY).type(PropertyType.BOOLEAN).defaultValue(String.valueOf(false)).index(7).hidden().build(),
+                        PropertyDefinition.builder(GITLAB_GLOBAL_TEMPLATE).name("GitLab Global Template").description("Template for global comment in commit.").category(CATEGORY)
+                                .subCategory(SUBCATEGORY).index(8).build(),
+                        PropertyDefinition.builder(GITLAB_INLINE_TEMPLATE).name("GitLab Inline Template").description("Template for inline comment in commit.").category(CATEGORY)
+                                .subCategory(SUBCATEGORY).index(9).build());
+    }
+
     @Override
     public List getExtensions() {
         return Arrays.asList(CommitIssuePostJob.class, GitLabPluginConfiguration.class, CommitProjectBuilder.class, CommitFacade.class, InputFileCacheSensor.class, InputFileCache.class,
-                MarkDownUtils.class);
+                MarkDownUtils.class, definitions());
     }
-
 }

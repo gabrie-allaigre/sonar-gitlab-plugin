@@ -1,6 +1,6 @@
 /*
  * SonarQube :: GitLab Plugin
- * Copyright (C) 2016 Talanlabs
+ * Copyright (C) 2016-2016 Talanlabs
  * gabriel.allaigre@talanlabs.com
  *
  * This program is free software; you can redistribute it and/or
@@ -13,9 +13,9 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * Lesser General Public License for more details.
  *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 package com.synaptix.sonar.plugins.gitlab;
 
@@ -23,7 +23,7 @@ import com.synaptix.gitlab.api.GitLabAPI;
 import com.synaptix.gitlab.api.models.commits.GitLabCommitDiff;
 import com.synaptix.gitlab.api.models.projects.GitLabProject;
 import org.apache.commons.io.IOUtils;
-import org.sonar.api.BatchComponent;
+import org.sonar.api.batch.BatchSide;
 import org.sonar.api.batch.InstantiationStrategy;
 import org.sonar.api.batch.fs.InputFile;
 import org.sonar.api.batch.fs.InputPath;
@@ -36,13 +36,13 @@ import java.io.StringReader;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 
 /**
  * Facade for all WS interaction with GitLab.
  */
 @InstantiationStrategy(InstantiationStrategy.PER_BATCH)
-public class CommitFacade implements BatchComponent {
+@BatchSide
+public class CommitFacade {
 
     static final String COMMIT_CONTEXT = "sonarqube";
 
@@ -85,17 +85,24 @@ public class CommitFacade implements BatchComponent {
         if (config.projectId() == null) {
             throw new IllegalStateException("Unable found project for null project name");
         }
-        List<GitLabProject> projects = gitLabAPI.getGitLabAPIProjects().getProjects(null, null, null, null, null).stream()
-                .filter(project -> config.projectId().equals(project.getId().toString()) || config.projectId().equals(project.getPathWithNamespace()) || config.projectId().equals(project.getHttpUrl())
-                        || config.projectId().equals(project.getSshUrl()) || config.projectId().equals(project.getWebUrl()) || config.projectId().equals(project.getNameWithNamespace()))
-                .collect(Collectors.toList());
-        if (projects.isEmpty()) {
+        List<GitLabProject> projects = gitLabAPI.getGitLabAPIProjects().getProjects(null, null, null, null, null);
+        if (projects == null) {
             throw new IllegalStateException("Unable found project for " + config.projectId());
         }
-        if (projects.size() > 1) {
+        List<GitLabProject> res = new ArrayList<>();
+        for(GitLabProject project : projects) {
+            if (config.projectId().equals(project.getId().toString()) || config.projectId().equals(project.getPathWithNamespace()) || config.projectId().equals(project.getHttpUrl())
+                    || config.projectId().equals(project.getSshUrl()) || config.projectId().equals(project.getWebUrl()) || config.projectId().equals(project.getNameWithNamespace())) {
+                res.add(project);
+            }
+        }
+        if (res.isEmpty()) {
+            throw new IllegalStateException("Unable found project for " + config.projectId());
+        }
+        if (res.size() > 1) {
             throw new IllegalStateException("Multiple found projects for " + config.projectId());
         }
-        return projects.get(0);
+        return res.get(0);
     }
 
     private static boolean isEqualsNameWithNamespace(String current, String f) {

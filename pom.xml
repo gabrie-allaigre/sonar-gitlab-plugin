@@ -6,8 +6,7 @@
     <parent>
         <groupId>org.sonarsource.parent</groupId>
         <artifactId>parent</artifactId>
-        <version>23</version>
-        <relativePath/>
+        <version>28</version>
     </parent>
     <groupId>com.synaptix</groupId>
     <artifactId>sonar-gitlab-plugin</artifactId>
@@ -21,12 +20,13 @@
     </organization>
     <url>https://gitlab.talanlabs.com/gabriel-allaigre/sonar-gitlab-plugin</url>
     <properties>
-        <jdk.min.version>1.8</jdk.min.version>
+        <jdk.min.version>1.7</jdk.min.version>
 
         <java-gitlab-api.version>1.4.0</java-gitlab-api.version>
         <license.mailto>gabriel.allaigre@talanlabs.com</license.mailto>
+        <license.owner>Talanlabs</license.owner>
 
-        <sonar.version>5.1</sonar.version>
+        <sonar.version>5.4-RC1</sonar.version>
         <sonar.pluginName>GitLab</sonar.pluginName>
         <sonar.pluginClass>com.synaptix.sonar.plugins.gitlab.GitLabPlugin</sonar.pluginClass>
 
@@ -94,7 +94,7 @@
     </build>
     <dependencies>
         <dependency>
-            <groupId>org.codehaus.sonar</groupId>
+            <groupId>org.sonarsource.sonarqube</groupId>
             <artifactId>sonar-plugin-api</artifactId>
             <version>${sonar.version}</version>
             <scope>provided</scope>
