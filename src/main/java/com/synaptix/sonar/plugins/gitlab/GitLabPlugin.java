@@ -24,6 +24,7 @@ import org.sonar.api.SonarPlugin;
 import org.sonar.api.config.PropertyDefinition;
 import org.sonar.api.resources.Qualifiers;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -65,7 +66,10 @@ public class GitLabPlugin extends SonarPlugin {
 
     @Override
     public List getExtensions() {
-        return Arrays.asList(CommitIssuePostJob.class, GitLabPluginConfiguration.class, CommitProjectBuilder.class, CommitFacade.class, InputFileCacheSensor.class, InputFileCache.class,
-                MarkDownUtils.class, definitions());
+        List extensions = new ArrayList();
+        extensions.addAll(Arrays.asList(CommitIssuePostJob.class, GitLabPluginConfiguration.class, CommitProjectBuilder.class, CommitFacade.class, InputFileCacheSensor.class, InputFileCache.class,
+                MarkDownUtils.class));
+        extensions.addAll(definitions());
+        return extensions;
     }
 }
