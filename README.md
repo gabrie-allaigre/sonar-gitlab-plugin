@@ -18,11 +18,19 @@ Add build line:
 
 # Usage
 
-For add plugin in SonarQube :
+For SonarQube <5.4 :
 
 - Download last version http://nexus.talanlabs.com/service/local/repo_groups/public_release/content/com/synaptix/sonar-gitlab-plugin/1.6.6/sonar-gitlab-plugin-1.6.6.jar
 - Copy file in extensions directory `SONARQUBE_HOME/extensions/plugins`
 - Restart SonarQube 
+
+For SonarQube >=5.4 :
+
+- Download last version http://nexus.talanlabs.com/service/local/repo_groups/public_release/content/com/synaptix/sonar-gitlab-plugin/1.7.0/sonar-gitlab-plugin-1.7.0.jar
+- Copy file in extensions directory `SONARQUBE_HOME/extensions/plugins`
+- Restart SonarQube
+
+**Other Plugin : [Add OAuth with GitLab in SonarQube](https://gitlab.talanlabs.com/gabriel-allaigre/sonar-auth-gitlab-plugin)**
 
 # Command line
 
@@ -44,3 +52,13 @@ mvn --batch-mode verify sonar:sonar -Dsonar.host.url=$SONAR_URL -Dsonar.analysis
 - Administration : **Settings** globals in SonarQube
 - Project : **Settings** of project in SonarQube
 - Variable : In an environment variable or in the `pom.xml` either from the command line with` -D`
+
+# Configuration
+
+- In SonarQube : Administration : **Settings** globals in SonarQube. Set GitLab Url and Token
+
+![Sonar settings](doc/sonar_settings.jpg)
+
+- In SonarQube : Project Administration : **Settings** project in SonarQube. Set project identifier in GitLab
+
+![Sonar settings](doc/sonar_project_settings.jpg)

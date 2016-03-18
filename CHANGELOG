@@ -1,5 +1,4 @@
-V 1.7.0: (unrelease)
-   - Add template for Global and Inline message
+V 1.7.0:
    - SonarQube API 5.4
    - Java 7
    - Order settings
