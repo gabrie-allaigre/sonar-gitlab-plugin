@@ -30,7 +30,7 @@ For SonarQube >=5.4:
 - Copy file in extensions directory `SONARQUBE_HOME/extensions/plugins`
 - Restart SonarQube
 
-**Other Plugin: [Add OAuth with GitLab in SonarQube](https://gitlab.talanlabs.com/gabriel-allaigre/sonar-auth-gitlab-plugin)**
+**Other Plugin: [Add Single Sign-On with GitLab in SonarQube](https://gitlab.talanlabs.com/gabriel-allaigre/sonar-auth-gitlab-plugin)**
 
 # Command line
 
