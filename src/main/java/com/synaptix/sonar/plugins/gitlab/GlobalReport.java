@@ -140,7 +140,7 @@ public class GlobalReport {
     private void printNewIssuesForMarkdown(StringBuilder sb, String severity) {
         int issueCount = newIssues(severity);
         if (issueCount > 0) {
-            sb.append("* ").append(MarkDownUtils.getImageMarkdownForSeverity(severity)).append(" ").append(issueCount).append(" ").append(severity.toLowerCase()).append("\n");
+            sb.append("* ").append(MarkDownUtils.getEmojiForSeverity(severity)).append(" ").append(issueCount).append(" ").append(severity.toLowerCase()).append("\n");
         }
     }
 

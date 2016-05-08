@@ -27,12 +27,12 @@ import org.sonar.api.config.Settings;
 import javax.annotation.Nullable;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
+import org.sonar.api.rule.Severity;
 
 @InstantiationStrategy(InstantiationStrategy.PER_BATCH)
 @BatchSide
 public class MarkDownUtils {
 
-  private static final String IMAGES_ROOT_URL = "https://gitlab.talanlabs.com/gabriel-allaigre/sonar-gitlab-plugin/raw/master/images/";
   private final String ruleUrlPrefix;
 
   public MarkDownUtils(Settings settings) {
@@ -47,7 +47,7 @@ public class MarkDownUtils {
   public String inlineIssue(String severity, String message, String ruleKey) {
     String ruleLink = getRuleLink(ruleKey);
     StringBuilder sb = new StringBuilder();
-    sb.append(getImageMarkdownForSeverity(severity))
+    sb.append(getEmojiForSeverity(severity))
       .append(" ")
       .append(message)
       .append(" ")
@@ -58,7 +58,7 @@ public class MarkDownUtils {
   public String globalIssue(String severity, String message, String ruleKey, @Nullable String url, String componentKey) {
     String ruleLink = getRuleLink(ruleKey);
     StringBuilder sb = new StringBuilder();
-    sb.append(getImageMarkdownForSeverity(severity)).append(" ");
+    sb.append(getEmojiForSeverity(severity)).append(" ");
     if (url != null) {
       sb.append("[").append(message).append("]").append("(").append(url).append(")");
     } else {
@@ -69,7 +69,7 @@ public class MarkDownUtils {
   }
 
   String getRuleLink(String ruleKey) {
-    return "[![rule](" + IMAGES_ROOT_URL + "rule.png)](" + ruleUrlPrefix + "coding_rules#rule_key=" + encodeForUrl(ruleKey) + ")";
+    return "[:blue_book:](" + ruleUrlPrefix + "coding_rules#rule_key=" + encodeForUrl(ruleKey) + ")";
   }
 
   static String encodeForUrl(String url) {
@@ -81,8 +81,21 @@ public class MarkDownUtils {
     }
   }
 
-  public static String getImageMarkdownForSeverity(String severity) {
-    return "![" + severity + "](" + IMAGES_ROOT_URL + "severity-" + severity.toLowerCase() + ".png)";
+  public static String getEmojiForSeverity(String severity) {
+    switch (severity) {
+      case Severity.BLOCKER:
+        return ":no_entry:";
+      case Severity.CRITICAL:
+        return ":no_entry_sign:";
+      case Severity.MAJOR:
+        return ":warning:";
+      case Severity.MINOR:
+        return ":arrow_down_small:";
+      case Severity.INFO:
+        return ":information_source:";
+      default:
+        return ":grey_question:";
+    }
   }
 
 }
