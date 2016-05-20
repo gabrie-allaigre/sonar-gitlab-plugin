@@ -20,6 +20,7 @@
 package com.synaptix.sonar.plugins.gitlab;
 
 import com.synaptix.gitlab.api.GitLabAPI;
+import com.synaptix.gitlab.api.Paged;
 import com.synaptix.gitlab.api.models.commits.GitLabCommitDiff;
 import com.synaptix.gitlab.api.models.projects.GitLabProject;
 import org.apache.commons.io.IOUtils;
@@ -108,7 +109,14 @@ public class CommitFacade {
         try {
             gitLabProject = getGitLabProject();
 
-            patchPositionMappingByFile = mapPatchPositionsToLines(gitLabAPI.getGitLabAPICommits().getCommitDiffs(gitLabProject.getId(), config.commitSHA()));
+            Paged<GitLabCommitDiff> paged = gitLabAPI.getGitLabAPICommits().getCommitDiffs(gitLabProject.getId(), config.commitSHA(), null);
+            List<GitLabCommitDiff> commitDiffs = new ArrayList<>();
+            do {
+                if (paged.getResults() != null) {
+                    commitDiffs.addAll(paged.getResults());
+                }
+            } while ((paged = paged.nextPage()) != null);
+            patchPositionMappingByFile = mapPatchPositionsToLines(commitDiffs);
         } catch (IOException e) {
             throw new IllegalStateException("Unable to perform GitLab WS operation", e);
         }
@@ -127,12 +135,19 @@ public class CommitFacade {
 
     private GitLabProject getGitLabProject() throws IOException {
         if (config.projectId() == null) {
-            throw new IllegalStateException("Unable found project for null project name");
+            throw new IllegalStateException("Unable found project for null project name. Set Configuration sonar.gitlab.project_id");
         }
-        List<GitLabProject> projects = gitLabAPI.getGitLabAPIProjects().getProjects(null, null, null, null, null);
-        if (projects == null) {
-            throw new IllegalStateException("Unable found project for " + config.projectId());
+        Paged<GitLabProject> paged = gitLabAPI.getGitLabAPIProjects().getProjects(null, null, null, null, null, null);
+        if (paged == null) {
+            throw new IllegalStateException("Unable found project for " + config.projectId() + " Verify Configuration sonar.gitlab.project_id or sonar.gitlab.user_token access project");
         }
+        List<GitLabProject> projects = new ArrayList<>();
+        do {
+            if (paged.getResults() != null) {
+                projects.addAll(paged.getResults());
+            }
+        } while ((paged = paged.nextPage()) != null);
+
         List<GitLabProject> res = new ArrayList<>();
         for (GitLabProject project : projects) {
             if (config.projectId().equals(project.getId().toString()) || config.projectId().equals(project.getPathWithNamespace()) || config.projectId().equals(project.getHttpUrl()) || config
@@ -141,7 +156,7 @@ public class CommitFacade {
             }
         }
         if (res.isEmpty()) {
-            throw new IllegalStateException("Unable found project for " + config.projectId());
+            throw new IllegalStateException("Unable found project for " + config.projectId() + " Verify Configuration sonar.gitlab.project_id or sonar.gitlab.user_token access project");
         }
         if (res.size() > 1) {
             throw new IllegalStateException("Multiple found projects for " + config.projectId());
