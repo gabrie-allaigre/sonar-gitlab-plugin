@@ -56,55 +56,6 @@ public class CommitFacade {
         this.config = config;
     }
 
-    public void init(File projectBaseDir) {
-        if (findGitBaseDir(projectBaseDir) == null) {
-            throw new IllegalStateException("Unable to find Git root directory. Is " + projectBaseDir + " part of a Git repository?");
-        }
-        gitLabAPI = GitLabAPI.connect(config.url(), config.userToken());
-        try {
-            gitLabProject = getGitLabProject();
-
-            patchPositionMappingByFile = mapPatchPositionsToLines(gitLabAPI.getGitLabAPICommits().getCommitDiffs(gitLabProject.getId(), config.commitSHA()));
-        } catch (IOException e) {
-            throw new IllegalStateException("Unable to perform GitLab WS operation", e);
-        }
-    }
-
-    private File findGitBaseDir(@Nullable File baseDir) {
-        if (baseDir == null) {
-            return null;
-        }
-        if (new File(baseDir, ".git").exists()) {
-            this.gitBaseDir = baseDir;
-            return baseDir;
-        }
-        return findGitBaseDir(baseDir.getParentFile());
-    }
-
-    private GitLabProject getGitLabProject() throws IOException {
-        if (config.projectId() == null) {
-            throw new IllegalStateException("Unable found project for null project name");
-        }
-        List<GitLabProject> projects = gitLabAPI.getGitLabAPIProjects().getProjects(null, null, null, null, null);
-        if (projects == null) {
-            throw new IllegalStateException("Unable found project for " + config.projectId());
-        }
-        List<GitLabProject> res = new ArrayList<>();
-        for(GitLabProject project : projects) {
-            if (config.projectId().equals(project.getId().toString()) || config.projectId().equals(project.getPathWithNamespace()) || config.projectId().equals(project.getHttpUrl())
-                    || config.projectId().equals(project.getSshUrl()) || config.projectId().equals(project.getWebUrl()) || config.projectId().equals(project.getNameWithNamespace())) {
-                res.add(project);
-            }
-        }
-        if (res.isEmpty()) {
-            throw new IllegalStateException("Unable found project for " + config.projectId());
-        }
-        if (res.size() > 1) {
-            throw new IllegalStateException("Multiple found projects for " + config.projectId());
-        }
-        return res.get(0);
-    }
-
     private static boolean isEqualsNameWithNamespace(String current, String f) {
         if (current == null || f == null) {
             return false;
@@ -147,6 +98,55 @@ public class CommitFacade {
                 // Ignore
             }
         }
+    }
+
+    public void init(File projectBaseDir) {
+        if (findGitBaseDir(projectBaseDir) == null) {
+            throw new IllegalStateException("Unable to find Git root directory. Is " + projectBaseDir + " part of a Git repository?");
+        }
+        gitLabAPI = GitLabAPI.connect(config.url(), config.userToken()).setIgnoreCertificateErrors(config.ignoreCertificate());
+        try {
+            gitLabProject = getGitLabProject();
+
+            patchPositionMappingByFile = mapPatchPositionsToLines(gitLabAPI.getGitLabAPICommits().getCommitDiffs(gitLabProject.getId(), config.commitSHA()));
+        } catch (IOException e) {
+            throw new IllegalStateException("Unable to perform GitLab WS operation", e);
+        }
+    }
+
+    private File findGitBaseDir(@Nullable File baseDir) {
+        if (baseDir == null) {
+            return null;
+        }
+        if (new File(baseDir, ".git").exists()) {
+            this.gitBaseDir = baseDir;
+            return baseDir;
+        }
+        return findGitBaseDir(baseDir.getParentFile());
+    }
+
+    private GitLabProject getGitLabProject() throws IOException {
+        if (config.projectId() == null) {
+            throw new IllegalStateException("Unable found project for null project name");
+        }
+        List<GitLabProject> projects = gitLabAPI.getGitLabAPIProjects().getProjects(null, null, null, null, null);
+        if (projects == null) {
+            throw new IllegalStateException("Unable found project for " + config.projectId());
+        }
+        List<GitLabProject> res = new ArrayList<>();
+        for (GitLabProject project : projects) {
+            if (config.projectId().equals(project.getId().toString()) || config.projectId().equals(project.getPathWithNamespace()) || config.projectId().equals(project.getHttpUrl()) || config
+                    .projectId().equals(project.getSshUrl()) || config.projectId().equals(project.getWebUrl()) || config.projectId().equals(project.getNameWithNamespace())) {
+                res.add(project);
+            }
+        }
+        if (res.isEmpty()) {
+            throw new IllegalStateException("Unable found project for " + config.projectId());
+        }
+        if (res.size() > 1) {
+            throw new IllegalStateException("Multiple found projects for " + config.projectId());
+        }
+        return res.get(0);
     }
 
     public void createOrUpdateSonarQubeStatus(String status, String statusDescription) {

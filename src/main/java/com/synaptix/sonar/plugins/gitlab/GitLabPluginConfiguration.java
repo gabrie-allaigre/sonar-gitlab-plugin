@@ -65,6 +65,11 @@ public class GitLabPluginConfiguration {
     }
 
     @CheckForNull
+    public boolean ignoreCertificate() {
+        return settings.getBoolean(GitLabPlugin.GITLAB_IGNORE_CERT);
+    }
+
+    @CheckForNull
     public int maxGlobalIssues() {
         return settings.getInt(GitLabPlugin.GITLAB_MAX_GLOBAL_ISSUES);
     }
