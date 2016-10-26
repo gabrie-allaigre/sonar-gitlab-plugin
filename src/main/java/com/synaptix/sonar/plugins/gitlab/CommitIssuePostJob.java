@@ -61,7 +61,7 @@ public class CommitIssuePostJob implements org.sonar.api.batch.PostJob, CheckPro
 
         updateReviewComments(commentsToBeAddedByLine);
 
-        if (report.hasNewIssue()) {
+        if (report.hasNewIssue() || gitLabPluginConfiguration.commentNoIssue()) {
             commitFacade.addGlobalComment(report.formatForMarkdown());
         }
 
