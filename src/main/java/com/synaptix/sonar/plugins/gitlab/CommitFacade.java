@@ -57,13 +57,6 @@ public class CommitFacade {
         this.config = config;
     }
 
-    private static boolean isEqualsNameWithNamespace(String current, String f) {
-        if (current == null || f == null) {
-            return false;
-        }
-        return current.replaceAll(" ", "").equalsIgnoreCase(f.replaceAll(" ", ""));
-    }
-
     private static Map<String, Set<Integer>> mapPatchPositionsToLines(List<GitLabCommitDiff> diffs) throws IOException {
         Map<String, Set<Integer>> patchPositionMappingByFile = new HashMap<>();
         for (GitLabCommitDiff file : diffs) {
@@ -77,13 +70,15 @@ public class CommitFacade {
         }
         return patchPositionMappingByFile;
     }
+    
+    // http://en.wikipedia.org/wiki/Diff_utility#Unified_format
+    private static final Pattern PATCH_PATTERN = Pattern.compile("@@\\p{Space}-[0-9]+(?:,[0-9]+)?\\p{Space}\\+([0-9]+)(?:,[0-9]+)?\\p{Space}@@.*");
 
     private static void processPatch(Set<Integer> patchLocationMapping, String patch) throws IOException {
         int currentLine = -1;
         for (String line : IOUtils.readLines(new StringReader(patch))) {
             if (line.startsWith("@")) {
-                // http://en.wikipedia.org/wiki/Diff_utility#Unified_format
-                Matcher matcher = Pattern.compile("@@\\p{Space}-[0-9]+(?:,[0-9]+)?\\p{Space}\\+([0-9]+)(?:,[0-9]+)?\\p{Space}@@.*").matcher(line);
+                Matcher matcher = PATCH_PATTERN.matcher(line);
                 if (!matcher.matches()) {
                     throw new IllegalStateException("Unable to parse patch line " + line + "\nFull patch: \n" + patch);
                 }
@@ -189,12 +184,11 @@ public class CommitFacade {
     }
 
     public void createOrUpdateReviewComment(InputFile inputFile, Integer line, String body) {
-        String fullpath = getPath(inputFile);
-        //System.out.println("Review : "+fullpath+" line : "+line);
+        String fullPath = getPath(inputFile);
         try {
-            gitLabAPI.getGitLabAPICommits().postCommitComments(gitLabProject.getId(), config.commitSHA(), body, fullpath, line, "new");
+            gitLabAPI.getGitLabAPICommits().postCommitComments(gitLabProject.getId(), config.commitSHA(), body, fullPath, line, "new");
         } catch (IOException e) {
-            throw new IllegalStateException("Unable to create or update review comment in file " + fullpath + " at line " + line, e);
+            throw new IllegalStateException("Unable to create or update review comment in file " + fullPath + " at line " + line, e);
         }
     }
 
