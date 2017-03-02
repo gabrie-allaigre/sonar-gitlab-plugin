@@ -30,6 +30,8 @@ import org.sonar.api.batch.fs.InputComponent;
 import org.sonar.api.batch.fs.InputFile;
 import org.sonar.api.batch.fs.InputPath;
 import org.sonar.api.scan.filesystem.PathResolver;
+import org.sonar.api.utils.log.Logger;
+import org.sonar.api.utils.log.Loggers;
 
 import javax.annotation.CheckForNull;
 import javax.annotation.Nullable;
@@ -51,6 +53,8 @@ import java.util.regex.Pattern;
 @InstantiationStrategy(InstantiationStrategy.PER_BATCH)
 @BatchSide
 public class CommitFacade {
+
+    private static final Logger LOG = Loggers.get(CommitFacade.class);
 
     // http://en.wikipedia.org/wiki/Diff_utility#Unified_format
     private static final Pattern PATCH_PATTERN = Pattern.compile("@@\\p{Space}-[0-9]+(?:,[0-9]+)?\\p{Space}\\+([0-9]+)(?:,[0-9]+)?\\p{Space}@@.*");
@@ -80,7 +84,7 @@ public class CommitFacade {
         return patchPositionMappingByFile;
     }
 
-    private static void processPatch(Set<Integer> patchLocationMapping, String patch) throws IOException {
+    static void processPatch(Set<Integer> patchLocationMapping, String patch) throws IOException {
         int currentLine = -1;
         for (String line : IOUtils.readLines(new StringReader(patch))) {
             if (line.startsWith("@")) {
@@ -103,9 +107,8 @@ public class CommitFacade {
     }
 
     public void init(File projectBaseDir) {
-        if (findGitBaseDir(projectBaseDir) == null) {
-            throw new IllegalStateException("Unable to find Git root directory. Is " + projectBaseDir + " part of a Git repository?");
-        }
+        initGitBaseDir(projectBaseDir);
+
         gitLabAPI = GitLabAPI.connect(config.url(), config.userToken()).setIgnoreCertificateErrors(config.ignoreCertificate());
         try {
             gitLabProject = getGitLabProject();
@@ -123,6 +126,20 @@ public class CommitFacade {
         }
     }
 
+    void initGitBaseDir(File projectBaseDir) {
+        File detectedGitBaseDir = findGitBaseDir(projectBaseDir);
+        if (detectedGitBaseDir == null) {
+            LOG.debug("Unable to find Git root directory. Is " + projectBaseDir + " part of a Git repository?");
+            setGitBaseDir(projectBaseDir);
+        } else {
+            setGitBaseDir(detectedGitBaseDir);
+        }
+    }
+
+    void setGitLabProject(GitLabProject gitLabProject) {
+        this.gitLabProject = gitLabProject;
+    }
+
     private File findGitBaseDir(@Nullable File baseDir) {
         if (baseDir == null) {
             return null;
@@ -132,6 +149,10 @@ public class CommitFacade {
             return baseDir;
         }
         return findGitBaseDir(baseDir.getParentFile());
+    }
+
+    void setGitBaseDir(File gitBaseDir) {
+        this.gitBaseDir = gitBaseDir;
     }
 
     private GitLabProject getGitLabProject() throws IOException {
@@ -199,7 +220,7 @@ public class CommitFacade {
         }
     }
 
-    private String getPath(InputPath inputPath) {
+    String getPath(InputPath inputPath) {
         return new PathResolver().relativePath(gitBaseDir, inputPath.file());
     }
 

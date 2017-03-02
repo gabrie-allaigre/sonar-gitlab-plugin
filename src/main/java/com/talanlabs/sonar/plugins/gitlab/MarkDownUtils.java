@@ -38,6 +38,9 @@ public class MarkDownUtils {
     public MarkDownUtils(Settings settings) {
         // If server base URL was not configured in SQ server then is is better to take URL configured on batch side
         String baseUrl = settings.hasKey(CoreProperties.SERVER_BASE_URL) ? settings.getString(CoreProperties.SERVER_BASE_URL) : settings.getString("sonar.host.url");
+        if (baseUrl == null) {
+            baseUrl = "http://localhost:9090";
+        }
         if (!baseUrl.endsWith("/")) {
             baseUrl += "/";
         }

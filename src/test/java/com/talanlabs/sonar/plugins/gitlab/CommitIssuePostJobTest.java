@@ -89,7 +89,7 @@ public class CommitIssuePostJobTest {
     public void testCommitAnalysisNoIssue1() {
         settings.setProperty(GitLabPlugin.GITLAB_COMMENT_NO_ISSUE, false);
 
-        Mockito.when(context.issues()).thenReturn(Arrays.asList());
+        Mockito.when(context.issues()).thenReturn(Collections.emptyList());
         commitIssuePostJob.execute(context);
         Mockito.verify(commitFacade, Mockito.never()).addGlobalComment(null);
         Mockito.verify(commitFacade).createOrUpdateSonarQubeStatus("success", "SonarQube reported no issues");
@@ -228,7 +228,7 @@ public class CommitIssuePostJobTest {
     }
 
     @Test
-    public void should_update_sonarqube_status_even_if_unexpected_errors_were_raised() {
+    public void testUnexpectedException() {
         String innerMsg = "Failed to get issues";
         // not really realistic unexpected error, but good enough for this test
         when(context.issues()).thenThrow(new IllegalStateException(innerMsg));
