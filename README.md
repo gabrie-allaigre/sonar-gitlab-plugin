@@ -86,7 +86,7 @@ A new version is work in progress
 - Add comment for no issue (Thanks frol2103)
 - Clean code and dead code (Thanks johnou)
 - Disable reporting in inline comments
-- Configure Proxy
+- Add support Proxy
 - Ignore certficate if auto-signed
 - Add quality project https://sonarqube.com/dashboard?id=com.talanlabs%3Asonar-gitlab-plugin 
 
