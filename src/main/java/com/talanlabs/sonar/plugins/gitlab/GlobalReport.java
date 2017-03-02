@@ -21,18 +21,13 @@ package com.talanlabs.sonar.plugins.gitlab;
 
 import org.sonar.api.batch.postjob.issue.PostJobIssue;
 import org.sonar.api.batch.rule.Severity;
-import org.sonar.api.internal.google.common.collect.ImmutableList;
 
 import javax.annotation.Nullable;
-import java.util.ArrayList;
-import java.util.EnumMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
+import java.util.*;
 
 public class GlobalReport {
 
-    private static final List<Severity> SEVERITIES = ImmutableList.of(Severity.BLOCKER, Severity.CRITICAL, Severity.MAJOR, Severity.MINOR, Severity.INFO);
+    private static final List<Severity> SEVERITIES = Arrays.asList(Severity.BLOCKER, Severity.CRITICAL, Severity.MAJOR, Severity.MINOR, Severity.INFO);
 
     private final GitLabPluginConfiguration gitLabPluginConfiguration;
     private final MarkDownUtils markDownUtils;

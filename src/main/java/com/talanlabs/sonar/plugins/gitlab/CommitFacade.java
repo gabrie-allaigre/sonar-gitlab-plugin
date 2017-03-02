@@ -38,12 +38,7 @@ import javax.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
 import java.io.StringReader;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -190,7 +185,12 @@ public class CommitFacade {
         try {
             gitLabAPI.getGitLabAPICommits().postCommitStatus(gitLabProject.getId(), config.commitSHA(), status, config.refName(), COMMIT_CONTEXT, null, statusDescription);
         } catch (IOException e) {
-            throw new IllegalStateException("Unable to update commit status", e);
+            // Workaround for https://gitlab.com/gitlab-org/gitlab-ce/issues/25807
+            if (!e.getMessage().contains("Cannot transition status via :enqueue from :pending")) {
+                throw new IllegalStateException("Unable to update commit status", e);
+            } else {
+                LOG.debug("Transition status is already {}", status);
+            }
         }
     }
 
