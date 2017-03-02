@@ -62,6 +62,8 @@ public class CommitIssuePostJob implements PostJob {
         GlobalReport report = new GlobalReport(gitLabPluginConfiguration, markDownUtils);
 
         try {
+            LOG.info("Find a {} new issues", StreamSupport.stream(context.issues().spliterator(), false).filter(PostJobIssue::isNew).count());
+
             Map<InputFile, Map<Integer, StringBuilder>> commentsToBeAddedByLine = processIssues(report, context.issues());
 
             updateReviewComments(commentsToBeAddedByLine);
@@ -72,7 +74,7 @@ public class CommitIssuePostJob implements PostJob {
 
             commitFacade.createOrUpdateSonarQubeStatus(report.getStatus(), report.getStatusDescription());
         } catch (Exception e) {
-            String msg = "SonarQube failed to complete the review of this pull request";
+            String msg = "SonarQube failed to complete the review of this commit";
             LOG.error(msg, e);
             commitFacade.createOrUpdateSonarQubeStatus("failed", msg + ": " + e.getMessage());
         }
@@ -86,10 +88,7 @@ public class CommitIssuePostJob implements PostJob {
     private Map<InputFile, Map<Integer, StringBuilder>> processIssues(GlobalReport report, Iterable<PostJobIssue> issues) {
         Map<InputFile, Map<Integer, StringBuilder>> commentToBeAddedByFileAndByLine = new HashMap<>();
 
-        StreamSupport.stream(issues.spliterator(), false).filter(PostJobIssue::isNew).filter(i -> {
-            InputComponent inputComponent = i.inputComponent();
-            return inputComponent == null || !inputComponent.isFile() || commitFacade.hasFile((InputFile) inputComponent);
-        }).sorted(ISSUE_COMPARATOR).forEach(i -> processIssue(report, commentToBeAddedByFileAndByLine, i));
+        StreamSupport.stream(issues.spliterator(), false).filter(PostJobIssue::isNew).sorted(ISSUE_COMPARATOR).forEach(i -> processIssue(report, commentToBeAddedByFileAndByLine, i));
         return commentToBeAddedByFileAndByLine;
     }
 

@@ -130,12 +130,12 @@ public class CommitIssuePostJobTest {
         Mockito.when(commitFacade.hasFileLine(inputFile1, 1)).thenReturn(true);
 
         commitIssuePostJob.execute(context);
-        Mockito.verify(commitFacade).addGlobalComment(Mockito.contains("SonarQube analysis reported 5 issues"));
-        Mockito.verify(commitFacade).addGlobalComment(Mockito.contains("* :no_entry: 5 blocker"));
+        Mockito.verify(commitFacade).addGlobalComment(Mockito.contains("SonarQube analysis reported 6 issues"));
+        Mockito.verify(commitFacade).addGlobalComment(Mockito.contains("* :no_entry: 6 blocker"));
         Mockito.verify(commitFacade).addGlobalComment(AdditionalMatchers.not(Mockito.contains("1. [Project")));
         Mockito.verify(commitFacade).addGlobalComment(Mockito.contains("1. :no_entry: [msg2](http://gitlab/blob/abc123/src/Foo.php#L2) [:blue_book:](http://myserver/coding_rules#rule_key=repo%3Arule)"));
 
-        Mockito.verify(commitFacade).createOrUpdateSonarQubeStatus("failed", "SonarQube reported 5 issues, with 5 blocker");
+        Mockito.verify(commitFacade).createOrUpdateSonarQubeStatus("failed", "SonarQube reported 6 issues, with 6 blocker");
     }
 
     @Test
@@ -234,7 +234,7 @@ public class CommitIssuePostJobTest {
         when(context.issues()).thenThrow(new IllegalStateException(innerMsg));
         commitIssuePostJob.execute(context);
 
-        String msg = "SonarQube failed to complete the review of this pull request: " + innerMsg;
+        String msg = "SonarQube failed to complete the review of this commit: " + innerMsg;
         verify(commitFacade).createOrUpdateSonarQubeStatus("failed", msg);
     }
 }

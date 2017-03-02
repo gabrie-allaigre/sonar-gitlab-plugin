@@ -186,7 +186,7 @@ public class CommitFacade {
             gitLabAPI.getGitLabAPICommits().postCommitStatus(gitLabProject.getId(), config.commitSHA(), status, config.refName(), COMMIT_CONTEXT, null, statusDescription);
         } catch (IOException e) {
             // Workaround for https://gitlab.com/gitlab-org/gitlab-ce/issues/25807
-            if (!e.getMessage().contains("Cannot transition status via :enqueue from :pending")) {
+            if (!e.getMessage().contains("Cannot transition status via")) {
                 throw new IllegalStateException("Unable to update commit status", e);
             } else {
                 LOG.debug("Transition status is already {}", status);
