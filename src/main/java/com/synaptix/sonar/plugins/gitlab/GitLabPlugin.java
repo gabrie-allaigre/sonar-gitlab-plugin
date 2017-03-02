@@ -31,6 +31,7 @@ import java.util.List;
 public class GitLabPlugin extends SonarPlugin {
 
     public static final String GITLAB_URL = "sonar.gitlab.url";
+    public static final String GITLAB_IGNORE_CERT = "sonar.gitlab.ignore_certificate";
     public static final String GITLAB_MAX_GLOBAL_ISSUES = "sonar.gitlab.max_global_issues";
     public static final String GITLAB_MAX_BLOCKER_ISSUES_GATE = "sonar.gitlab.max_blocker_issues_gate";
     public static final String GITLAB_MAX_CRITICAL_ISSUES_GATE = "sonar.gitlab.max_critical_issues_gate";
@@ -169,6 +170,24 @@ public class GitLabPlugin extends SonarPlugin {
                           .index(13)
                           .build()
                         /*,
+
+                .asList(PropertyDefinition.builder(GITLAB_URL).name("GitLab URL").description("URL to access GitLab.").category(CATEGORY).subCategory(SUBCATEGORY).defaultValue("https://gitlab.com")
+                                .index(1).build(), PropertyDefinition.builder(GITLAB_IGNORE_CERT).name("GitLab Ignore Certificate").description("Ignore Certificate for access GitLab.").category(CATEGORY)
+                                .subCategory(SUBCATEGORY).type(PropertyType.BOOLEAN).defaultValue(String.valueOf(false)).index(2).build(),
+                        PropertyDefinition.builder(GITLAB_USER_TOKEN).name("GitLab User Token").description("GitLab user token is developer role.").category(CATEGORY).subCategory(SUBCATEGORY).index(3)
+                                .build(), PropertyDefinition.builder(GITLAB_MAX_GLOBAL_ISSUES).name("GitLab Max Global Issues").description("Max issues to show in global comment.").category(CATEGORY)
+                                .subCategory(SUBCATEGORY).type(PropertyType.INTEGER).defaultValue(String.valueOf(10)).index(4).build(),
+                        PropertyDefinition.builder(GITLAB_PROJECT_ID).name("GitLab Project id")
+                                .description("The unique id, path with namespace, name with namespace, web url, ssh url or http url of the current project that GitLab.").category(CATEGORY)
+                                .subCategory(SUBCATEGORY).index(5).onlyOnQualifiers(Qualifiers.PROJECT).build(),
+                        PropertyDefinition.builder(GITLAB_COMMIT_SHA).name("GitLab Commit SHA").description("The commit revision for which project is built.").category(CATEGORY)
+                                .subCategory(SUBCATEGORY).index(6).hidden().build(),
+                        PropertyDefinition.builder(GITLAB_REF_NAME).name("GitLab Ref Name").description("The commit revision for which project is built.").category(CATEGORY).subCategory(SUBCATEGORY)
+                                .index(7).hidden().build(),
+                        PropertyDefinition.builder(GITLAB_IGNORE_FILE).name("GitLab Ingore file").description("Ignore issues on files no modified by the commit").category(CATEGORY)
+                                .subCategory(SUBCATEGORY).type(PropertyType.BOOLEAN).defaultValue(String.valueOf(false)).index(7).hidden().build(),
+                        PropertyDefinition.builder(GITLAB_COMMENT_NO_ISSUE).name("GitLab Comment when no new issue").description("Add a comment even when there is no new issue.").category(CATEGORY)
+                                .subCategory(SUBCATEGORY).type(PropertyType.BOOLEAN).defaultValue(String.valueOf(false)).index(8).build(),
                         PropertyDefinition.builder(GITLAB_GLOBAL_TEMPLATE).name("GitLab Global Template").description("Template for global comment in commit.").category(CATEGORY)
                                 .subCategory(SUBCATEGORY).type(PropertyType.TEXT).index(8).build(),
                         PropertyDefinition.builder(GITLAB_INLINE_TEMPLATE).name("GitLab Inline Template").description("Template for inline comment in commit.").category(CATEGORY)

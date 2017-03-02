@@ -20,6 +20,7 @@
 package com.synaptix.sonar.plugins.gitlab;
 
 import com.synaptix.gitlab.api.GitLabAPI;
+import com.synaptix.gitlab.api.Paged;
 import com.synaptix.gitlab.api.models.commits.GitLabCommitDiff;
 import com.synaptix.gitlab.api.models.projects.GitLabProject;
 import org.apache.commons.io.IOUtils;
@@ -56,15 +57,61 @@ public class CommitFacade {
         this.config = config;
     }
 
+    private static Map<String, Set<Integer>> mapPatchPositionsToLines(List<GitLabCommitDiff> diffs) throws IOException {
+        Map<String, Set<Integer>> patchPositionMappingByFile = new HashMap<>();
+        for (GitLabCommitDiff file : diffs) {
+            Set<Integer> patchLocationMapping = new HashSet<>();
+            patchPositionMappingByFile.put(file.getNewPath(), patchLocationMapping);
+            String patch = file.getDiff();
+            if (patch == null) {
+                continue;
+            }
+            processPatch(patchLocationMapping, patch);
+        }
+        return patchPositionMappingByFile;
+    }
+    
+    // http://en.wikipedia.org/wiki/Diff_utility#Unified_format
+    private static final Pattern PATCH_PATTERN = Pattern.compile("@@\\p{Space}-[0-9]+(?:,[0-9]+)?\\p{Space}\\+([0-9]+)(?:,[0-9]+)?\\p{Space}@@.*");
+
+    private static void processPatch(Set<Integer> patchLocationMapping, String patch) throws IOException {
+        int currentLine = -1;
+        for (String line : IOUtils.readLines(new StringReader(patch))) {
+            if (line.startsWith("@")) {
+                Matcher matcher = PATCH_PATTERN.matcher(line);
+                if (!matcher.matches()) {
+                    throw new IllegalStateException("Unable to parse patch line " + line + "\nFull patch: \n" + patch);
+                }
+                currentLine = Integer.parseInt(matcher.group(1));
+            } else if (line.startsWith("-")) {
+                // Skip removed lines
+            } else if (line.startsWith("+") || line.startsWith(" ")) {
+                // Count added and unmodified lines
+                patchLocationMapping.add(currentLine);
+                currentLine++;
+            } else if (line.startsWith("\\")) {
+                // I'm only aware of \ No newline at end of file
+                // Ignore
+            }
+        }
+    }
+
     public void init(File projectBaseDir) {
         if (findGitBaseDir(projectBaseDir) == null) {
             throw new IllegalStateException("Unable to find Git root directory. Is " + projectBaseDir + " part of a Git repository?");
         }
-        gitLabAPI = GitLabAPI.connect(config.url(), config.userToken());
+        gitLabAPI = GitLabAPI.connect(config.url(), config.userToken()).setIgnoreCertificateErrors(config.ignoreCertificate());
         try {
             gitLabProject = getGitLabProject();
 
-            patchPositionMappingByFile = mapPatchPositionsToLines(gitLabAPI.getGitLabAPICommits().getCommitDiffs(gitLabProject.getId(), config.commitSHA()));
+            Paged<GitLabCommitDiff> paged = gitLabAPI.getGitLabAPICommits().getCommitDiffs(gitLabProject.getId(), config.commitSHA(), null);
+            List<GitLabCommitDiff> commitDiffs = new ArrayList<>();
+            do {
+                if (paged.getResults() != null) {
+                    commitDiffs.addAll(paged.getResults());
+                }
+            } while ((paged = paged.nextPage()) != null);
+            patchPositionMappingByFile = mapPatchPositionsToLines(commitDiffs);
         } catch (IOException e) {
             throw new IllegalStateException("Unable to perform GitLab WS operation", e);
         }
@@ -83,70 +130,33 @@ public class CommitFacade {
 
     private GitLabProject getGitLabProject() throws IOException {
         if (config.projectId() == null) {
-            throw new IllegalStateException("Unable found project for null project name");
+            throw new IllegalStateException("Unable found project for null project name. Set Configuration sonar.gitlab.project_id");
         }
-        List<GitLabProject> projects = gitLabAPI.getGitLabAPIProjects().getProjects(null, null, null, null, null);
-        if (projects == null) {
-            throw new IllegalStateException("Unable found project for " + config.projectId());
+        Paged<GitLabProject> paged = gitLabAPI.getGitLabAPIProjects().getProjects(null, null, null, null, null, null);
+        if (paged == null) {
+            throw new IllegalStateException("Unable found project for " + config.projectId() + " Verify Configuration sonar.gitlab.project_id or sonar.gitlab.user_token access project");
         }
+        List<GitLabProject> projects = new ArrayList<>();
+        do {
+            if (paged.getResults() != null) {
+                projects.addAll(paged.getResults());
+            }
+        } while ((paged = paged.nextPage()) != null);
+
         List<GitLabProject> res = new ArrayList<>();
-        for(GitLabProject project : projects) {
-            if (config.projectId().equals(project.getId().toString()) || config.projectId().equals(project.getPathWithNamespace()) || config.projectId().equals(project.getHttpUrl())
-                    || config.projectId().equals(project.getSshUrl()) || config.projectId().equals(project.getWebUrl()) || config.projectId().equals(project.getNameWithNamespace())) {
+        for (GitLabProject project : projects) {
+            if (config.projectId().equals(project.getId().toString()) || config.projectId().equals(project.getPathWithNamespace()) || config.projectId().equals(project.getHttpUrl()) || config
+                    .projectId().equals(project.getSshUrl()) || config.projectId().equals(project.getWebUrl()) || config.projectId().equals(project.getNameWithNamespace())) {
                 res.add(project);
             }
         }
         if (res.isEmpty()) {
-            throw new IllegalStateException("Unable found project for " + config.projectId());
+            throw new IllegalStateException("Unable found project for " + config.projectId() + " Verify Configuration sonar.gitlab.project_id or sonar.gitlab.user_token access project");
         }
         if (res.size() > 1) {
             throw new IllegalStateException("Multiple found projects for " + config.projectId());
         }
         return res.get(0);
-    }
-
-    private static boolean isEqualsNameWithNamespace(String current, String f) {
-        if (current == null || f == null) {
-            return false;
-        }
-        return current.replaceAll(" ", "").equalsIgnoreCase(f.replaceAll(" ", ""));
-    }
-
-    private static Map<String, Set<Integer>> mapPatchPositionsToLines(List<GitLabCommitDiff> diffs) throws IOException {
-        Map<String, Set<Integer>> patchPositionMappingByFile = new HashMap<>();
-        for (GitLabCommitDiff file : diffs) {
-            Set<Integer> patchLocationMapping = new HashSet<>();
-            patchPositionMappingByFile.put(file.getNewPath(), patchLocationMapping);
-            String patch = file.getDiff();
-            if (patch == null) {
-                continue;
-            }
-            processPatch(patchLocationMapping, patch);
-        }
-        return patchPositionMappingByFile;
-    }
-
-    private static void processPatch(Set<Integer> patchLocationMapping, String patch) throws IOException {
-        int currentLine = -1;
-        for (String line : IOUtils.readLines(new StringReader(patch))) {
-            if (line.startsWith("@")) {
-                // http://en.wikipedia.org/wiki/Diff_utility#Unified_format
-                Matcher matcher = Pattern.compile("@@\\p{Space}-[0-9]+(?:,[0-9]+)?\\p{Space}\\+([0-9]+)(?:,[0-9]+)?\\p{Space}@@.*").matcher(line);
-                if (!matcher.matches()) {
-                    throw new IllegalStateException("Unable to parse patch line " + line + "\nFull patch: \n" + patch);
-                }
-                currentLine = Integer.parseInt(matcher.group(1));
-            } else if (line.startsWith("-")) {
-                // Skip removed lines
-            } else if (line.startsWith("+") || line.startsWith(" ")) {
-                // Count added and unmodified lines
-                patchLocationMapping.add(currentLine);
-                currentLine++;
-            } else if (line.startsWith("\\")) {
-                // I'm only aware of \ No newline at end of file
-                // Ignore
-            }
-        }
     }
 
     public void createOrUpdateSonarQubeStatus(String status, String statusDescription) {
@@ -174,12 +184,11 @@ public class CommitFacade {
     }
 
     public void createOrUpdateReviewComment(InputFile inputFile, Integer line, String body) {
-        String fullpath = getPath(inputFile);
-        //System.out.println("Review : "+fullpath+" line : "+line);
+        String fullPath = getPath(inputFile);
         try {
-            gitLabAPI.getGitLabAPICommits().postCommitComments(gitLabProject.getId(), config.commitSHA(), body, fullpath, line, "new");
+            gitLabAPI.getGitLabAPICommits().postCommitComments(gitLabProject.getId(), config.commitSHA(), body, fullPath, line, "new");
         } catch (IOException e) {
-            throw new IllegalStateException("Unable to create or update review comment in file " + fullpath + " at line " + line, e);
+            throw new IllegalStateException("Unable to create or update review comment in file " + fullPath + " at line " + line, e);
         }
     }
 

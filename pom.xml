@@ -21,13 +21,12 @@
     </organization>
     <url>https://gitlab.talanlabs.com/gabriel-allaigre/sonar-gitlab-plugin</url>
     <properties>
-        <java-gitlab-api.version>1.4.0</java-gitlab-api.version>
-        <freemarker.version>2.3.23</freemarker.version>
+        <java-gitlab-api.version>1.6.0</java-gitlab-api.version>
 
         <license.mailto>gabriel.allaigre@talanlabs.com</license.mailto>
         <license.owner>Talanlabs</license.owner>
 
-        <sonar.version>5.4-RC1</sonar.version>
+        <sonar.version>5.4</sonar.version>
         <sonar.pluginName>GitLab</sonar.pluginName>
         <sonar.pluginClass>com.synaptix.sonar.plugins.gitlab.GitLabPlugin</sonar.pluginClass>
     </properties>
@@ -90,11 +89,6 @@
             <artifactId>java-gitlab-api</artifactId>
             <version>${java-gitlab-api.version}</version>
         </dependency>
-        <!--dependency>
-            <groupId>org.freemarker</groupId>
-            <artifactId>freemarker</artifactId>
-            <version>${freemarker.version}</version>
-        </dependency-->
 
         <!-- unit tests -->
         <dependency>
