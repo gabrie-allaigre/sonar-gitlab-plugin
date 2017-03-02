@@ -88,3 +88,5 @@ A new version is work in progress
 - Disable reporting in inline comments
 - Configure Proxy
 - Ignore certficate if auto-signed
+- Add quality project https://sonarqube.com/dashboard?id=com.talanlabs%3Asonar-gitlab-plugin 
+
