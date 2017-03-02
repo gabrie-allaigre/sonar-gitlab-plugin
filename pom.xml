@@ -24,6 +24,13 @@
         <sonar.version>5.6</sonar.version>
         <sonar.pluginName>GitLab</sonar.pluginName>
         <sonar.pluginClass>com.talanlabs.sonar.plugins.gitlab.GitLabPlugin</sonar.pluginClass>
+
+        <jacoco-maven-plugin.version>0.7.5.201505241946</jacoco-maven-plugin.version>
+        <jacoco.ut.execution.data.file>${project.build.directory}/coverage-reports/jacoco-ut.exec
+        </jacoco.ut.execution.data.file>
+
+        <sonar.jacoco.reportPath>${jacoco.ut.execution.data.file}</sonar.jacoco.reportPath>
+        <sonar.sourceEncoding>UTF-8</sonar.sourceEncoding>
     </properties>
     <inceptionYear>2016</inceptionYear>
     <organization>
@@ -71,6 +78,37 @@
         <system>gitlab</system>
         <url>https://github.com/gabrie-allaigre/sonar-gitlab-plugin/issues</url>
     </issueManagement>
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.jacoco</groupId>
+                <artifactId>jacoco-maven-plugin</artifactId>
+                <version>${jacoco-maven-plugin.version}</version>
+                <executions>
+                    <execution>
+                        <id>pre-unit-test</id>
+                        <goals>
+                            <goal>prepare-agent</goal>
+                        </goals>
+                        <configuration>
+                            <destFile>${jacoco.ut.execution.data.file}</destFile>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>post-unit-test</id>
+                        <phase>test</phase>
+                        <goals>
+                            <goal>report</goal>
+                        </goals>
+                        <configuration>
+                            <dataFile>${jacoco.ut.execution.data.file}</dataFile>
+                            <outputDirectory>${project.reporting.outputDirectory}/jacoco-ut</outputDirectory>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
     <dependencies>
         <dependency>
             <groupId>org.sonarsource.sonarqube</groupId>
