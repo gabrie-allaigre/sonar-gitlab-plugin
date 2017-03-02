@@ -25,6 +25,8 @@ import org.sonar.api.batch.postjob.PostJob;
 import org.sonar.api.batch.postjob.PostJobContext;
 import org.sonar.api.batch.postjob.PostJobDescriptor;
 import org.sonar.api.batch.postjob.issue.PostJobIssue;
+import org.sonar.api.utils.log.Logger;
+import org.sonar.api.utils.log.Loggers;
 
 import java.util.Comparator;
 import java.util.HashMap;
@@ -35,6 +37,8 @@ import java.util.stream.StreamSupport;
  * Compute comments to be added on the commit.
  */
 public class CommitIssuePostJob implements PostJob {
+
+    private static final Logger LOG = Loggers.get(CommitIssuePostJob.class);
 
     private static final Comparator<PostJobIssue> ISSUE_COMPARATOR = new IssueComparator();
 
@@ -57,15 +61,21 @@ public class CommitIssuePostJob implements PostJob {
     public void execute(PostJobContext context) {
         GlobalReport report = new GlobalReport(gitLabPluginConfiguration, markDownUtils);
 
-        Map<InputFile, Map<Integer, StringBuilder>> commentsToBeAddedByLine = processIssues(report, context.issues());
+        try {
+            Map<InputFile, Map<Integer, StringBuilder>> commentsToBeAddedByLine = processIssues(report, context.issues());
 
-        updateReviewComments(commentsToBeAddedByLine);
+            updateReviewComments(commentsToBeAddedByLine);
 
-        if (report.hasNewIssue() || gitLabPluginConfiguration.commentNoIssue()) {
-            commitFacade.addGlobalComment(report.formatForMarkdown());
+            if (report.hasNewIssue() || gitLabPluginConfiguration.commentNoIssue()) {
+                commitFacade.addGlobalComment(report.formatForMarkdown());
+            }
+
+            commitFacade.createOrUpdateSonarQubeStatus(report.getStatus(), report.getStatusDescription());
+        } catch (Exception e) {
+            String msg = "SonarQube failed to complete the review of this pull request";
+            LOG.error(msg, e);
+            commitFacade.createOrUpdateSonarQubeStatus("failed", msg + ": " + e.getMessage());
         }
-
-        commitFacade.createOrUpdateSonarQubeStatus(report.getStatus(), report.getStatusDescription());
     }
 
     @Override

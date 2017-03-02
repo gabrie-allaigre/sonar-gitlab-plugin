@@ -169,7 +169,7 @@ public class GlobalReport {
                 printNewIssuesInline(sb, Severity.CRITICAL);
                 printNewIssuesInline(sb, Severity.BLOCKER);
             } else {
-                sb.append(" no critical nor blocker");
+                sb.append(" no criticals or blockers");
             }
         } else {
             sb.append("no issues");

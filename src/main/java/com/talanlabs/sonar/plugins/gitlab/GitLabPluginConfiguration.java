@@ -58,7 +58,6 @@ public class GitLabPluginConfiguration {
         this.system2 = system2;
     }
 
-    @CheckForNull
     public String projectId() {
         return settings.getString(GitLabPlugin.GITLAB_PROJECT_ID);
     }
