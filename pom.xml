@@ -61,10 +61,6 @@
         <contributor>
             <name>Sylvain Desgrais</name>
         </contributor>
-        <contributor>
-            <name>Johno Crawford</name>
-            <email>johno.crawford@gmail.com</email>
-        </contributor>
     </contributors>
     <scm>
         <url>https://github.com/gabrie-allaigre/sonar-gitlab-plugin</url>
