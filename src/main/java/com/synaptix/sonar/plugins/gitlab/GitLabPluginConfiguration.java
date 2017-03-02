@@ -89,4 +89,9 @@ public class GitLabPluginConfiguration {
         return settings.getString(GitLabPlugin.GITLAB_INLINE_TEMPLATE);
     }
 
+    @CheckForNull
+    public boolean commentNoIssue() {
+        return settings.getBoolean(GitLabPlugin.GITLAB_COMMENT_NO_ISSUE);
+    }
+
 }

@@ -40,6 +40,7 @@ public class GitLabPlugin extends SonarPlugin {
     public static final String GITLAB_IGNORE_FILE = "sonar.gitlab.ignore_file";
     public static final String GITLAB_GLOBAL_TEMPLATE = "sonar.gitlab.global_template";
     public static final String GITLAB_INLINE_TEMPLATE = "sonar.gitlab.inline_template";
+    public static final String GITLAB_COMMENT_NO_ISSUE = "sonar.gitlab.comment_no_issue";
 
     public static final String CATEGORY = "gitlab";
     public static final String SUBCATEGORY = "reporting";
@@ -60,7 +61,9 @@ public class GitLabPlugin extends SonarPlugin {
                         PropertyDefinition.builder(GITLAB_REF_NAME).name("GitLab Ref Name").description("The commit revision for which project is built.").category(CATEGORY).subCategory(SUBCATEGORY)
                                 .index(7).hidden().build(),
                         PropertyDefinition.builder(GITLAB_IGNORE_FILE).name("GitLab Ingore file").description("Ignore issues on files no modified by the commit").category(CATEGORY)
-                                .subCategory(SUBCATEGORY).type(PropertyType.BOOLEAN).defaultValue(String.valueOf(false)).index(7).hidden().build()/*,
+                                .subCategory(SUBCATEGORY).type(PropertyType.BOOLEAN).defaultValue(String.valueOf(false)).index(7).hidden().build(),
+                        PropertyDefinition.builder(GITLAB_COMMENT_NO_ISSUE).name("GitLab Comment when no new issue").description("Add a comment even when there is no new issue.").category(CATEGORY)
+                                .subCategory(SUBCATEGORY).type(PropertyType.BOOLEAN).defaultValue(String.valueOf(false)).index(8).build()/*,
                         PropertyDefinition.builder(GITLAB_GLOBAL_TEMPLATE).name("GitLab Global Template").description("Template for global comment in commit.").category(CATEGORY)
                                 .subCategory(SUBCATEGORY).type(PropertyType.TEXT).index(8).build(),
                         PropertyDefinition.builder(GITLAB_INLINE_TEMPLATE).name("GitLab Inline Template").description("Template for inline comment in commit.").category(CATEGORY)
