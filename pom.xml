@@ -6,7 +6,7 @@
     <parent>
         <groupId>org.sonarsource.parent</groupId>
         <artifactId>parent</artifactId>
-        <version>28</version>
+        <version>40</version>
     </parent>
     <groupId>com.synaptix</groupId>
     <artifactId>sonar-gitlab-plugin</artifactId>
@@ -14,32 +14,54 @@
     <name>SonarQube :: GitLab Plugin</name>
     <description>GitLab Plugin for Reporting</description>
     <packaging>sonar-plugin</packaging>
-    <inceptionYear>2016</inceptionYear>
-    <organization>
-        <name>Talanlabs</name>
-        <url>http://www.talanlabs.com</url>
-    </organization>
-    <url>https://gitlab.talanlabs.com/gabriel-allaigre/sonar-gitlab-plugin</url>
+    <url>https://github.com/gabrie-allaigre/sonar-gitlab-plugin</url>
     <properties>
-        <java-gitlab-api.version>1.6.0</java-gitlab-api.version>
+        <java-gitlab-api.version>1.0.0</java-gitlab-api.version>
 
         <license.mailto>gabriel.allaigre@talanlabs.com</license.mailto>
         <license.owner>Talanlabs</license.owner>
 
-        <sonar.version>5.4</sonar.version>
+        <sonar.version>5.6</sonar.version>
         <sonar.pluginName>GitLab</sonar.pluginName>
-        <sonar.pluginClass>com.synaptix.sonar.plugins.gitlab.GitLabPlugin</sonar.pluginClass>
+        <sonar.pluginClass>com.talanlabs.sonar.plugins.gitlab.GitLabPlugin</sonar.pluginClass>
     </properties>
+    <inceptionYear>2017</inceptionYear>
+    <organization>
+        <name>Talanlabs</name>
+        <url>http://www.talanlabs.com</url>
+    </organization>
+    <licenses>
+        <license>
+            <name>GNU LGPL 3</name>
+            <url>http://www.gnu.org/licenses/lgpl.txt</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
     <developers>
         <developer>
-            <id>gabriel.allaigre@talanlabs.com</id>
             <name>Gabriel Allaigre</name>
             <email>gabriel.allaigre@talanlabs.com</email>
         </developer>
     </developers>
+    <contributors>
+        <contributor>
+            <name>Johno Crawford</name>
+            <email>johno.crawford@gmail.com</email>
+        </contributor>
+        <contributor>
+            <name>frol2103</name>
+        </contributor>
+        <contributor>
+            <name>Sylvain Desgrais</name>
+        </contributor>
+        <contributor>
+            <name>Johno Crawford</name>
+            <email>johno.crawford@gmail.com</email>
+        </contributor>
+    </contributors>
     <scm>
-        <url>https://gitlab.talanlabs.com/gabriel-allaigre/sonar-gitlab-plugin</url>
-        <connection>scm:git:https://gitlab.talanlabs.com/gabriel-allaigre/sonar-gitlab-plugin.git</connection>
+        <url>https://github.com/gabrie-allaigre/sonar-gitlab-plugin</url>
+        <connection>https://github.com/gabrie-allaigre/sonar-gitlab-plugin.git</connection>
     </scm>
     <ciManagement>
         <system>gitlab-ci</system>
@@ -47,30 +69,8 @@
     </ciManagement>
     <issueManagement>
         <system>gitlab</system>
-        <url>https://gitlab.talanlabs.com/gabriel-allaigre/sonar-gitlab-plugin/issues</url>
+        <url>https://github.com/gabrie-allaigre/sonar-gitlab-plugin/issues</url>
     </issueManagement>
-    <repositories>
-        <repository>
-            <id>talanlabs-releases-repository</id>
-            <releases>
-                <enabled>true</enabled>
-            </releases>
-            <snapshots>
-                <enabled>false</enabled>
-            </snapshots>
-            <url>http://nexus.talanlabs.com/content/groups/public_release</url>
-        </repository>
-        <repository>
-            <id>talanlabs-snapshots-repository</id>
-            <releases>
-                <enabled>false</enabled>
-            </releases>
-            <snapshots>
-                <enabled>true</enabled>
-            </snapshots>
-            <url>http://nexus.talanlabs.com/content/groups/public_snapshots</url>
-        </repository>
-    </repositories>
     <dependencies>
         <dependency>
             <groupId>org.sonarsource.sonarqube</groupId>
@@ -85,7 +85,7 @@
             <scope>provided</scope>
         </dependency>
         <dependency>
-            <groupId>com.synaptix</groupId>
+            <groupId>com.talanlabs</groupId>
             <artifactId>java-gitlab-api</artifactId>
             <version>${java-gitlab-api.version}</version>
         </dependency>
@@ -122,14 +122,4 @@
             <scope>test</scope>
         </dependency>
     </dependencies>
-    <distributionManagement>
-        <repository>
-            <id>talanlabs-releases-repository</id>
-            <url>http://nexus.talanlabs.com/content/repositories/releases/</url>
-        </repository>
-        <snapshotRepository>
-            <id>talanlabs-snapshots-repository</id>
-            <url>http://nexus.talanlabs.com/content/repositories/snapshots/</url>
-        </snapshotRepository>
-    </distributionManagement>
 </project>

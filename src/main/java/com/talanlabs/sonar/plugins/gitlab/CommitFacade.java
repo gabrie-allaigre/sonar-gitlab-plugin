@@ -17,24 +17,31 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
-package com.synaptix.sonar.plugins.gitlab;
+package com.talanlabs.sonar.plugins.gitlab;
 
-import com.synaptix.gitlab.api.GitLabAPI;
-import com.synaptix.gitlab.api.Paged;
-import com.synaptix.gitlab.api.models.commits.GitLabCommitDiff;
-import com.synaptix.gitlab.api.models.projects.GitLabProject;
+import com.talanlabs.gitlab.api.GitLabAPI;
+import com.talanlabs.gitlab.api.Paged;
+import com.talanlabs.gitlab.api.models.commits.GitLabCommitDiff;
+import com.talanlabs.gitlab.api.models.projects.GitLabProject;
 import org.apache.commons.io.IOUtils;
 import org.sonar.api.batch.BatchSide;
 import org.sonar.api.batch.InstantiationStrategy;
+import org.sonar.api.batch.fs.InputComponent;
 import org.sonar.api.batch.fs.InputFile;
 import org.sonar.api.batch.fs.InputPath;
 import org.sonar.api.scan.filesystem.PathResolver;
 
+import javax.annotation.CheckForNull;
 import javax.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
 import java.io.StringReader;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -45,7 +52,9 @@ import java.util.regex.Pattern;
 @BatchSide
 public class CommitFacade {
 
-    static final String COMMIT_CONTEXT = "sonarqube";
+    // http://en.wikipedia.org/wiki/Diff_utility#Unified_format
+    private static final Pattern PATCH_PATTERN = Pattern.compile("@@\\p{Space}-[0-9]+(?:,[0-9]+)?\\p{Space}\\+([0-9]+)(?:,[0-9]+)?\\p{Space}@@.*");
+    private static final String COMMIT_CONTEXT = "sonarqube";
 
     private final GitLabPluginConfiguration config;
     private File gitBaseDir;
@@ -70,9 +79,6 @@ public class CommitFacade {
         }
         return patchPositionMappingByFile;
     }
-    
-    // http://en.wikipedia.org/wiki/Diff_utility#Unified_format
-    private static final Pattern PATCH_PATTERN = Pattern.compile("@@\\p{Space}-[0-9]+(?:,[0-9]+)?\\p{Space}\\+([0-9]+)(?:,[0-9]+)?\\p{Space}@@.*");
 
     private static void processPatch(Set<Integer> patchLocationMapping, String patch) throws IOException {
         int currentLine = -1;
@@ -175,9 +181,10 @@ public class CommitFacade {
         return hasFile(inputFile) && patchPositionMappingByFile.get(getPath(inputFile)).contains(line);
     }
 
-    public String getGitLabUrl(InputFile inputFile, Integer issueLine) {
-        if (inputFile != null) {
-            String path = getPath(inputFile);
+    @CheckForNull
+    public String getGitLabUrl(@Nullable InputComponent inputComponent, @Nullable Integer issueLine) {
+        if (inputComponent instanceof InputPath) {
+            String path = getPath((InputPath) inputComponent);
             return gitLabProject.getWebUrl() + "/blob/" + config.commitSHA() + "/" + path + (issueLine != null ? ("#L" + issueLine) : "");
         }
         return null;
