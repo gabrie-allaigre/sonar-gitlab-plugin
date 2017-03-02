@@ -41,7 +41,7 @@ mvn --batch-mode verify sonar:sonar -Dsonar.host.url=$SONAR_URL -Dsonar.analysis
 ```
 
 | Variable | Comment | Type | Version |
-| -------- | ----------- | ---- |
+| -------- | ----------- | ---- | --- |
 | sonar.gitlab.url | GitLab url | Administration, Variable | >= 1.6.6 |
 | sonar.gitlab.max_global_issues | Maximum number of anomalies to be displayed in the global comment |  Administration, Variable | >= 1.6.6 |
 | sonar.gitlab.user_token | Token of the user who can make reports on the project, either global or per project |  Administration, Project, Variable | >= 1.6.6 |
