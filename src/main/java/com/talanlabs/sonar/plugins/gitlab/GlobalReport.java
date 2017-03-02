@@ -25,7 +25,7 @@ import org.sonar.api.internal.google.common.collect.ImmutableList;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.EnumMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -37,7 +37,7 @@ public class GlobalReport {
     private final GitLabPluginConfiguration gitLabPluginConfiguration;
     private final MarkDownUtils markDownUtils;
     private int[] newIssuesBySeverity = new int[SEVERITIES.size()];
-    private Map<Severity, List<IssueUrl>> notReportedOnDiffMap = new HashMap<>();
+    private Map<Severity, List<IssueUrl>> notReportedOnDiffMap = new EnumMap<>(Severity.class);
     private int notReportedIssueCount = 0;
 
     public GlobalReport(GitLabPluginConfiguration gitLabPluginConfiguration, MarkDownUtils markDownUtils) {
