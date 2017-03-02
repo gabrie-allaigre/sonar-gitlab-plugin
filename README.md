@@ -1,7 +1,7 @@
 Sonar GitLab Plugin
 ===================
 
-Forked from https://github.com/SonarCommunity/sonar-github
+Inspire by https://github.com/SonarCommunity/sonar-github
 
 # Goal
 
@@ -18,15 +18,15 @@ Add build line:
 
 # Usage
 
-For SonarQube <5.4:
+For SonarQube < 5.4:
 
-- Download last version http://nexus.talanlabs.com/content/groups/public_release/com/synaptix/sonar-gitlab-plugin/1.6.6/sonar-gitlab-plugin-1.6.6.jar
+- Download last version https://github.com/gabrie-allaigre/sonar-gitlab-plugin/releases/download/1.6.6/sonar-gitlab-plugin-1.6.6.jar
 - Copy file in extensions directory `SONARQUBE_HOME/extensions/plugins`
 - Restart SonarQube 
 
-For SonarQube >=5.4:
+For SonarQube >= 5.4:
 
-- Download last version http://nexus.talanlabs.com/content/groups/public_release/com/synaptix/sonar-gitlab-plugin/1.7.0/sonar-gitlab-plugin-1.7.0.jar
+- Download last version https://github.com/gabrie-allaigre/sonar-gitlab-plugin/releases/download/1.7.0/sonar-gitlab-plugin-1.7.0.jar
 - Copy file in extensions directory `SONARQUBE_HOME/extensions/plugins`
 - Restart SonarQube
 
@@ -40,14 +40,22 @@ Example :
 mvn --batch-mode verify sonar:sonar -Dsonar.host.url=$SONAR_URL -Dsonar.analysis.mode=preview -Dsonar.issuesReport.console.enable=true -Dsonar.gitlab.commit_sha=$CI_BUILD_REF -Dsonar.gitlab.ref_name=$CI_BUILD_REF_NAME
 ```
 
-| Variable | Comment | Type |
-| -------- | ----------- | ---- |
-| sonar.gitlab.url | GitLab url | Administration, Variable |
-| sonar.gitlab.max_global_issues | Maximum number of anomalies to be displayed in the global comment |  Administration, Variable |
-| sonar.gitlab.user_token | Token of the user who can make reports on the project, either global or per project |  Administration, Project, Variable |
-| sonar.gitlab.project_id | Project ID in GitLab or internal id or namespace + name or namespace + path or url http or ssh url or url or web | Project, Variable |
-| sonar.gitlab.commit_sha | SHA of the commit comment | Variable |
-| sonar.gitlab.ref_name | Branch name or reference of the commit | Variable |
+| Variable | Comment | Type | Version |
+| -------- | ----------- | ---- | --- |
+| sonar.gitlab.url | GitLab url | Administration, Variable | >= 1.6.6 |
+| sonar.gitlab.max_global_issues | Maximum number of anomalies to be displayed in the global comment |  Administration, Variable | >= 1.6.6 |
+| sonar.gitlab.user_token | Token of the user who can make reports on the project, either global or per project |  Administration, Project, Variable | >= 1.6.6 |
+| sonar.gitlab.project_id | Project ID in GitLab or internal id or namespace + name or namespace + path or url http or ssh url or url or web | Project, Variable | >= 1.6.6 |
+| sonar.gitlab.commit_sha | SHA of the commit comment | Variable | >= 1.6.6 |
+| sonar.gitlab.ref_name | Branch name or reference of the commit | Variable | >= 1.6.6 |
+| sonar.gitlab.max_blocker_issues_gate | Max blocker issue for build failed (default 0) | Project, Variable | >= 2.0.0 |
+| sonar.gitlab.max_critical_issues_gate | Max critical issues for build failed (default 0) | Project, Variable | >= 2.0.0 |
+| sonar.gitlab.max_major_issues_gate | Max major issues for build failed (default -1 no fail) | Project, Variable | >= 2.0.0 |
+| sonar.gitlab.max_minor_issues_gate | Max minor issues for build failed (default -1 no fail) | Project, Variable | >= 2.0.0 |
+| sonar.gitlab.max_info_issues_gate | Max info issues for build failed (default -1 no fail) | Project, Variable | >= 2.0.0 |
+| sonar.gitlab.ignore_certificate | Ignore Certificate for access GitLab, use for auto-signing cert (default false) | Administration, Variable | >= 2.0.0 |
+| sonar.gitlab.comment_no_issue | Add a comment even when there is no new issue (default false) | Administration, Variable | >= 2.0.0 |
+| sonar.gitlab.disableInlineComments | Disable issue reporting as inline comments (default false) | Administration, Variable | >= 2.0.0 |
 
 - Administration : **Settings** globals in SonarQube
 - Project : **Settings** of project in SonarQube
@@ -62,3 +70,23 @@ mvn --batch-mode verify sonar:sonar -Dsonar.host.url=$SONAR_URL -Dsonar.analysis
 - In SonarQube: Project Administration -> General Settings -> GitLab -> **Reporting**. Set project identifier in GitLab
 
 ![Sonar settings](doc/sonar_project_settings.jpg)
+
+# New version 2.0.0
+
+A new version is work in progress
+
+- Add test unit
+- GitLab API is in maven central
+- Java 8
+- Sonarqube >= 5.6
+- New functionnality
+- Remove personal repository
+- Use emoticon (Thanks Artpej)
+- Change fail rule (Thanks Artpej)
+- Add comment for no issue (Thanks frol2103)
+- Clean code and dead code (Thanks johnou)
+- Disable reporting in inline comments
+- Configure Proxy
+- Ignore certficate if auto-signed
+- Add quality project https://sonarqube.com/dashboard?id=com.talanlabs%3Asonar-gitlab-plugin 
+

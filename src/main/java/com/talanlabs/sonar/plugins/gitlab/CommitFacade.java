@@ -1,6 +1,6 @@
 /*
  * SonarQube :: GitLab Plugin
- * Copyright (C) 2016-2016 Talanlabs
+ * Copyright (C) 2016-2017 Talanlabs
  * gabriel.allaigre@talanlabs.com
  *
  * This program is free software; you can redistribute it and/or
@@ -17,24 +17,33 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
-package com.synaptix.sonar.plugins.gitlab;
+package com.talanlabs.sonar.plugins.gitlab;
 
-import com.synaptix.gitlab.api.GitLabAPI;
-import com.synaptix.gitlab.api.Paged;
-import com.synaptix.gitlab.api.models.commits.GitLabCommitDiff;
-import com.synaptix.gitlab.api.models.projects.GitLabProject;
+import com.talanlabs.gitlab.api.GitLabAPI;
+import com.talanlabs.gitlab.api.Paged;
+import com.talanlabs.gitlab.api.models.commits.GitLabCommitDiff;
+import com.talanlabs.gitlab.api.models.projects.GitLabProject;
 import org.apache.commons.io.IOUtils;
 import org.sonar.api.batch.BatchSide;
 import org.sonar.api.batch.InstantiationStrategy;
+import org.sonar.api.batch.fs.InputComponent;
 import org.sonar.api.batch.fs.InputFile;
 import org.sonar.api.batch.fs.InputPath;
 import org.sonar.api.scan.filesystem.PathResolver;
+import org.sonar.api.utils.log.Logger;
+import org.sonar.api.utils.log.Loggers;
 
+import javax.annotation.CheckForNull;
 import javax.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
 import java.io.StringReader;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -45,7 +54,11 @@ import java.util.regex.Pattern;
 @BatchSide
 public class CommitFacade {
 
-    static final String COMMIT_CONTEXT = "sonarqube";
+    private static final Logger LOG = Loggers.get(CommitFacade.class);
+
+    // http://en.wikipedia.org/wiki/Diff_utility#Unified_format
+    private static final Pattern PATCH_PATTERN = Pattern.compile("@@\\p{Space}-[0-9]+(?:,[0-9]+)?\\p{Space}\\+([0-9]+)(?:,[0-9]+)?\\p{Space}@@.*");
+    private static final String COMMIT_CONTEXT = "sonarqube";
 
     private final GitLabPluginConfiguration config;
     private File gitBaseDir;
@@ -55,13 +68,6 @@ public class CommitFacade {
 
     public CommitFacade(GitLabPluginConfiguration config) {
         this.config = config;
-    }
-
-    private static boolean isEqualsNameWithNamespace(String current, String f) {
-        if (current == null || f == null) {
-            return false;
-        }
-        return current.replaceAll(" ", "").equalsIgnoreCase(f.replaceAll(" ", ""));
     }
 
     private static Map<String, Set<Integer>> mapPatchPositionsToLines(List<GitLabCommitDiff> diffs) throws IOException {
@@ -78,12 +84,11 @@ public class CommitFacade {
         return patchPositionMappingByFile;
     }
 
-    private static void processPatch(Set<Integer> patchLocationMapping, String patch) throws IOException {
+    static void processPatch(Set<Integer> patchLocationMapping, String patch) throws IOException {
         int currentLine = -1;
         for (String line : IOUtils.readLines(new StringReader(patch))) {
             if (line.startsWith("@")) {
-                // http://en.wikipedia.org/wiki/Diff_utility#Unified_format
-                Matcher matcher = Pattern.compile("@@\\p{Space}-[0-9]+(?:,[0-9]+)?\\p{Space}\\+([0-9]+)(?:,[0-9]+)?\\p{Space}@@.*").matcher(line);
+                Matcher matcher = PATCH_PATTERN.matcher(line);
                 if (!matcher.matches()) {
                     throw new IllegalStateException("Unable to parse patch line " + line + "\nFull patch: \n" + patch);
                 }
@@ -102,9 +107,8 @@ public class CommitFacade {
     }
 
     public void init(File projectBaseDir) {
-        if (findGitBaseDir(projectBaseDir) == null) {
-            throw new IllegalStateException("Unable to find Git root directory. Is " + projectBaseDir + " part of a Git repository?");
-        }
+        initGitBaseDir(projectBaseDir);
+
         gitLabAPI = GitLabAPI.connect(config.url(), config.userToken()).setIgnoreCertificateErrors(config.ignoreCertificate());
         try {
             gitLabProject = getGitLabProject();
@@ -122,6 +126,20 @@ public class CommitFacade {
         }
     }
 
+    void initGitBaseDir(File projectBaseDir) {
+        File detectedGitBaseDir = findGitBaseDir(projectBaseDir);
+        if (detectedGitBaseDir == null) {
+            LOG.debug("Unable to find Git root directory. Is " + projectBaseDir + " part of a Git repository?");
+            setGitBaseDir(projectBaseDir);
+        } else {
+            setGitBaseDir(detectedGitBaseDir);
+        }
+    }
+
+    void setGitLabProject(GitLabProject gitLabProject) {
+        this.gitLabProject = gitLabProject;
+    }
+
     private File findGitBaseDir(@Nullable File baseDir) {
         if (baseDir == null) {
             return null;
@@ -131,6 +149,10 @@ public class CommitFacade {
             return baseDir;
         }
         return findGitBaseDir(baseDir.getParentFile());
+    }
+
+    void setGitBaseDir(File gitBaseDir) {
+        this.gitBaseDir = gitBaseDir;
     }
 
     private GitLabProject getGitLabProject() throws IOException {
@@ -180,25 +202,25 @@ public class CommitFacade {
         return hasFile(inputFile) && patchPositionMappingByFile.get(getPath(inputFile)).contains(line);
     }
 
-    public String getGitLabUrl(InputFile inputFile, Integer issueLine) {
-        if (inputFile != null) {
-            String path = getPath(inputFile);
+    @CheckForNull
+    public String getGitLabUrl(@Nullable InputComponent inputComponent, @Nullable Integer issueLine) {
+        if (inputComponent instanceof InputPath) {
+            String path = getPath((InputPath) inputComponent);
             return gitLabProject.getWebUrl() + "/blob/" + config.commitSHA() + "/" + path + (issueLine != null ? ("#L" + issueLine) : "");
         }
         return null;
     }
 
     public void createOrUpdateReviewComment(InputFile inputFile, Integer line, String body) {
-        String fullpath = getPath(inputFile);
-        //System.out.println("Review : "+fullpath+" line : "+line);
+        String fullPath = getPath(inputFile);
         try {
-            gitLabAPI.getGitLabAPICommits().postCommitComments(gitLabProject.getId(), config.commitSHA(), body, fullpath, line, "new");
+            gitLabAPI.getGitLabAPICommits().postCommitComments(gitLabProject.getId(), config.commitSHA(), body, fullPath, line, "new");
         } catch (IOException e) {
-            throw new IllegalStateException("Unable to create or update review comment in file " + fullpath + " at line " + line, e);
+            throw new IllegalStateException("Unable to create or update review comment in file " + fullPath + " at line " + line, e);
         }
     }
 
-    private String getPath(InputPath inputPath) {
+    String getPath(InputPath inputPath) {
         return new PathResolver().relativePath(gitBaseDir, inputPath.file());
     }
 

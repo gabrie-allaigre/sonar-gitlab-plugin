@@ -1,6 +1,6 @@
 /*
  * SonarQube :: GitLab Plugin
- * Copyright (C) 2016-2016 Talanlabs
+ * Copyright (C) 2016-2017 Talanlabs
  * gabriel.allaigre@talanlabs.com
  *
  * This program is free software; you can redistribute it and/or
@@ -17,10 +17,12 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
-package com.synaptix.sonar.plugins.gitlab;
+package com.talanlabs.sonar.plugins.gitlab;
 
+import org.sonar.api.CoreProperties;
+import org.sonar.api.batch.AnalysisMode;
 import org.sonar.api.batch.bootstrap.ProjectBuilder;
-import org.sonar.api.config.Settings;
+import org.sonar.api.utils.MessageException;
 
 /**
  * Trigger load of pull request metadata at the very beginning of SQ analysis. Also
@@ -29,13 +31,15 @@ import org.sonar.api.config.Settings;
 public class CommitProjectBuilder extends ProjectBuilder {
 
     private final GitLabPluginConfiguration gitLabPluginConfiguration;
-    private final Settings settings;
     private final CommitFacade commitFacade;
+    private final AnalysisMode mode;
 
-    public CommitProjectBuilder(GitLabPluginConfiguration gitLabPluginConfiguration,CommitFacade commitFacade, Settings settings) {
+    public CommitProjectBuilder(GitLabPluginConfiguration gitLabPluginConfiguration, CommitFacade commitFacade, AnalysisMode mode) {
+        super();
+
         this.gitLabPluginConfiguration = gitLabPluginConfiguration;
-        this.settings = settings;
         this.commitFacade = commitFacade;
+        this.mode = mode;
     }
 
     @Override
@@ -44,8 +48,16 @@ public class CommitProjectBuilder extends ProjectBuilder {
             return;
         }
 
+        checkMode();
+
         commitFacade.init(context.projectReactor().getRoot().getBaseDir());
 
         commitFacade.createOrUpdateSonarQubeStatus("pending", "SonarQube analysis in progress");
+    }
+
+    private void checkMode() {
+        if (!mode.isIssues()) {
+            throw MessageException.of("The GitLab plugin is only intended to be used in preview or issues mode. Please set '" + CoreProperties.ANALYSIS_MODE + "'.");
+        }
     }
 }
