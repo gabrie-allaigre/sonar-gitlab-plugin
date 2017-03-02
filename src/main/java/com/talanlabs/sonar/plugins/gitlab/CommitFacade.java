@@ -105,6 +105,9 @@ public class CommitFacade {
         initGitBaseDir(projectBaseDir);
 
         gitLabAPI = GitLabAPI.connect(config.url(), config.userToken()).setIgnoreCertificateErrors(config.ignoreCertificate());
+        if (config.isProxyConnectionEnabled()) {
+            gitLabAPI.setProxy(config.getHttpProxy());
+        }
         try {
             gitLabProject = getGitLabProject();
 
