@@ -88,7 +88,15 @@ public class GlobalReport {
     }
 
     public String getStatus() {
-        return (newIssues(Severity.BLOCKER) > 0 || newIssues(Severity.CRITICAL) > 0) ? "failed" : "success";
+        return aboveGates() ? "failed" : "success";
+    }
+
+    private boolean aboveGates(){
+      return newIssues(Severity.BLOCKER) > gitLabPluginConfiguration.maxBlockerIssuesGate() ||
+        newIssues(Severity.CRITICAL) > gitLabPluginConfiguration.maxCriticalIssuesGate()||
+        newIssues(Severity.MAJOR) > gitLabPluginConfiguration.maxMajorIssuesGate()||
+        newIssues(Severity.MINOR) > gitLabPluginConfiguration.maxMinorIssuesGate()||
+        newIssues(Severity.INFO) > gitLabPluginConfiguration.maxInfoIssuesGate();
     }
 
     private int newIssues(String s) {

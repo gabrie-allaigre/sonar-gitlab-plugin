@@ -75,6 +75,27 @@ public class GitLabPluginConfiguration {
     }
 
     @CheckForNull
+    public int maxBlockerIssuesGate() {
+        return settings.getInt(GitLabPlugin.GITLAB_MAX_BLOCKER_ISSUES_GATE);
+    }
+    @CheckForNull
+    public int maxCriticalIssuesGate() {
+        return settings.getInt(GitLabPlugin.GITLAB_MAX_CRITICAL_ISSUES_GATE);
+    }
+        @CheckForNull
+    public int maxMajorIssuesGate() {
+        return settings.getInt(GitLabPlugin.GITLAB_MAX_MAJOR_ISSUES_GATE);
+    }
+    @CheckForNull
+    public int maxMinorIssuesGate() {
+        return settings.getInt(GitLabPlugin.GITLAB_MAX_MINOR_ISSUES_GATE);
+    }
+    @CheckForNull
+    public int maxInfoIssuesGate() {
+        return settings.getInt(GitLabPlugin.GITLAB_MAX_INFO_ISSUES_GATE);
+    }
+
+    @CheckForNull
     public boolean ignoreFileNotModified() {
         return settings.getBoolean(GitLabPlugin.GITLAB_IGNORE_FILE);
     }
