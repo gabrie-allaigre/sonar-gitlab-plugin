@@ -1,3 +1,22 @@
+/*
+ * SonarQube :: GitLab Plugin
+ * Copyright (C) 2016-2017 Talanlabs
+ * gabriel.allaigre@talanlabs.com
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 3 of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ */
 package com.talanlabs.sonar.plugins.gitlab;
 
 import org.assertj.core.api.Assertions;
@@ -25,8 +44,7 @@ public class GlobalReportTest {
 
     @Before
     public void setup() {
-        settings = new Settings(new PropertyDefinitions(PropertyDefinition.builder(CoreProperties.SERVER_BASE_URL).name("Server base URL")
-                .description("HTTP URL of this SonarQube server, such as <i>http://yourhost.yourdomain/sonar</i>. This value is used i.e. to create links in emails.")
+        settings = new Settings(new PropertyDefinitions(PropertyDefinition.builder(CoreProperties.SERVER_BASE_URL).name("Server base URL").description("HTTP URL of this SonarQube server, such as <i>http://yourhost.yourdomain/sonar</i>. This value is used i.e. to create links in emails.")
                 .category(CoreProperties.CATEGORY_GENERAL).defaultValue(CoreProperties.SERVER_BASE_URL_DEFAULT_VALUE).build()).addComponents(GitLabPlugin.definitions()));
 
         settings.setProperty("sonar.host.url", "http://myserver");
@@ -67,8 +85,7 @@ public class GlobalReportTest {
         GlobalReport globalReport = new GlobalReport(config, new MarkDownUtils(settings));
         globalReport.process(newMockedIssue("component", null, null, Severity.INFO, true, "IssueUrl", "rule"), GITLAB_URL, true);
 
-        Assertions.assertThat(globalReport.formatForMarkdown())
-                .isEqualTo("SonarQube analysis reported 1 postJobIssue\n" + "* :information_source: 1 info\n" + "\nWatch the comments in this conversation to review them.\n");
+        Assertions.assertThat(globalReport.formatForMarkdown()).isEqualTo("SonarQube analysis reported 1 postJobIssue\n" + "* :information_source: 1 info\n" + "\nWatch the comments in this conversation to review them.\n");
     }
 
     @Test
@@ -78,8 +95,7 @@ public class GlobalReportTest {
         GlobalReport globalReport = new GlobalReport(config, new MarkDownUtils(settings));
         globalReport.process(newMockedIssue("component0", null, null, Severity.INFO, true, "Issue0", "rule0"), null, false);
 
-        Assertions.assertThat(globalReport.formatForMarkdown()).isEqualTo("SonarQube analysis reported 1 postJobIssue\n" + "* :information_source: 1 info\n" + "\n"
-                + "Note: The following issues were found on lines that were not modified in the commit. Because these issues can't be reported as line comments, they are summarized here:\n\n"
+        Assertions.assertThat(globalReport.formatForMarkdown()).isEqualTo("SonarQube analysis reported 1 postJobIssue\n" + "* :information_source: 1 info\n" + "\n" + "Note: The following issues were found on lines that were not modified in the commit. Because these issues can't be reported as line comments, they are summarized here:\n\n"
                 + "1. :information_source: Issue0 (component0) [:blue_book:](http://myserver/coding_rules#rule_key=repo%3Arule0)\n");
     }
 
@@ -95,8 +111,7 @@ public class GlobalReportTest {
         globalReport.process(newMockedIssue("component", null, null, Severity.BLOCKER, true, "IssueUrl", "rule"), GITLAB_URL, true);
 
         Assertions.assertThat(globalReport.formatForMarkdown()).isEqualTo(
-                "SonarQube analysis reported 5 issues\n" + "* :no_entry: 1 blocker\n" + "* :no_entry_sign: 1 critical\n" + "* :warning: 1 major\n" + "* :arrow_down_small: 1 minor\n"
-                        + "* :information_source: 1 info\n" + "\n" + "Watch the comments in this conversation to review them.\n");
+                "SonarQube analysis reported 5 issues\n" + "* :no_entry: 1 blocker\n" + "* :no_entry_sign: 1 critical\n" + "* :warning: 1 major\n" + "* :arrow_down_small: 1 minor\n" + "* :information_source: 1 info\n" + "\n" + "Watch the comments in this conversation to review them.\n");
     }
 
     @Test
@@ -111,11 +126,9 @@ public class GlobalReportTest {
         globalReport.process(newMockedIssue("component", null, null, Severity.BLOCKER, true, "IssueUrl 4", "rule4"), GITLAB_URL, true);
 
         Assertions.assertThat(globalReport.formatForMarkdown()).isEqualTo(
-                "SonarQube analysis reported 5 issues\n" + "* :no_entry: 1 blocker\n" + "* :no_entry_sign: 1 critical\n" + "* :warning: 1 major\n" + "* :arrow_down_small: 1 minor\n"
-                        + "* :information_source: 1 info\n" + "\n" + "Watch the comments in this conversation to review them.\n" + "\n" + "#### 2 extra issues\n" + "\n"
+                "SonarQube analysis reported 5 issues\n" + "* :no_entry: 1 blocker\n" + "* :no_entry_sign: 1 critical\n" + "* :warning: 1 major\n" + "* :arrow_down_small: 1 minor\n" + "* :information_source: 1 info\n" + "\n" + "Watch the comments in this conversation to review them.\n" + "\n" + "#### 2 extra issues\n" + "\n"
                         + "Note: The following issues were found on lines that were not modified in the commit. Because these issues can't be reported as line comments, they are summarized here:\n\n"
-                        + "1. :no_entry_sign: [IssueUrl 3](https://gitlab.com/test/test) [:blue_book:](http://myserver/coding_rules#rule_key=repo%3Arule3)\n"
-                        + "1. :arrow_down_small: [IssueUrl 1](https://gitlab.com/test/test) [:blue_book:](http://myserver/coding_rules#rule_key=repo%3Arule1)\n");
+                        + "1. :no_entry_sign: [IssueUrl 3](https://gitlab.com/test/test) [:blue_book:](http://myserver/coding_rules#rule_key=repo%3Arule3)\n" + "1. :arrow_down_small: [IssueUrl 1](https://gitlab.com/test/test) [:blue_book:](http://myserver/coding_rules#rule_key=repo%3Arule1)\n");
     }
 
     @Test
@@ -130,12 +143,9 @@ public class GlobalReportTest {
         globalReport.process(newMockedIssue("component", null, null, Severity.BLOCKER, true, "IssueUrl 4", "rule4"), GITLAB_URL, false);
 
         Assertions.assertThat(globalReport.formatForMarkdown()).isEqualTo(
-                "SonarQube analysis reported 5 issues\n" + "* :no_entry: 1 blocker\n" + "* :no_entry_sign: 1 critical\n" + "* :warning: 1 major\n" + "* :arrow_down_small: 1 minor\n"
-                        + "* :information_source: 1 info\n" + "\n" + "1. :no_entry: [IssueUrl 4](https://gitlab.com/test/test) [:blue_book:](http://myserver/coding_rules#rule_key=repo%3Arule4)\n"
-                        + "1. :no_entry_sign: [IssueUrl 3](https://gitlab.com/test/test) [:blue_book:](http://myserver/coding_rules#rule_key=repo%3Arule3)\n"
-                        + "1. :warning: [IssueUrl 2](https://gitlab.com/test/test) [:blue_book:](http://myserver/coding_rules#rule_key=repo%3Arule2)\n"
-                        + "1. :arrow_down_small: [IssueUrl 1](https://gitlab.com/test/test) [:blue_book:](http://myserver/coding_rules#rule_key=repo%3Arule1)\n"
-                        + "1. :information_source: [IssueUrl 0](https://gitlab.com/test/test) [:blue_book:](http://myserver/coding_rules#rule_key=repo%3Arule0)\n");
+                "SonarQube analysis reported 5 issues\n" + "* :no_entry: 1 blocker\n" + "* :no_entry_sign: 1 critical\n" + "* :warning: 1 major\n" + "* :arrow_down_small: 1 minor\n" + "* :information_source: 1 info\n" + "\n" + "1. :no_entry: [IssueUrl 4](https://gitlab.com/test/test) [:blue_book:](http://myserver/coding_rules#rule_key=repo%3Arule4)\n"
+                        + "1. :no_entry_sign: [IssueUrl 3](https://gitlab.com/test/test) [:blue_book:](http://myserver/coding_rules#rule_key=repo%3Arule3)\n" + "1. :warning: [IssueUrl 2](https://gitlab.com/test/test) [:blue_book:](http://myserver/coding_rules#rule_key=repo%3Arule2)\n"
+                        + "1. :arrow_down_small: [IssueUrl 1](https://gitlab.com/test/test) [:blue_book:](http://myserver/coding_rules#rule_key=repo%3Arule1)\n" + "1. :information_source: [IssueUrl 0](https://gitlab.com/test/test) [:blue_book:](http://myserver/coding_rules#rule_key=repo%3Arule0)\n");
     }
 
     @Test
@@ -152,12 +162,9 @@ public class GlobalReportTest {
         globalReport.process(newMockedIssue("component", null, null, Severity.BLOCKER, true, "IssueUrl 4", "rule4"), GITLAB_URL, false);
 
         Assertions.assertThat(globalReport.formatForMarkdown()).isEqualTo(
-                "SonarQube analysis reported 5 issues\n" + "* :no_entry: 1 blocker\n" + "* :no_entry_sign: 1 critical\n" + "* :warning: 1 major\n" + "* :arrow_down_small: 1 minor\n"
-                        + "* :information_source: 1 info\n" + "\n" + "#### Top 4 issues\n" + "\n"
-                        + "1. :no_entry: [IssueUrl 4](https://gitlab.com/test/test) [:blue_book:](http://myserver/coding_rules#rule_key=repo%3Arule4)\n"
-                        + "1. :no_entry_sign: [IssueUrl 3](https://gitlab.com/test/test) [:blue_book:](http://myserver/coding_rules#rule_key=repo%3Arule3)\n"
-                        + "1. :warning: [IssueUrl 2](https://gitlab.com/test/test) [:blue_book:](http://myserver/coding_rules#rule_key=repo%3Arule2)\n"
-                        + "1. :arrow_down_small: [IssueUrl 1](https://gitlab.com/test/test) [:blue_book:](http://myserver/coding_rules#rule_key=repo%3Arule1)\n" + "* ... 1 more\n");
+                "SonarQube analysis reported 5 issues\n" + "* :no_entry: 1 blocker\n" + "* :no_entry_sign: 1 critical\n" + "* :warning: 1 major\n" + "* :arrow_down_small: 1 minor\n" + "* :information_source: 1 info\n" + "\n" + "#### Top 4 issues\n" + "\n"
+                        + "1. :no_entry: [IssueUrl 4](https://gitlab.com/test/test) [:blue_book:](http://myserver/coding_rules#rule_key=repo%3Arule4)\n" + "1. :no_entry_sign: [IssueUrl 3](https://gitlab.com/test/test) [:blue_book:](http://myserver/coding_rules#rule_key=repo%3Arule3)\n"
+                        + "1. :warning: [IssueUrl 2](https://gitlab.com/test/test) [:blue_book:](http://myserver/coding_rules#rule_key=repo%3Arule2)\n" + "1. :arrow_down_small: [IssueUrl 1](https://gitlab.com/test/test) [:blue_book:](http://myserver/coding_rules#rule_key=repo%3Arule1)\n" + "* ... 1 more\n");
     }
 
     @Test
@@ -169,18 +176,12 @@ public class GlobalReportTest {
             globalReport.process(newMockedIssue("component", null, null, Severity.MAJOR, true, "IssueUrl number:" + i, "rule" + i), GITLAB_URL + "/File.java#L" + i, false);
         }
 
-        Assertions.assertThat(globalReport.formatForMarkdown()).isEqualTo("SonarQube analysis reported 17 issues\n" + "* :warning: 17 major\n" + "\n" + "#### Top 10 extra issues\n" + "\n"
-                + "Note: The following issues were found on lines that were not modified in the commit. Because these issues can't be reported as line comments, they are summarized here:\n" + "\n"
-                + "1. :warning: [IssueUrl number:0](https://gitlab.com/test/test/File.java#L0) [:blue_book:](http://myserver/coding_rules#rule_key=repo%3Arule0)\n"
-                + "1. :warning: [IssueUrl number:1](https://gitlab.com/test/test/File.java#L1) [:blue_book:](http://myserver/coding_rules#rule_key=repo%3Arule1)\n"
-                + "1. :warning: [IssueUrl number:2](https://gitlab.com/test/test/File.java#L2) [:blue_book:](http://myserver/coding_rules#rule_key=repo%3Arule2)\n"
-                + "1. :warning: [IssueUrl number:3](https://gitlab.com/test/test/File.java#L3) [:blue_book:](http://myserver/coding_rules#rule_key=repo%3Arule3)\n"
-                + "1. :warning: [IssueUrl number:4](https://gitlab.com/test/test/File.java#L4) [:blue_book:](http://myserver/coding_rules#rule_key=repo%3Arule4)\n"
-                + "1. :warning: [IssueUrl number:5](https://gitlab.com/test/test/File.java#L5) [:blue_book:](http://myserver/coding_rules#rule_key=repo%3Arule5)\n"
-                + "1. :warning: [IssueUrl number:6](https://gitlab.com/test/test/File.java#L6) [:blue_book:](http://myserver/coding_rules#rule_key=repo%3Arule6)\n"
-                + "1. :warning: [IssueUrl number:7](https://gitlab.com/test/test/File.java#L7) [:blue_book:](http://myserver/coding_rules#rule_key=repo%3Arule7)\n"
-                + "1. :warning: [IssueUrl number:8](https://gitlab.com/test/test/File.java#L8) [:blue_book:](http://myserver/coding_rules#rule_key=repo%3Arule8)\n"
-                + "1. :warning: [IssueUrl number:9](https://gitlab.com/test/test/File.java#L9) [:blue_book:](http://myserver/coding_rules#rule_key=repo%3Arule9)\n" + "* ... 7 more\n");
+        Assertions.assertThat(globalReport.formatForMarkdown()).isEqualTo("SonarQube analysis reported 17 issues\n" + "* :warning: 17 major\n" + "\n" + "#### Top 10 extra issues\n" + "\n" + "Note: The following issues were found on lines that were not modified in the commit. Because these issues can't be reported as line comments, they are summarized here:\n" + "\n"
+                + "1. :warning: [IssueUrl number:0](https://gitlab.com/test/test/File.java#L0) [:blue_book:](http://myserver/coding_rules#rule_key=repo%3Arule0)\n" + "1. :warning: [IssueUrl number:1](https://gitlab.com/test/test/File.java#L1) [:blue_book:](http://myserver/coding_rules#rule_key=repo%3Arule1)\n"
+                + "1. :warning: [IssueUrl number:2](https://gitlab.com/test/test/File.java#L2) [:blue_book:](http://myserver/coding_rules#rule_key=repo%3Arule2)\n" + "1. :warning: [IssueUrl number:3](https://gitlab.com/test/test/File.java#L3) [:blue_book:](http://myserver/coding_rules#rule_key=repo%3Arule3)\n"
+                + "1. :warning: [IssueUrl number:4](https://gitlab.com/test/test/File.java#L4) [:blue_book:](http://myserver/coding_rules#rule_key=repo%3Arule4)\n" + "1. :warning: [IssueUrl number:5](https://gitlab.com/test/test/File.java#L5) [:blue_book:](http://myserver/coding_rules#rule_key=repo%3Arule5)\n"
+                + "1. :warning: [IssueUrl number:6](https://gitlab.com/test/test/File.java#L6) [:blue_book:](http://myserver/coding_rules#rule_key=repo%3Arule6)\n" + "1. :warning: [IssueUrl number:7](https://gitlab.com/test/test/File.java#L7) [:blue_book:](http://myserver/coding_rules#rule_key=repo%3Arule7)\n"
+                + "1. :warning: [IssueUrl number:8](https://gitlab.com/test/test/File.java#L8) [:blue_book:](http://myserver/coding_rules#rule_key=repo%3Arule8)\n" + "1. :warning: [IssueUrl number:9](https://gitlab.com/test/test/File.java#L9) [:blue_book:](http://myserver/coding_rules#rule_key=repo%3Arule9)\n" + "* ... 7 more\n");
     }
 
     @Test
@@ -192,16 +193,11 @@ public class GlobalReportTest {
             globalReport.process(newMockedIssue("component", null, null, Severity.MAJOR, true, "IssueUrl number:" + i, "rule" + i), GITLAB_URL + "/File.java#L" + i, false);
         }
 
-        Assertions.assertThat(globalReport.formatForMarkdown()).isEqualTo("SonarQube analysis reported 17 issues\n" + "* :warning: 17 major\n" + "\n" + "#### Top 10 issues\n" + "\n"
-                + "1. :warning: [IssueUrl number:0](https://gitlab.com/test/test/File.java#L0) [:blue_book:](http://myserver/coding_rules#rule_key=repo%3Arule0)\n"
-                + "1. :warning: [IssueUrl number:1](https://gitlab.com/test/test/File.java#L1) [:blue_book:](http://myserver/coding_rules#rule_key=repo%3Arule1)\n"
-                + "1. :warning: [IssueUrl number:2](https://gitlab.com/test/test/File.java#L2) [:blue_book:](http://myserver/coding_rules#rule_key=repo%3Arule2)\n"
-                + "1. :warning: [IssueUrl number:3](https://gitlab.com/test/test/File.java#L3) [:blue_book:](http://myserver/coding_rules#rule_key=repo%3Arule3)\n"
-                + "1. :warning: [IssueUrl number:4](https://gitlab.com/test/test/File.java#L4) [:blue_book:](http://myserver/coding_rules#rule_key=repo%3Arule4)\n"
-                + "1. :warning: [IssueUrl number:5](https://gitlab.com/test/test/File.java#L5) [:blue_book:](http://myserver/coding_rules#rule_key=repo%3Arule5)\n"
-                + "1. :warning: [IssueUrl number:6](https://gitlab.com/test/test/File.java#L6) [:blue_book:](http://myserver/coding_rules#rule_key=repo%3Arule6)\n"
-                + "1. :warning: [IssueUrl number:7](https://gitlab.com/test/test/File.java#L7) [:blue_book:](http://myserver/coding_rules#rule_key=repo%3Arule7)\n"
-                + "1. :warning: [IssueUrl number:8](https://gitlab.com/test/test/File.java#L8) [:blue_book:](http://myserver/coding_rules#rule_key=repo%3Arule8)\n"
+        Assertions.assertThat(globalReport.formatForMarkdown()).isEqualTo("SonarQube analysis reported 17 issues\n" + "* :warning: 17 major\n" + "\n" + "#### Top 10 issues\n" + "\n" + "1. :warning: [IssueUrl number:0](https://gitlab.com/test/test/File.java#L0) [:blue_book:](http://myserver/coding_rules#rule_key=repo%3Arule0)\n"
+                + "1. :warning: [IssueUrl number:1](https://gitlab.com/test/test/File.java#L1) [:blue_book:](http://myserver/coding_rules#rule_key=repo%3Arule1)\n" + "1. :warning: [IssueUrl number:2](https://gitlab.com/test/test/File.java#L2) [:blue_book:](http://myserver/coding_rules#rule_key=repo%3Arule2)\n"
+                + "1. :warning: [IssueUrl number:3](https://gitlab.com/test/test/File.java#L3) [:blue_book:](http://myserver/coding_rules#rule_key=repo%3Arule3)\n" + "1. :warning: [IssueUrl number:4](https://gitlab.com/test/test/File.java#L4) [:blue_book:](http://myserver/coding_rules#rule_key=repo%3Arule4)\n"
+                + "1. :warning: [IssueUrl number:5](https://gitlab.com/test/test/File.java#L5) [:blue_book:](http://myserver/coding_rules#rule_key=repo%3Arule5)\n" + "1. :warning: [IssueUrl number:6](https://gitlab.com/test/test/File.java#L6) [:blue_book:](http://myserver/coding_rules#rule_key=repo%3Arule6)\n"
+                + "1. :warning: [IssueUrl number:7](https://gitlab.com/test/test/File.java#L7) [:blue_book:](http://myserver/coding_rules#rule_key=repo%3Arule7)\n" + "1. :warning: [IssueUrl number:8](https://gitlab.com/test/test/File.java#L8) [:blue_book:](http://myserver/coding_rules#rule_key=repo%3Arule8)\n"
                 + "1. :warning: [IssueUrl number:9](https://gitlab.com/test/test/File.java#L9) [:blue_book:](http://myserver/coding_rules#rule_key=repo%3Arule9)\n" + "* ... 7 more\n");
     }
 }
