@@ -46,6 +46,7 @@ public class GitLabPlugin implements Plugin {
     public static final String GITLAB_INLINE_TEMPLATE = "sonar.gitlab.inline_template";
     public static final String GITLAB_COMMENT_NO_ISSUE = "sonar.gitlab.comment_no_issue";
     public static final String GITLAB_DISABLE_INLINE_COMMENTS = "sonar.gitlab.disableInlineComments";
+    public static final String GITLAB_ONLY_ISSUE_FROM_COMMIT_FILE = "sonar.gitlab.onlyIssueFromCommitFile";
 
     public static final String CATEGORY = "gitlab";
     public static final String SUBCATEGORY = "reporting";
@@ -84,7 +85,9 @@ public class GitLabPlugin implements Plugin {
                                 .subCategory(SUBCATEGORY).type(PropertyType.BOOLEAN).defaultValue(String.valueOf(false)).index(14).build(),
                         PropertyDefinition.builder(GITLAB_DISABLE_INLINE_COMMENTS).name("Disable issue reporting as inline comments")
                                 .description("Issues will not be reported as inline comments but only in the global summary comment.").category(CATEGORY).subCategory(SUBCATEGORY)
-                                .type(PropertyType.BOOLEAN).defaultValue(String.valueOf(false)).index(15).build()
+                                .type(PropertyType.BOOLEAN).defaultValue(String.valueOf(false)).index(15).build(),
+                        PropertyDefinition.builder(GITLAB_ONLY_ISSUE_FROM_COMMIT_FILE).name("Show issue for commit file only").description("Issues will be reported if in current commit")
+                                .category(CATEGORY).subCategory(SUBCATEGORY).type(PropertyType.BOOLEAN).defaultValue(String.valueOf(false)).index(16).hidden().build()
                         /*,
                         PropertyDefinition.builder(GITLAB_GLOBAL_TEMPLATE).name("GitLab Global Template").description("Template for global comment in commit.").category(CATEGORY)
                                 .subCategory(SUBCATEGORY).type(PropertyType.TEXT).index(8).build(),

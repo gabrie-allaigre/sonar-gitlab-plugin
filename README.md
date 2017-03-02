@@ -56,6 +56,7 @@ mvn --batch-mode verify sonar:sonar -Dsonar.host.url=$SONAR_URL -Dsonar.analysis
 | sonar.gitlab.ignore_certificate | Ignore Certificate for access GitLab, use for auto-signing cert (default false) | Administration, Variable | >= 2.0.0 |
 | sonar.gitlab.comment_no_issue | Add a comment even when there is no new issue (default false) | Administration, Variable | >= 2.0.0 |
 | sonar.gitlab.disableInlineComments | Disable issue reporting as inline comments (default false) | Administration, Variable | >= 2.0.0 |
+| sonar.gitlab.onlyIssueFromCommitFile | Show issue for commit file only (default false) | Variable | >= 2.0.0 |
 
 - Administration : **Settings** globals in SonarQube
 - Project : **Settings** of project in SonarQube

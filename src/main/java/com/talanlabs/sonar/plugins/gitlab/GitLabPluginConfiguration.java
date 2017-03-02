@@ -27,12 +27,7 @@ import org.sonar.api.utils.log.Logger;
 import org.sonar.api.utils.log.Loggers;
 
 import javax.annotation.CheckForNull;
-import java.net.Authenticator;
-import java.net.PasswordAuthentication;
-import java.net.Proxy;
-import java.net.ProxySelector;
-import java.net.URI;
-import java.net.URISyntaxException;
+import java.net.*;
 
 @InstantiationStrategy(InstantiationStrategy.PER_BATCH)
 @BatchSide
@@ -86,49 +81,44 @@ public class GitLabPluginConfiguration {
         return settings.getString(GitLabPlugin.GITLAB_URL);
     }
 
-    @CheckForNull
     public boolean ignoreCertificate() {
         return settings.getBoolean(GitLabPlugin.GITLAB_IGNORE_CERT);
     }
 
-    @CheckForNull
     public int maxGlobalIssues() {
         return settings.getInt(GitLabPlugin.GITLAB_MAX_GLOBAL_ISSUES);
     }
 
-    @CheckForNull
     public int maxBlockerIssuesGate() {
         return settings.getInt(GitLabPlugin.GITLAB_MAX_BLOCKER_ISSUES_GATE);
     }
 
-    @CheckForNull
     public int maxCriticalIssuesGate() {
         return settings.getInt(GitLabPlugin.GITLAB_MAX_CRITICAL_ISSUES_GATE);
     }
 
-    @CheckForNull
     public int maxMajorIssuesGate() {
         return settings.getInt(GitLabPlugin.GITLAB_MAX_MAJOR_ISSUES_GATE);
     }
 
-    @CheckForNull
     public int maxMinorIssuesGate() {
         return settings.getInt(GitLabPlugin.GITLAB_MAX_MINOR_ISSUES_GATE);
     }
 
-    @CheckForNull
     public int maxInfoIssuesGate() {
         return settings.getInt(GitLabPlugin.GITLAB_MAX_INFO_ISSUES_GATE);
     }
 
-    @CheckForNull
     public boolean ignoreFileNotModified() {
         return settings.getBoolean(GitLabPlugin.GITLAB_IGNORE_FILE);
     }
 
-    @CheckForNull
     public boolean tryReportIssuesInline() {
         return !settings.getBoolean(GitLabPlugin.GITLAB_DISABLE_INLINE_COMMENTS);
+    }
+
+    public boolean onlyIssueFromCommitFile() {
+        return !settings.getBoolean(GitLabPlugin.GITLAB_ONLY_ISSUE_FROM_COMMIT_FILE);
     }
 
     @CheckForNull
@@ -141,7 +131,6 @@ public class GitLabPluginConfiguration {
         return settings.getString(GitLabPlugin.GITLAB_INLINE_TEMPLATE);
     }
 
-    @CheckForNull
     public boolean commentNoIssue() {
         return settings.getBoolean(GitLabPlugin.GITLAB_COMMENT_NO_ISSUE);
     }

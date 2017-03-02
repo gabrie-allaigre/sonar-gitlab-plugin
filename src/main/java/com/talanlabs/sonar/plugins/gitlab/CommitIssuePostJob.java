@@ -88,7 +88,10 @@ public class CommitIssuePostJob implements PostJob {
     private Map<InputFile, Map<Integer, StringBuilder>> processIssues(GlobalReport report, Iterable<PostJobIssue> issues) {
         Map<InputFile, Map<Integer, StringBuilder>> commentToBeAddedByFileAndByLine = new HashMap<>();
 
-        StreamSupport.stream(issues.spliterator(), false).filter(PostJobIssue::isNew).sorted(ISSUE_COMPARATOR).forEach(i -> processIssue(report, commentToBeAddedByFileAndByLine, i));
+        StreamSupport.stream(issues.spliterator(), false).filter(PostJobIssue::isNew).filter(i -> {
+            InputComponent inputComponent = i.inputComponent();
+            return !gitLabPluginConfiguration.onlyIssueFromCommitFile() || inputComponent == null || !inputComponent.isFile() || commitFacade.hasFile((InputFile) inputComponent);
+        }).sorted(ISSUE_COMPARATOR).forEach(i -> processIssue(report, commentToBeAddedByFileAndByLine, i));
         return commentToBeAddedByFileAndByLine;
     }
 
