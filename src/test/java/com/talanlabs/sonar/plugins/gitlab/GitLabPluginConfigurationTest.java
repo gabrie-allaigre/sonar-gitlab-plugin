@@ -83,6 +83,10 @@ public class GitLabPluginConfigurationTest {
 
         settings.setProperty(GitLabPlugin.GITLAB_REF_NAME, "123");
         Assertions.assertThat(config.refName()).isEqualTo("123");
+
+        Assertions.assertThat(config.onlyIssueFromCommitFile()).isFalse();
+        settings.setProperty(GitLabPlugin.GITLAB_ONLY_ISSUE_FROM_COMMIT_FILE, "true");
+        Assertions.assertThat(config.onlyIssueFromCommitFile()).isTrue();
     }
 
     @Test

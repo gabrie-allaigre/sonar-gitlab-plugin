@@ -31,6 +31,7 @@ import org.sonar.api.utils.log.Loggers;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
 /**
@@ -62,7 +63,7 @@ public class CommitIssuePostJob implements PostJob {
         GlobalReport report = new GlobalReport(gitLabPluginConfiguration, markDownUtils);
 
         try {
-            LOG.info("Find a {} new issues", StreamSupport.stream(context.issues().spliterator(), false).filter(PostJobIssue::isNew).count());
+            LOG.info("Find a {} new issues", getStreamPostJobIssue(context.issues()).count());
 
             Map<InputFile, Map<Integer, StringBuilder>> commentsToBeAddedByLine = processIssues(report, context.issues());
 
@@ -88,11 +89,15 @@ public class CommitIssuePostJob implements PostJob {
     private Map<InputFile, Map<Integer, StringBuilder>> processIssues(GlobalReport report, Iterable<PostJobIssue> issues) {
         Map<InputFile, Map<Integer, StringBuilder>> commentToBeAddedByFileAndByLine = new HashMap<>();
 
-        StreamSupport.stream(issues.spliterator(), false).filter(PostJobIssue::isNew).filter(i -> {
+        getStreamPostJobIssue(issues).sorted(ISSUE_COMPARATOR).forEach(i -> processIssue(report, commentToBeAddedByFileAndByLine, i));
+        return commentToBeAddedByFileAndByLine;
+    }
+
+    private Stream<PostJobIssue> getStreamPostJobIssue(Iterable<PostJobIssue> issues) {
+        return StreamSupport.stream(issues.spliterator(), false).filter(PostJobIssue::isNew).filter(i -> {
             InputComponent inputComponent = i.inputComponent();
             return !gitLabPluginConfiguration.onlyIssueFromCommitFile() || inputComponent == null || !inputComponent.isFile() || commitFacade.hasFile((InputFile) inputComponent);
-        }).sorted(ISSUE_COMPARATOR).forEach(i -> processIssue(report, commentToBeAddedByFileAndByLine, i));
-        return commentToBeAddedByFileAndByLine;
+        });
     }
 
     private void processIssue(GlobalReport report, Map<InputFile, Map<Integer, StringBuilder>> commentToBeAddedByFileAndByLine, PostJobIssue issue) {

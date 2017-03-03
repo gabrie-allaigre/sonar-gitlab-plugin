@@ -38,7 +38,12 @@ import javax.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
 import java.io.StringReader;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -65,7 +70,7 @@ public class CommitFacade {
         this.config = config;
     }
 
-    private static Map<String, Set<Integer>> mapPatchPositionsToLines(List<GitLabCommitDiff> diffs) throws IOException {
+    static Map<String, Set<Integer>> mapPatchPositionsToLines(List<GitLabCommitDiff> diffs) throws IOException {
         Map<String, Set<Integer>> patchPositionMappingByFile = new HashMap<>();
         for (GitLabCommitDiff file : diffs) {
             Set<Integer> patchLocationMapping = new HashSet<>();
@@ -134,8 +139,8 @@ public class CommitFacade {
         }
     }
 
-    void setGitLabProject(GitLabProject gitLabProject) {
-        this.gitLabProject = gitLabProject;
+    void setGitLabAPI(GitLabAPI gitLabAPI) {
+        this.gitLabAPI = gitLabAPI;
     }
 
     private File findGitBaseDir(@Nullable File baseDir) {
@@ -170,8 +175,7 @@ public class CommitFacade {
 
         List<GitLabProject> res = new ArrayList<>();
         for (GitLabProject project : projects) {
-            if (config.projectId().equals(project.getId().toString()) || config.projectId().equals(project.getPathWithNamespace()) || config.projectId().equals(project.getHttpUrl()) || config
-                    .projectId().equals(project.getSshUrl()) || config.projectId().equals(project.getWebUrl()) || config.projectId().equals(project.getNameWithNamespace())) {
+            if (config.projectId().equals(project.getId().toString()) || verifyProjectName(project) || verifyProjectUrl(project)) {
                 res.add(project);
             }
         }
@@ -182,6 +186,18 @@ public class CommitFacade {
             throw new IllegalStateException("Multiple found projects for " + config.projectId());
         }
         return res.get(0);
+    }
+
+    void setGitLabProject(GitLabProject gitLabProject) {
+        this.gitLabProject = gitLabProject;
+    }
+
+    private boolean verifyProjectUrl(GitLabProject project) {
+        return config.projectId().equals(project.getHttpUrl()) || config.projectId().equals(project.getSshUrl()) || config.projectId().equals(project.getWebUrl());
+    }
+
+    private boolean verifyProjectName(GitLabProject project) {
+        return config.projectId().equals(project.getPathWithNamespace()) || config.projectId().equals(project.getNameWithNamespace());
     }
 
     public void createOrUpdateSonarQubeStatus(String status, String statusDescription) {
