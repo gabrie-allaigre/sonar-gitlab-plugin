@@ -54,7 +54,7 @@ public class CommitIssuePostJob implements PostJob {
 
     @Override
     public void describe(PostJobDescriptor descriptor) {
-        descriptor.name("GitLab Commit issue Publisher").requireProperty(GitLabPlugin.GITLAB_COMMIT_SHA);
+        descriptor.name("GitLab Commit Issue Publisher").requireProperty(GitLabPlugin.GITLAB_COMMIT_SHA);
     }
 
     @Override
@@ -82,7 +82,7 @@ public class CommitIssuePostJob implements PostJob {
 
     @Override
     public String toString() {
-        return "GitLab Commit issue Publisher";
+        return "GitLab Commit Issue Publisher";
     }
 
     private Map<InputFile, Map<Integer, StringBuilder>> processIssues(GlobalReport report, Iterable<PostJobIssue> issues) {

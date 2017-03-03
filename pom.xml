@@ -71,7 +71,7 @@
         <url>https://gitlab.talanlabs.com/gabriel-allaigre/sonar-gitlab-plugin/builds</url>
     </ciManagement>
     <issueManagement>
-        <system>gitlab</system>
+        <system>github</system>
         <url>https://github.com/gabrie-allaigre/sonar-gitlab-plugin/issues</url>
     </issueManagement>
     <build>
