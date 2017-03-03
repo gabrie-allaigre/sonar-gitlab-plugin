@@ -118,7 +118,7 @@ public class GitLabPluginConfiguration {
     }
 
     public boolean onlyIssueFromCommitFile() {
-        return !settings.getBoolean(GitLabPlugin.GITLAB_ONLY_ISSUE_FROM_COMMIT_FILE);
+        return settings.getBoolean(GitLabPlugin.GITLAB_ONLY_ISSUE_FROM_COMMIT_FILE);
     }
 
     @CheckForNull
