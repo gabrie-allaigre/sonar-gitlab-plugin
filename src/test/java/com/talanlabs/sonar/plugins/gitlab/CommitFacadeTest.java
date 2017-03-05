@@ -122,7 +122,7 @@ public class CommitFacadeTest {
         facade.setGitLabAPI(gitLabAPI);
 
         GitLabAPICommits gitLabAPICommits = mock(GitLabAPICommits.class);
-        when(gitLabAPICommits.postCommitStatus("1", "1", "pending", "master", "toto", "server", "")).thenReturn(null);
+        when(gitLabAPICommits.postCommitStatus(1, "1", "pending", "master", "sonarqube", "server", "")).thenReturn(null);
 
         when(gitLabAPI.getGitLabAPICommits()).thenReturn(gitLabAPICommits);
 
@@ -133,6 +133,29 @@ public class CommitFacadeTest {
         facade.createOrUpdateSonarQubeStatus("pending", "nothing");
 
         verify(gitLabAPICommits).postCommitStatus(1, "1", "pending", "master", "sonarqube", null, "nothing");
+    }
+
+    @Test
+    public void testStatusFailed() throws IOException {
+        GitLabPluginConfiguration gitLabPluginConfiguration = mock(GitLabPluginConfiguration.class);
+        when(gitLabPluginConfiguration.commitSHA()).thenReturn("1");
+        when(gitLabPluginConfiguration.refName()).thenReturn("master");
+
+        CommitFacade facade = new CommitFacade(gitLabPluginConfiguration);
+
+        GitLabAPI gitLabAPI = mock(GitLabAPI.class);
+        facade.setGitLabAPI(gitLabAPI);
+
+        GitLabAPICommits gitLabAPICommits = mock(GitLabAPICommits.class);
+        when(gitLabAPICommits.postCommitStatus(1, "1", "pending", "master", "sonarqube", null, "nothing")).thenThrow(new IOException());
+
+        when(gitLabAPI.getGitLabAPICommits()).thenReturn(gitLabAPICommits);
+
+        GitLabProject gitLabProject = mock(GitLabProject.class);
+        when(gitLabProject.getId()).thenReturn(1);
+        facade.setGitLabProject(gitLabProject);
+
+        facade.createOrUpdateSonarQubeStatus("pending", "nothing");
     }
 
     @Test
@@ -205,4 +228,6 @@ public class CommitFacadeTest {
         assertThat(CommitFacade.mapPatchPositionsToLines(Arrays.asList(diff1, diff2))).containsEntry("src/main/Foo.java", Sets.newHashSet(32, 24, 25, 26, 27, 28, 29, 30, 31))
                 .containsEntry("src/main/Foo2.java", Sets.newHashSet(2, 3, 4, 5, 6, 7, 8, 9, 10));
     }
+
+
 }

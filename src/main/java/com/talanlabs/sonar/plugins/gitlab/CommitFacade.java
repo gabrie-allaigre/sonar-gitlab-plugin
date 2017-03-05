@@ -38,14 +38,10 @@ import javax.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
 import java.io.StringReader;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 /**
  * Facade for all WS interaction with GitLab.
@@ -162,6 +158,7 @@ public class CommitFacade {
         if (config.projectId() == null) {
             throw new IllegalStateException("Unable found project for null project name. Set Configuration sonar.gitlab.project_id");
         }
+
         Paged<GitLabProject> paged = gitLabAPI.getGitLabAPIProjects().getProjects(null, null, null, null, null, null);
         if (paged == null) {
             throw new IllegalStateException("Unable found project for " + config.projectId() + " Verify Configuration sonar.gitlab.project_id or sonar.gitlab.user_token access project");
@@ -173,12 +170,7 @@ public class CommitFacade {
             }
         } while ((paged = paged.nextPage()) != null);
 
-        List<GitLabProject> res = new ArrayList<>();
-        for (GitLabProject project : projects) {
-            if (config.projectId().equals(project.getId().toString()) || verifyProjectName(project) || verifyProjectUrl(project)) {
-                res.add(project);
-            }
-        }
+        List<GitLabProject> res = projects.stream().filter(this::isMatchingProject).collect(Collectors.toList());
         if (res.isEmpty()) {
             throw new IllegalStateException("Unable found project for " + config.projectId() + " Verify Configuration sonar.gitlab.project_id or sonar.gitlab.user_token access project");
         }
@@ -190,6 +182,10 @@ public class CommitFacade {
 
     void setGitLabProject(GitLabProject gitLabProject) {
         this.gitLabProject = gitLabProject;
+    }
+
+    private boolean isMatchingProject(GitLabProject project) {
+        return config.projectId().equals(project.getId().toString()) || verifyProjectName(project) || verifyProjectUrl(project);
     }
 
     private boolean verifyProjectUrl(GitLabProject project) {
@@ -205,7 +201,7 @@ public class CommitFacade {
             gitLabAPI.getGitLabAPICommits().postCommitStatus(gitLabProject.getId(), config.commitSHA(), status, config.refName(), COMMIT_CONTEXT, null, statusDescription);
         } catch (IOException e) {
             // Workaround for https://gitlab.com/gitlab-org/gitlab-ce/issues/25807
-            if (e.getMessage().contains("Cannot transition status")) {
+            if (e.getMessage() != null && e.getMessage().contains("Cannot transition status")) {
                 LOG.debug("Transition status is already {}", status);
             } else {
                 LOG.error("Unable to update commit status", e);
