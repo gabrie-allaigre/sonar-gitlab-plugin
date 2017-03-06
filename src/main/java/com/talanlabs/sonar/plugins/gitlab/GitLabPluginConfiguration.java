@@ -33,8 +33,6 @@ import java.net.*;
 @BatchSide
 public class GitLabPluginConfiguration {
 
-    private static final Logger LOG = Loggers.get(GitLabPluginConfiguration.class);
-
     public static final String HTTP_PROXY_HOSTNAME = "http.proxyHost";
     public static final String HTTPS_PROXY_HOSTNAME = "https.proxyHost";
     public static final String PROXY_SOCKS_HOSTNAME = "socksProxyHost";
@@ -42,7 +40,7 @@ public class GitLabPluginConfiguration {
     public static final String HTTPS_PROXY_PORT = "https.proxyPort";
     public static final String HTTP_PROXY_USER = "http.proxyUser";
     public static final String HTTP_PROXY_PASS = "http.proxyPassword";
-
+    private static final Logger LOG = Loggers.get(GitLabPluginConfiguration.class);
     private final Settings settings;
     private final System2 system2;
 
@@ -119,6 +117,20 @@ public class GitLabPluginConfiguration {
 
     public boolean onlyIssueFromCommitFile() {
         return settings.getBoolean(GitLabPlugin.GITLAB_ONLY_ISSUE_FROM_COMMIT_FILE);
+    }
+
+    public BuildInitState buildInitState() {
+        BuildInitState b = BuildInitState.of(settings.getString(GitLabPlugin.GITLAB_BUILD_INIT_STATE));
+        return b != null ? b : BuildInitState.PENDING;
+    }
+
+    public boolean disableGlobalComment() {
+        return settings.getBoolean(GitLabPlugin.GITLAB_DISABLE_GLOBAL_COMMENT);
+    }
+
+    public StatusNotificationsMode statusNotificationsMode() {
+        StatusNotificationsMode s = StatusNotificationsMode.of(settings.getString(GitLabPlugin.GITLAB_STATUS_NOTIFICATION_MODE));
+        return s != null ? s : StatusNotificationsMode.COMMIT_STATUS;
     }
 
     @CheckForNull

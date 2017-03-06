@@ -55,8 +55,11 @@ mvn --batch-mode verify sonar:sonar -Dsonar.host.url=$SONAR_URL -Dsonar.analysis
 | sonar.gitlab.max_info_issues_gate | Max info issues for build failed (default -1 no fail) | Project, Variable | >= 2.0.0 |
 | sonar.gitlab.ignore_certificate | Ignore Certificate for access GitLab, use for auto-signing cert (default false) | Administration, Variable | >= 2.0.0 |
 | sonar.gitlab.comment_no_issue | Add a comment even when there is no new issue (default false) | Administration, Variable | >= 2.0.0 |
-| sonar.gitlab.disableInlineComments | Disable issue reporting as inline comments (default false) | Administration, Variable | >= 2.0.0 |
-| sonar.gitlab.onlyIssueFromCommitFile | Show issue for commit file only (default false) | Variable | >= 2.0.0 |
+| sonar.gitlab.disable_inline_comments | Disable issue reporting as inline comments (default false) | Administration, Variable | >= 2.0.0 |
+| sonar.gitlab.only_issue_from_commit_file | Show issue for commit file only (default false) | Variable | >= 2.0.0 |
+| sonar.gitlab.build_init_state | State that should be the first when build commit status update is called (default pending) | Administration, Variable | >= 2.0.0 |
+| sonar.gitlab.disable_global_comment | Disable global comment, report only inline (default false) | Administration, Variable | >= 2.0.0 |
+| sonar.gitlab.failure_notification_mode | Notification is in current build (exit-code) or in commit status (commit-status) (default commit-status) | Administration, Variable | >= 2.0.0 |
 
 - Administration : **Settings** globals in SonarQube
 - Project : **Settings** of project in SonarQube

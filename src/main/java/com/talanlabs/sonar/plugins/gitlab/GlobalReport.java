@@ -107,8 +107,13 @@ public class GlobalReport {
 
         builder.append("\n");
 
+        appendSeverities(builder);
+    }
+
+    private void appendSeverities(StringBuilder builder) {
         int notReportedDisplayedIssueCount = 0;
         int i = 0;
+
         for (Severity severity : SEVERITIES) {
             List<IssueUrl> issueUrls = notReportedOnDiffMap.get(severity);
             if (issueUrls != null && !issueUrls.isEmpty()) {
@@ -125,6 +130,10 @@ public class GlobalReport {
             }
         }
 
+        appendMore(builder, notReportedDisplayedIssueCount);
+    }
+
+    private void appendMore(StringBuilder builder, int notReportedDisplayedIssueCount) {
         if (notReportedDisplayedIssueCount > 0) {
             builder.append("* ... ").append(notReportedDisplayedIssueCount).append(" more\n");
         }
@@ -141,8 +150,15 @@ public class GlobalReport {
     }
 
     private boolean aboveGates() {
-        return aboveGateForSeverity(Severity.BLOCKER, gitLabPluginConfiguration.maxBlockerIssuesGate()) || aboveGateForSeverity(Severity.CRITICAL, gitLabPluginConfiguration.maxCriticalIssuesGate())
-                || aboveGateForSeverity(Severity.MAJOR, gitLabPluginConfiguration.maxMajorIssuesGate()) || aboveGateForSeverity(Severity.MINOR, gitLabPluginConfiguration.maxMinorIssuesGate())
+        return aboveImportantGates() || aboveOtherGates();
+    }
+
+    private boolean aboveImportantGates() {
+        return aboveGateForSeverity(Severity.BLOCKER, gitLabPluginConfiguration.maxBlockerIssuesGate()) || aboveGateForSeverity(Severity.CRITICAL, gitLabPluginConfiguration.maxCriticalIssuesGate());
+    }
+
+    private boolean aboveOtherGates() {
+        return aboveGateForSeverity(Severity.MAJOR, gitLabPluginConfiguration.maxMajorIssuesGate()) || aboveGateForSeverity(Severity.MINOR, gitLabPluginConfiguration.maxMinorIssuesGate())
                 || aboveGateForSeverity(Severity.INFO, gitLabPluginConfiguration.maxInfoIssuesGate());
     }
 
@@ -159,19 +175,17 @@ public class GlobalReport {
         int newIssues = newIssues(Severity.BLOCKER) + newIssues(Severity.CRITICAL) + newIssues(Severity.MAJOR) + newIssues(Severity.MINOR) + newIssues(Severity.INFO);
         if (newIssues > 0) {
             sb.append(newIssues).append(" issue").append(newIssues > 1 ? "s" : "").append(",");
-            int newCriticalOrBlockerIssues = newIssues(Severity.BLOCKER) + newIssues(Severity.CRITICAL);
-            if (newCriticalOrBlockerIssues > 0) {
-                printNewIssuesInline(sb, Severity.CRITICAL);
-                printNewIssuesInline(sb, Severity.BLOCKER);
-            } else {
-                sb.append(" no criticals or blockers");
-            }
+            printNewIssuesInline(sb, Severity.BLOCKER, gitLabPluginConfiguration.maxBlockerIssuesGate());
+            printNewIssuesInline(sb, Severity.CRITICAL, gitLabPluginConfiguration.maxCriticalIssuesGate());
+            printNewIssuesInline(sb, Severity.MAJOR, gitLabPluginConfiguration.maxMajorIssuesGate());
+            printNewIssuesInline(sb, Severity.MINOR, gitLabPluginConfiguration.maxMinorIssuesGate());
+            printNewIssuesInline(sb, Severity.INFO, gitLabPluginConfiguration.maxInfoIssuesGate());
         } else {
             sb.append("no issues");
         }
     }
 
-    private void printNewIssuesInline(StringBuilder sb, Severity severity) {
+    private void printNewIssuesInline(StringBuilder sb, Severity severity, int max) {
         int issueCount = newIssues(severity);
         if (issueCount > 0) {
             if (sb.charAt(sb.length() - 1) == ',') {
@@ -180,6 +194,9 @@ public class GlobalReport {
                 sb.append(" and ");
             }
             sb.append(issueCount).append(" ").append(severity.name().toLowerCase());
+            if (max != -1 && issueCount > max) {
+                sb.append(" (fail)");
+            }
         }
     }
 

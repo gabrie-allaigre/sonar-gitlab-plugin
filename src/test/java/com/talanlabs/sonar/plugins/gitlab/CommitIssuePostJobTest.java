@@ -29,12 +29,14 @@ import org.sonar.api.CoreProperties;
 import org.sonar.api.batch.fs.InputFile;
 import org.sonar.api.batch.fs.internal.DefaultInputFile;
 import org.sonar.api.batch.postjob.PostJobContext;
+import org.sonar.api.batch.postjob.internal.DefaultPostJobDescriptor;
 import org.sonar.api.batch.postjob.issue.PostJobIssue;
 import org.sonar.api.batch.rule.Severity;
 import org.sonar.api.config.PropertyDefinition;
 import org.sonar.api.config.PropertyDefinitions;
 import org.sonar.api.config.Settings;
 import org.sonar.api.rule.RuleKey;
+import org.sonar.api.utils.MessageException;
 import org.sonar.api.utils.System2;
 
 import javax.annotation.CheckForNull;
@@ -137,7 +139,7 @@ public class CommitIssuePostJobTest {
         Mockito.verify(commitFacade).addGlobalComment(AdditionalMatchers.not(Mockito.contains("1. [Project")));
         Mockito.verify(commitFacade).addGlobalComment(Mockito.contains("1. :no_entry: [msg2](http://gitlab/blob/abc123/src/Foo.php#L2) [:blue_book:](http://myserver/coding_rules#rule_key=repo%3Arule)"));
 
-        Mockito.verify(commitFacade).createOrUpdateSonarQubeStatus("failed", "SonarQube reported 6 issues, with 6 blocker");
+        Mockito.verify(commitFacade).createOrUpdateSonarQubeStatus("failed", "SonarQube reported 6 issues, with 6 blocker (fail)");
     }
 
     @Test
@@ -173,7 +175,7 @@ public class CommitIssuePostJobTest {
         Mockito.verify(commitFacade)
                 .addGlobalComment(Mockito.contains("1. :no_entry: [msg2](http://gitlab/blob/abc123/src/Foo.php#L2) [:blue_book:](http://myserver/coding_rules#rule_key=repo%3Arule)"));
 
-        Mockito.verify(commitFacade).createOrUpdateSonarQubeStatus("failed", "SonarQube reported 5 issues, with 5 blocker");
+        Mockito.verify(commitFacade).createOrUpdateSonarQubeStatus("failed", "SonarQube reported 5 issues, with 5 blocker (fail)");
     }
 
 
@@ -230,7 +232,7 @@ public class CommitIssuePostJobTest {
 
         commitIssuePostJob.execute(context);
 
-        verify(commitFacade).createOrUpdateSonarQubeStatus("failed", "SonarQube reported 1 issue, with 1 critical");
+        verify(commitFacade).createOrUpdateSonarQubeStatus("failed", "SonarQube reported 1 issue, with 1 critical (fail)");
     }
 
     @Test
@@ -245,7 +247,7 @@ public class CommitIssuePostJobTest {
 
         commitIssuePostJob.execute(context);
 
-        verify(commitFacade).createOrUpdateSonarQubeStatus("success", "SonarQube reported 1 issue, no criticals or blockers");
+        verify(commitFacade).createOrUpdateSonarQubeStatus("success", "SonarQube reported 1 issue, with 1 major");
     }
 
     @Test
@@ -263,7 +265,7 @@ public class CommitIssuePostJobTest {
 
         commitIssuePostJob.execute(context);
 
-        verify(commitFacade).createOrUpdateSonarQubeStatus("failed", "SonarQube reported 2 issues, with 1 critical and 1 blocker");
+        verify(commitFacade).createOrUpdateSonarQubeStatus("failed", "SonarQube reported 2 issues, with 1 blocker (fail) and 1 critical (fail)");
     }
 
     @Test
@@ -275,5 +277,76 @@ public class CommitIssuePostJobTest {
 
         String msg = "SonarQube failed to complete the review of this commit: " + innerMsg;
         verify(commitFacade).createOrUpdateSonarQubeStatus("failed", msg);
+    }
+
+    @Test
+    public void testCommitAnalysisNoIssueExit() {
+        settings.setProperty(GitLabPlugin.GITLAB_COMMENT_NO_ISSUE, false);
+        settings.setProperty(GitLabPlugin.GITLAB_STATUS_NOTIFICATION_MODE, StatusNotificationsMode.EXIT_CODE.getMeaning());
+
+        Mockito.when(context.issues()).thenReturn(Collections.emptyList());
+        commitIssuePostJob.execute(context);
+        Mockito.verify(commitFacade, Mockito.never()).addGlobalComment(null);
+        Mockito.verify(commitFacade, Mockito.never()).createOrUpdateSonarQubeStatus("success", "SonarQube reported no issues");
+    }
+
+    @Test
+    public void testCommitAnalysisWithNewIssues2() {
+        settings.setProperty(GitLabPlugin.GITLAB_ONLY_ISSUE_FROM_COMMIT_FILE, false);
+        settings.setProperty(GitLabPlugin.GITLAB_STATUS_NOTIFICATION_MODE, StatusNotificationsMode.EXIT_CODE.getMeaning());
+        settings.setProperty(GitLabPlugin.GITLAB_DISABLE_GLOBAL_COMMENT, true);
+
+        DefaultInputFile inputFile1 = new DefaultInputFile("foo", "src/Foo.php");
+        PostJobIssue newIssue = newMockedIssue("foo:src/Foo.php", inputFile1, 1, Severity.BLOCKER, true, "msg1");
+        Mockito.when(commitFacade.getGitLabUrl(inputFile1, 1)).thenReturn("http://gitlab/blob/abc123/src/Foo.php#L1");
+
+        PostJobIssue lineNotVisible = newMockedIssue("foo:src/Foo.php", inputFile1, 2, Severity.BLOCKER, true, "msg2");
+        Mockito.when(commitFacade.getGitLabUrl(inputFile1, 2)).thenReturn("http://gitlab/blob/abc123/src/Foo.php#L2");
+
+        DefaultInputFile inputFile2 = new DefaultInputFile("foo", "src/Foo2.php");
+        PostJobIssue fileNotInPR = newMockedIssue("foo:src/Foo2.php", inputFile2, 1, Severity.BLOCKER, true, "msg3");
+
+        PostJobIssue notNewIssue = newMockedIssue("foo:src/Foo.php", inputFile1, 1, Severity.BLOCKER, false, "msg");
+
+        PostJobIssue issueOnDir = newMockedIssue("foo:src", Severity.BLOCKER, true, "msg4");
+
+        PostJobIssue issueOnProject = newMockedIssue("foo", Severity.BLOCKER, true, "msg");
+
+        PostJobIssue globalIssue = newMockedIssue("foo:src/Foo.php", inputFile1, null, Severity.BLOCKER, true, "msg5");
+
+        Mockito.when(context.issues()).thenReturn(Arrays.<PostJobIssue>asList(newIssue, globalIssue, issueOnProject, issueOnDir, fileNotInPR, lineNotVisible, notNewIssue));
+        Mockito.when(commitFacade.hasFile(inputFile1)).thenReturn(true);
+        Mockito.when(commitFacade.hasFileLine(inputFile1, 1)).thenReturn(true);
+
+        Assertions.assertThatThrownBy(() -> commitIssuePostJob.execute(context)).isInstanceOf(MessageException.class);
+
+        Mockito.verify(commitFacade, Mockito.never()).addGlobalComment(Mockito.contains("SonarQube analysis reported 6 issues"));
+        Mockito.verify(commitFacade, Mockito.never()).createOrUpdateSonarQubeStatus("failed", "SonarQube reported 6 issues, with 6 blocker");
+    }
+
+    @Test
+    public void testCommitAnalysisWithNewIssuesNoBlockerNorCritical2() {
+        settings.setProperty(GitLabPlugin.GITLAB_STATUS_NOTIFICATION_MODE, StatusNotificationsMode.EXIT_CODE.getMeaning());
+
+        DefaultInputFile inputFile1 = new DefaultInputFile("foo", "src/Foo.php");
+        PostJobIssue newIssue = newMockedIssue("foo:src/Foo.php", inputFile1, 1, Severity.MAJOR, true, "msg1");
+        when(commitFacade.getGitLabUrl(inputFile1, 1)).thenReturn("http://gitlab/blob/abc123/src/Foo.php#L1");
+
+        when(context.issues()).thenReturn(Collections.singletonList(newIssue));
+        when(commitFacade.hasFile(inputFile1)).thenReturn(true);
+        when(commitFacade.hasFileLine(inputFile1, 1)).thenReturn(true);
+
+        commitIssuePostJob.execute(context);
+
+        Mockito.verify(commitFacade, Mockito.never()).createOrUpdateSonarQubeStatus("success", "SonarQube reported 1 issue, no criticals or blockers");
+    }
+
+    @Test
+    public void testDescriptor() {
+        DefaultPostJobDescriptor postJobDescriptor = new DefaultPostJobDescriptor();
+        commitIssuePostJob.describe(postJobDescriptor);
+
+        Assertions.assertThat(postJobDescriptor.name()).isEqualTo("GitLab Commit Issue Publisher");
+        Assertions.assertThat(postJobDescriptor.properties()).containsExactly(GitLabPlugin.GITLAB_URL, GitLabPlugin.GITLAB_USER_TOKEN, GitLabPlugin.GITLAB_PROJECT_ID, GitLabPlugin.GITLAB_COMMIT_SHA);
     }
 }

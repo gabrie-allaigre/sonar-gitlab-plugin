@@ -25,6 +25,7 @@ import org.sonar.api.batch.postjob.PostJob;
 import org.sonar.api.batch.postjob.PostJobContext;
 import org.sonar.api.batch.postjob.PostJobDescriptor;
 import org.sonar.api.batch.postjob.issue.PostJobIssue;
+import org.sonar.api.utils.MessageException;
 import org.sonar.api.utils.log.Logger;
 import org.sonar.api.utils.log.Loggers;
 
@@ -55,7 +56,7 @@ public class CommitIssuePostJob implements PostJob {
 
     @Override
     public void describe(PostJobDescriptor descriptor) {
-        descriptor.name("GitLab Commit Issue Publisher").requireProperty(GitLabPlugin.GITLAB_COMMIT_SHA);
+        descriptor.name("GitLab Commit Issue Publisher").requireProperty(GitLabPlugin.GITLAB_URL, GitLabPlugin.GITLAB_USER_TOKEN, GitLabPlugin.GITLAB_PROJECT_ID, GitLabPlugin.GITLAB_COMMIT_SHA);
     }
 
     @Override
@@ -63,21 +64,41 @@ public class CommitIssuePostJob implements PostJob {
         GlobalReport report = new GlobalReport(gitLabPluginConfiguration, markDownUtils);
 
         try {
-            LOG.info("Find a {} new issues", getStreamPostJobIssue(context.issues()).count());
-
             Map<InputFile, Map<Integer, StringBuilder>> commentsToBeAddedByLine = processIssues(report, context.issues());
 
             updateReviewComments(commentsToBeAddedByLine);
 
-            if (report.hasNewIssue() || gitLabPluginConfiguration.commentNoIssue()) {
+            if (!gitLabPluginConfiguration.disableGlobalComment() && (report.hasNewIssue() || gitLabPluginConfiguration.commentNoIssue())) {
                 commitFacade.addGlobalComment(report.formatForMarkdown());
             }
 
-            commitFacade.createOrUpdateSonarQubeStatus(report.getStatus(), report.getStatusDescription());
+            String status = report.getStatus();
+            String statusDescription = report.getStatusDescription();
+
+            String message = String.format("Report status=%s, desc=%s", report.getStatus(), report.getStatusDescription());
+
+            StatusNotificationsMode i = gitLabPluginConfiguration.statusNotificationsMode();
+            if (i == StatusNotificationsMode.COMMIT_STATUS) {
+                LOG.info(message);
+
+                commitFacade.createOrUpdateSonarQubeStatus(status, statusDescription);
+            } else if (i == StatusNotificationsMode.EXIT_CODE) {
+                if ("failed".equals(status)) {
+                    throw MessageException.of(message);
+                } else {
+                    LOG.info(message);
+                }
+            }
+        } catch (MessageException e) {
+            throw e;
         } catch (Exception e) {
             String msg = "SonarQube failed to complete the review of this commit";
             LOG.error(msg, e);
-            commitFacade.createOrUpdateSonarQubeStatus("failed", msg + ": " + e.getMessage());
+
+            StatusNotificationsMode i = gitLabPluginConfiguration.statusNotificationsMode();
+            if (i == StatusNotificationsMode.COMMIT_STATUS) {
+                commitFacade.createOrUpdateSonarQubeStatus("failed", msg + ": " + e.getMessage());
+            }
         }
     }
 

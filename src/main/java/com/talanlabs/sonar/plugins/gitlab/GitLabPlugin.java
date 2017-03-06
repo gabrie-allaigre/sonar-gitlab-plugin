@@ -45,8 +45,11 @@ public class GitLabPlugin implements Plugin {
     public static final String GITLAB_GLOBAL_TEMPLATE = "sonar.gitlab.global_template";
     public static final String GITLAB_INLINE_TEMPLATE = "sonar.gitlab.inline_template";
     public static final String GITLAB_COMMENT_NO_ISSUE = "sonar.gitlab.comment_no_issue";
-    public static final String GITLAB_DISABLE_INLINE_COMMENTS = "sonar.gitlab.disableInlineComments";
-    public static final String GITLAB_ONLY_ISSUE_FROM_COMMIT_FILE = "sonar.gitlab.onlyIssueFromCommitFile";
+    public static final String GITLAB_DISABLE_INLINE_COMMENTS = "sonar.gitlab.disable_inline_comments";
+    public static final String GITLAB_ONLY_ISSUE_FROM_COMMIT_FILE = "sonar.gitlab.only_issue_from_commit_file";
+    public static final String GITLAB_BUILD_INIT_STATE = "sonar.gitlab.build_init_state";
+    public static final String GITLAB_DISABLE_GLOBAL_COMMENT = "sonar.gitlab.disable_global_comment";
+    public static final String GITLAB_STATUS_NOTIFICATION_MODE = "sonar.gitlab.failure_notification_mode";
 
     public static final String CATEGORY = "gitlab";
     public static final String SUBCATEGORY = "reporting";
@@ -88,7 +91,16 @@ public class GitLabPlugin implements Plugin {
                                 .description("Issues will not be reported as inline comments but only in the global summary comment.").category(CATEGORY).subCategory(SUBCATEGORY)
                                 .type(PropertyType.BOOLEAN).defaultValue(String.valueOf(false)).index(15).build(),
                         PropertyDefinition.builder(GITLAB_ONLY_ISSUE_FROM_COMMIT_FILE).name("Show issue for commit file only").description("Issues will be reported if in current commit")
-                                .category(CATEGORY).subCategory(SUBCATEGORY).type(PropertyType.BOOLEAN).defaultValue(String.valueOf(false)).index(16).hidden().build()
+                                .category(CATEGORY).subCategory(SUBCATEGORY).type(PropertyType.BOOLEAN).defaultValue(String.valueOf(false)).index(16).hidden().build(),
+                        PropertyDefinition.builder(GITLAB_BUILD_INIT_STATE).name("Build Initial State").description("State that should be the first when build commit status update is called.")
+                                .category(CATEGORY).subCategory(SUBCATEGORY).type(PropertyType.SINGLE_SELECT_LIST)
+                                .options(BuildInitState.PENDING.getMeaning(), BuildInitState.RUNNING.getMeaning()).defaultValue(BuildInitState.PENDING.getMeaning()).index(17).build(),
+                        PropertyDefinition.builder(GITLAB_DISABLE_GLOBAL_COMMENT).name("Disable global comment").description("Disable global comment, report only inline.")
+                                .category(CATEGORY).subCategory(SUBCATEGORY).defaultValue(String.valueOf(false)).index(18).build(),
+                        PropertyDefinition.builder(GITLAB_STATUS_NOTIFICATION_MODE).name("Status notification mode").description("Status notification mode: commit-status or exit-code")
+                                .category(CATEGORY).subCategory(SUBCATEGORY).type(PropertyType.SINGLE_SELECT_LIST)
+                                .options(StatusNotificationsMode.COMMIT_STATUS.getMeaning(), StatusNotificationsMode.EXIT_CODE.getMeaning()).defaultValue(StatusNotificationsMode.COMMIT_STATUS.getMeaning())
+                                .index(19).build()
                         /*,
                         PropertyDefinition.builder(GITLAB_GLOBAL_TEMPLATE).name("GitLab Global Template").description("Template for global comment in commit.").category(CATEGORY)
                                 .subCategory(SUBCATEGORY).type(PropertyType.TEXT).index(8).build(),

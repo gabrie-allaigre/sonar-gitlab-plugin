@@ -71,12 +71,39 @@ public class CommitProjectBuilderTest {
     }
 
     @Test
-    public void shouldNotFailIfIssues() {
+    public void shouldNotFailIfIssuesPending() {
         settings.setProperty(GitLabPlugin.GITLAB_COMMIT_SHA, "1");
         when(mode.isIssues()).thenReturn(true);
 
         commitProjectBuilder.build(mock(ProjectBuilder.Context.class, withSettings().defaultAnswer(RETURNS_DEEP_STUBS)));
 
         verify(facade).init(any(File.class));
+        verify(facade).createOrUpdateSonarQubeStatus(BuildInitState.PENDING.getMeaning(), "SonarQube analysis in progress");
+    }
+
+    @Test
+    public void shouldNotFailIfIssuesRunning() {
+        settings.setProperty(GitLabPlugin.GITLAB_COMMIT_SHA, "1");
+        settings.setProperty(GitLabPlugin.GITLAB_BUILD_INIT_STATE, BuildInitState.RUNNING.getMeaning());
+
+        when(mode.isIssues()).thenReturn(true);
+
+        commitProjectBuilder.build(mock(ProjectBuilder.Context.class, withSettings().defaultAnswer(RETURNS_DEEP_STUBS)));
+
+        verify(facade).init(any(File.class));
+        verify(facade).createOrUpdateSonarQubeStatus(BuildInitState.RUNNING.getMeaning(), "SonarQube analysis in progress");
+    }
+
+    @Test
+    public void shouldNotFailIfIssuesNone() {
+        settings.setProperty(GitLabPlugin.GITLAB_COMMIT_SHA, "1");
+        settings.setProperty(GitLabPlugin.GITLAB_STATUS_NOTIFICATION_MODE, StatusNotificationsMode.EXIT_CODE.getMeaning());
+
+        when(mode.isIssues()).thenReturn(true);
+
+        commitProjectBuilder.build(mock(ProjectBuilder.Context.class, withSettings().defaultAnswer(RETURNS_DEEP_STUBS)));
+
+        verify(facade).init(any(File.class));
+        verify(facade, never()).createOrUpdateSonarQubeStatus(BuildInitState.PENDING.getMeaning(), "SonarQube analysis in progress");
     }
 }

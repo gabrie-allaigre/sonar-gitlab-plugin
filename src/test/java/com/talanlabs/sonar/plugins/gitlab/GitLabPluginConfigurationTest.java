@@ -40,13 +40,13 @@ public class GitLabPluginConfigurationTest {
     private GitLabPluginConfiguration config;
 
     @Before
-    public void prepare() {
+    public void before() {
         settings = new Settings(new PropertyDefinitions(GitLabPlugin.definitions()));
         config = new GitLabPluginConfiguration(settings, new System2());
     }
 
     @Test
-    public void global() {
+    public void testGlobal() {
         Assertions.assertThat(config.url()).isEqualTo("https://gitlab.com");
         settings.setProperty(GitLabPlugin.GITLAB_URL, "https://gitlab.talanlabs.com/api");
         Assertions.assertThat(config.url()).isEqualTo("https://gitlab.talanlabs.com/api");
@@ -60,7 +60,7 @@ public class GitLabPluginConfigurationTest {
     }
 
     @Test
-    public void project() {
+    public void testProject() {
         Assertions.assertThat(config.isEnabled()).isFalse();
         settings.setProperty(GitLabPlugin.GITLAB_COMMIT_SHA, "3");
         Assertions.assertThat(config.commitSHA()).isEqualTo("3");
@@ -87,10 +87,26 @@ public class GitLabPluginConfigurationTest {
         Assertions.assertThat(config.onlyIssueFromCommitFile()).isFalse();
         settings.setProperty(GitLabPlugin.GITLAB_ONLY_ISSUE_FROM_COMMIT_FILE, "true");
         Assertions.assertThat(config.onlyIssueFromCommitFile()).isTrue();
+
+        Assertions.assertThat(config.buildInitState()).isEqualTo(BuildInitState.PENDING);
+        settings.setProperty(GitLabPlugin.GITLAB_BUILD_INIT_STATE, BuildInitState.RUNNING.getMeaning());
+        Assertions.assertThat(config.buildInitState()).isEqualTo(BuildInitState.RUNNING);
+        settings.setProperty(GitLabPlugin.GITLAB_BUILD_INIT_STATE, "toto");
+        Assertions.assertThat(config.buildInitState()).isEqualTo(BuildInitState.PENDING);
+
+        Assertions.assertThat(config.disableGlobalComment()).isFalse();
+        settings.setProperty(GitLabPlugin.GITLAB_DISABLE_GLOBAL_COMMENT, "true");
+        Assertions.assertThat(config.disableGlobalComment()).isTrue();
+
+        Assertions.assertThat(config.statusNotificationsMode()).isEqualTo(StatusNotificationsMode.COMMIT_STATUS);
+        settings.setProperty(GitLabPlugin.GITLAB_STATUS_NOTIFICATION_MODE, StatusNotificationsMode.EXIT_CODE.getMeaning());
+        Assertions.assertThat(config.statusNotificationsMode()).isEqualTo(StatusNotificationsMode.EXIT_CODE);
+        settings.setProperty(GitLabPlugin.GITLAB_STATUS_NOTIFICATION_MODE, "toto");
+        Assertions.assertThat(config.statusNotificationsMode()).isEqualTo(StatusNotificationsMode.COMMIT_STATUS);
     }
 
     @Test
-    public void issues() {
+    public void testIssues() {
         Assertions.assertThat(config.maxBlockerIssuesGate()).isEqualTo(0);
         settings.setProperty(GitLabPlugin.GITLAB_MAX_BLOCKER_ISSUES_GATE, "10");
         Assertions.assertThat(config.maxBlockerIssuesGate()).isEqualTo(10);
