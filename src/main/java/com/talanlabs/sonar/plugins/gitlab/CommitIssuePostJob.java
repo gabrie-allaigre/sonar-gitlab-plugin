@@ -61,15 +61,15 @@ public class CommitIssuePostJob implements PostJob {
 
     @Override
     public void execute(PostJobContext context) {
-        GlobalReport report = new GlobalReport(gitLabPluginConfiguration, markDownUtils);
+        Reporter report = new Reporter(gitLabPluginConfiguration);
 
         try {
             Map<InputFile, Map<Integer, StringBuilder>> commentsToBeAddedByLine = processIssues(report, context.issues());
 
             updateReviewComments(commentsToBeAddedByLine);
 
-            if (!gitLabPluginConfiguration.disableGlobalComment() && (report.hasNewIssue() || gitLabPluginConfiguration.commentNoIssue())) {
-                commitFacade.addGlobalComment(report.formatForMarkdown());
+            if (!gitLabPluginConfiguration.disableGlobalComment() && (report.hasIssue() || gitLabPluginConfiguration.commentNoIssue())) {
+                commitFacade.addGlobalComment(new GlobalCommentBuilder(gitLabPluginConfiguration, report, markDownUtils).buildForMarkdown());
             }
 
             String status = report.getStatus();
@@ -107,7 +107,7 @@ public class CommitIssuePostJob implements PostJob {
         return "GitLab Commit Issue Publisher";
     }
 
-    private Map<InputFile, Map<Integer, StringBuilder>> processIssues(GlobalReport report, Iterable<PostJobIssue> issues) {
+    private Map<InputFile, Map<Integer, StringBuilder>> processIssues(Reporter report, Iterable<PostJobIssue> issues) {
         Map<InputFile, Map<Integer, StringBuilder>> commentToBeAddedByFileAndByLine = new HashMap<>();
 
         getStreamPostJobIssue(issues).sorted(ISSUE_COMPARATOR).forEach(i -> processIssue(report, commentToBeAddedByFileAndByLine, i));
@@ -121,7 +121,7 @@ public class CommitIssuePostJob implements PostJob {
         });
     }
 
-    private void processIssue(GlobalReport report, Map<InputFile, Map<Integer, StringBuilder>> commentToBeAddedByFileAndByLine, PostJobIssue issue) {
+    private void processIssue(Reporter report, Map<InputFile, Map<Integer, StringBuilder>> commentToBeAddedByFileAndByLine, PostJobIssue issue) {
         boolean reportedInline = false;
         InputComponent inputComponent = issue.inputComponent();
         if (gitLabPluginConfiguration.tryReportIssuesInline() && inputComponent != null && inputComponent.isFile()) {

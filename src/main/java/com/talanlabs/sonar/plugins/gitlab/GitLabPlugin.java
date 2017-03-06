@@ -103,9 +103,7 @@ public class GitLabPlugin implements Plugin {
                                 .index(19).build()
                         /*,
                         PropertyDefinition.builder(GITLAB_GLOBAL_TEMPLATE).name("GitLab Global Template").description("Template for global comment in commit.").category(CATEGORY)
-                                .subCategory(SUBCATEGORY).type(PropertyType.TEXT).index(8).build(),
-                        PropertyDefinition.builder(GITLAB_INLINE_TEMPLATE).name("GitLab Inline Template").description("Template for inline comment in commit.").category(CATEGORY)
-                                .subCategory(SUBCATEGORY).type(PropertyType.TEXT).index(9).build()*/);
+                                .subCategory(SUBCATEGORY).type(PropertyType.TEXT).index(8).build()*/);
     }
 
     @Override
