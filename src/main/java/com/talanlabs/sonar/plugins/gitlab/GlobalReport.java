@@ -118,19 +118,24 @@ public class GlobalReport {
             List<IssueUrl> issueUrls = notReportedOnDiffMap.get(severity);
             if (issueUrls != null && !issueUrls.isEmpty()) {
                 for (IssueUrl issueUrl : issueUrls) {
-                    PostJobIssue postJobIssue = issueUrl.postJobIssue;
-                    String msg = "1. " + markDownUtils.globalIssue(postJobIssue.severity(), postJobIssue.message(), postJobIssue.ruleKey().toString(), issueUrl.gitLabUrl, postJobIssue.componentKey());
-                    if (i < gitLabPluginConfiguration.maxGlobalIssues()) {
-                        builder.append(msg).append("\n");
-                    } else {
-                        notReportedDisplayedIssueCount++;
-                    }
+                    notReportedDisplayedIssueCount += appendIssue(builder, issueUrl, i);
                     i++;
                 }
             }
         }
 
         appendMore(builder, notReportedDisplayedIssueCount);
+    }
+
+    private int appendIssue(StringBuilder builder, IssueUrl issueUrl, int i) {
+        PostJobIssue postJobIssue = issueUrl.postJobIssue;
+        String msg = "1. " + markDownUtils.globalIssue(postJobIssue.severity(), postJobIssue.message(), postJobIssue.ruleKey().toString(), issueUrl.gitLabUrl, postJobIssue.componentKey());
+        if (i < gitLabPluginConfiguration.maxGlobalIssues()) {
+            builder.append(msg).append("\n");
+            return 0;
+        } else {
+            return 1;
+        }
     }
 
     private void appendMore(StringBuilder builder, int notReportedDisplayedIssueCount) {
