@@ -102,14 +102,6 @@ public class Reporter {
         return Collections.unmodifiableList(SEVERITIES.stream().map(reportIssuesMap::get).filter(l -> l != null && !l.isEmpty()).flatMap(List::stream).collect(Collectors.toList()));
     }
 
-    public List<ReportIssue> getReportIssuesForSeverity(Severity severity) {
-        return Collections.unmodifiableList(reportIssuesMap.getOrDefault(severity, Collections.emptyList()));
-    }
-
-    public List<ReportIssue> getNotReportedOnDiffReportIssues() {
-        return Collections.unmodifiableList(SEVERITIES.stream().map(notReportedOnDiffMap::get).filter(l -> l != null && !l.isEmpty()).flatMap(List::stream).collect(Collectors.toList()));
-    }
-
     public List<ReportIssue> getNotReportedOnDiffReportIssueForSeverity(Severity severity) {
         return Collections.unmodifiableList(notReportedOnDiffMap.getOrDefault(severity, Collections.emptyList()));
     }

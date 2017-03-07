@@ -107,10 +107,6 @@ public class GitLabPluginConfiguration {
         return settings.getInt(GitLabPlugin.GITLAB_MAX_INFO_ISSUES_GATE);
     }
 
-    public boolean ignoreFileNotModified() {
-        return settings.getBoolean(GitLabPlugin.GITLAB_IGNORE_FILE);
-    }
-
     public boolean tryReportIssuesInline() {
         return !settings.getBoolean(GitLabPlugin.GITLAB_DISABLE_INLINE_COMMENTS);
     }
@@ -136,11 +132,6 @@ public class GitLabPluginConfiguration {
     @CheckForNull
     public String globalTemplate() {
         return settings.getString(GitLabPlugin.GITLAB_GLOBAL_TEMPLATE);
-    }
-
-    @CheckForNull
-    public String inlineTemplate() {
-        return settings.getString(GitLabPlugin.GITLAB_INLINE_TEMPLATE);
     }
 
     public boolean commentNoIssue() {

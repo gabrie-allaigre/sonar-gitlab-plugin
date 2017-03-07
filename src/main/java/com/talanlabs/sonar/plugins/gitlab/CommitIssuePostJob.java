@@ -144,7 +144,7 @@ public class CommitIssuePostJob implements PostJob {
                 if (!commentsByLine.containsKey(line)) {
                     commentsByLine.put(line, new StringBuilder());
                 }
-                commentsByLine.get(line).append(markDownUtils.inlineIssue(issue.severity(), message, ruleKey)).append("\n");
+                commentsByLine.get(line).append(markDownUtils.printIssue(issue.severity(), message, ruleKey, null, null)).append("\n");
                 return true;
             }
         }

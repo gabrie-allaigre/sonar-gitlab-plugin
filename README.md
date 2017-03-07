@@ -96,4 +96,231 @@ A new version is work in progress
 - Add support Proxy
 - Ignore certficate if auto-signed
 - Add quality project https://sonarqube.com/dashboard?id=com.talanlabs%3Asonar-gitlab-plugin 
+- Custom global comment (Template)
 
+
+# Templates
+
+Custom global comment : Change language, change image, change order, etc
+
+**Use FreeMarker syntax [http://freemarker.org/](http://freemarker.org/)**
+
+## Variables
+
+Usage : `${name}`
+
+| name | type | description |
+| --- | --- | --- |
+| url | String | GitLab url |
+| projectId | String | Project ID in GitLab or internal id or namespace + name or namespace + path or url http or ssh url or url or web |
+| commitSHA | String | SHA of the commit comment |
+| refName | String | Branch name or reference of the commit |
+| maxGlobalIssues | Integer | Maximum number of anomalies to be displayed in the global comment |
+| maxBlockerIssuesGate | Integer | Max blocker issue for build failed |
+| maxCriticalIssuesGate | Integer | Max critical issue for build failed |
+| maxMajorIssuesGate | Integer | Max major issue for build failed |
+| maxMinorIssuesGate | Integer | Max minor issue for build failed |
+| maxInfoIssuesGate | Integer | Max info issue for build failed |
+| disableIssuesInline | Boolean | Disable issue reporting as inline comments |
+| disableGlobalComment | Boolean | Disable global comment, report only inline |
+| onlyIssueFromCommitFile | Boolean | Show issue for commit file only |
+| commentNoIssue | Boolean | Add a comment even when there is no new issue |
+| BLOCKER | Severity | Blocker |
+| CRITICAL | Severity | Critical |
+| MAJOR | Severity | Major |
+| MINOR | Severity | Minor |
+| INFO | Severity | Info |
+
+## Functions
+
+Usage : `${name(arg1,arg2,...)}`
+
+| name | arguments | type | description |
+| --- | --- | --- | --- |
+| issueCount | none | Integer | Get new issue count |
+| issueCount | Boolean | Integer | Get new issue count if true only reported else false only not reported |
+| issueCount | Severity | Integer | Get new issue count by Severity |
+| issueCount | Boolean, Severity | Integer | Get new issue count by Severity if true only reported else false only not reported |
+| issues | none | List<Issue> | Get new issues |
+| issues | Boolean | List<Issue> | Get new issues if true only reported else false only not reported |
+| issues | Severity | List<Issue> | Get new issues by Severity |
+| issues | Boolean, Severity | List<Issue> | Get new issues by Severity if true only reported else false only not reported |
+| print | Issue | String | Print a issue line (same default template) |
+| emojiSeverity | Severity | String | Print a emoji by severity |
+| imageSeverity | Severity | String | Print a image by severity |
+| ruleLink | String | String | Get URL for rule in SonarQube |
+
+### Type 
+
+Usage : `${Issue.name}`
+
+| name | type | description |
+| --- | --- | --- |
+| reportedOnDiff | Boolean | Reported inline |
+| url | String | URL of file/line in GitLab |
+| componentKey | String | Component key |
+| severity | Severity | Severity of issue |
+| line | Integer | Line (maybe null) |
+| key | String | Key |
+| message | String | Message (maybe null) |
+| ruleKey | String | Rule key on SonarQube |
+| new | Boolean | New issue |
+
+## Examples
+
+### Default template
+
+```injectedfreemarker
+<#assign newIssueCount = issueCount() notReportedIssueCount = issueCount(false)>
+<#assign hasInlineIssues = newIssueCount gt notReportedIssueCount extraIssuesTruncated = notReportedIssueCount gt maxGlobalIssues>
+<#if newIssueCount == 0>
+SonarQube analysis reported no issues.
+<#else>
+SonarQube analysis reported ${newIssueCount} issue<#if newIssueCount gt 1>s</#if>
+    <#assign newIssuesBlocker = issueCount(BLOCKER) newIssuesCritical = issueCount(CRITICAL) newIssuesMajor = issueCount(MAJOR) newIssuesMinor = issueCount(MINOR) newIssuesInfo = issueCount(INFO)>
+    <#if newIssuesBlocker gt 0>
+* ${emojiSeverity(BLOCKER)} ${newIssuesBlocker} blocker
+    </#if>
+    <#if newIssuesCritical gt 0>
+* ${emojiSeverity(CRITICAL)} ${newIssuesCritical} critical
+    </#if>
+    <#if newIssuesMajor gt 0>
+* ${emojiSeverity(MAJOR)} ${newIssuesMajor} major
+    </#if>
+    <#if newIssuesMinor gt 0>
+* ${emojiSeverity(MINOR)} ${newIssuesMinor} minor
+    </#if>
+    <#if newIssuesInfo gt 0>
+* ${emojiSeverity(INFO)} ${newIssuesInfo} info
+    </#if>
+    <#if !disableIssuesInline && hasInlineIssues>
+
+Watch the comments in this conversation to review them.
+    </#if>
+    <#if notReportedIssueCount gt 0>
+        <#if !disableIssuesInline>
+            <#if hasInlineIssues || extraIssuesTruncated>
+                <#if notReportedIssueCount <= maxGlobalIssues>
+
+#### ${notReportedIssueCount} extra issue<#if notReportedIssueCount gt 1>s</#if>
+                <#else>
+
+#### Top ${maxGlobalIssues} extra issue<#if maxGlobalIssues gt 1>s</#if>
+                </#if>
+            </#if>
+
+Note: The following issues were found on lines that were not modified in the commit. Because these issues can't be reported as line comments, they are summarized here:
+        <#elseif extraIssuesTruncated>
+
+#### Top ${maxGlobalIssues} issue<#if maxGlobalIssues gt 1>s</#if>
+        </#if>
+
+        <#assign reportedIssueCount = 0>
+        <#list issues(false) as issue>
+            <#if reportedIssueCount < maxGlobalIssues>
+1. ${print(issue)}
+            </#if>
+            <#assign reportedIssueCount++>
+        </#list>
+        <#if notReportedIssueCount gt maxGlobalIssues>
+* ... ${notReportedIssueCount-maxGlobalIssues} more
+        </#if>
+    </#if>
+</#if>
+```
+
+### Default template with image
+
+```injectedfreemarker
+<#assign newIssueCount = issueCount() notReportedIssueCount = issueCount(false)>
+<#assign hasInlineIssues = newIssueCount gt notReportedIssueCount extraIssuesTruncated = notReportedIssueCount gt maxGlobalIssues>
+<#if newIssueCount == 0>
+SonarQube analysis reported no issues.
+<#else>
+SonarQube analysis reported ${newIssueCount} issue<#if newIssueCount gt 1>s</#if>
+    <#assign newIssuesBlocker = issueCount(BLOCKER) newIssuesCritical = issueCount(CRITICAL) newIssuesMajor = issueCount(MAJOR) newIssuesMinor = issueCount(MINOR) newIssuesInfo = issueCount(INFO)>
+    <#if newIssuesBlocker gt 0>
+* ${imageSeverity(BLOCKER)} ${newIssuesBlocker} blocker
+    </#if>
+    <#if newIssuesCritical gt 0>
+* ${imageSeverity(CRITICAL)} ${newIssuesCritical} critical
+    </#if>
+    <#if newIssuesMajor gt 0>
+* ${imageSeverity(MAJOR)} ${newIssuesMajor} major
+    </#if>
+    <#if newIssuesMinor gt 0>
+* ${imageSeverity(MINOR)} ${newIssuesMinor} minor
+    </#if>
+    <#if newIssuesInfo gt 0>
+* ${imageSeverity(INFO)} ${newIssuesInfo} info
+    </#if>
+    <#if !disableIssuesInline && hasInlineIssues>
+
+Watch the comments in this conversation to review them.
+    </#if>
+    <#if notReportedIssueCount gt 0>
+        <#if !disableIssuesInline>
+            <#if hasInlineIssues || extraIssuesTruncated>
+                <#if notReportedIssueCount <= maxGlobalIssues>
+
+#### ${notReportedIssueCount} extra issue<#if notReportedIssueCount gt 1>s</#if>
+                <#else>
+
+#### Top ${maxGlobalIssues} extra issue<#if maxGlobalIssues gt 1>s</#if>
+                </#if>
+            </#if>
+
+Note: The following issues were found on lines that were not modified in the commit. Because these issues can't be reported as line comments, they are summarized here:
+        <#elseif extraIssuesTruncated>
+
+#### Top ${maxGlobalIssues} issue<#if maxGlobalIssues gt 1>s</#if>
+        </#if>
+
+        <#assign reportedIssueCount = 0>
+        <#list issues(false) as issue>
+            <#if reportedIssueCount < maxGlobalIssues>
+1. <@p issue=issue/>
+            </#if>
+            <#assign reportedIssueCount++>
+        </#list>
+        <#if notReportedIssueCount gt maxGlobalIssues>
+* ... ${notReportedIssueCount-maxGlobalIssues} more
+        </#if>
+    </#if>
+</#if>
+<#macro p issue>
+${imageSeverity(issue.severity)} <#if issue.url??>[${issue.message}](${issue.url})<#else>${issue.message}<#if issue.componentKey??>${issue.componentKey}</#if></#if> [![RULE](https://github.com/gabrie-allaigre/sonar-gitlab-plugin/raw/master/images/rule.png)](${ruleLink(issue.ruleKey)})
+</#macro>
+```
+
+### All issues
+
+```injectedfreemarker
+<#assign newIssueCount = issueCount() notReportedIssueCount = issueCount(false)>
+<#assign hasInlineIssues = newIssueCount gt notReportedIssueCount extraIssuesTruncated = notReportedIssueCount gt maxGlobalIssues>
+<#if newIssueCount == 0>
+SonarQube analysis reported no issues.
+<#else>
+SonarQube analysis reported ${newIssueCount} issue<#if newIssueCount gt 1>s</#if>
+    <#assign newIssuesBlocker = issueCount(BLOCKER) newIssuesCritical = issueCount(CRITICAL) newIssuesMajor = issueCount(MAJOR) newIssuesMinor = issueCount(MINOR) newIssuesInfo = issueCount(INFO)>
+    <#if newIssuesBlocker gt 0>
+* ${emojiSeverity(BLOCKER)} ${newIssuesBlocker} blocker
+    </#if>
+    <#if newIssuesCritical gt 0>
+* ${emojiSeverity(CRITICAL)} ${newIssuesCritical} critical
+    </#if>
+    <#if newIssuesMajor gt 0>
+* ${emojiSeverity(MAJOR)} ${newIssuesMajor} major
+    </#if>
+    <#if newIssuesMinor gt 0>
+* ${emojiSeverity(MINOR)} ${newIssuesMinor} minor
+    </#if>
+    <#if newIssuesInfo gt 0>
+* ${emojiSeverity(INFO)} ${newIssuesInfo} info
+    </#if>
+
+    <#list issues() as issue>
+1. ${print(issue)}
+    </#list>
+</#if>
+```

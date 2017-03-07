@@ -33,6 +33,8 @@ import java.net.URLEncoder;
 @BatchSide
 public class MarkDownUtils {
 
+    private static final String IMAGES_ROOT_URL = "https://github.com/gabrie-allaigre/sonar-gitlab-plugin/raw/master/images/";
+
     private final String ruleUrlPrefix;
 
     public MarkDownUtils(Settings settings) {
@@ -50,7 +52,6 @@ public class MarkDownUtils {
     private String encodeForUrl(String url) {
         try {
             return URLEncoder.encode(url, "UTF-8");
-
         } catch (UnsupportedEncodingException e) {
             throw new IllegalStateException("Encoding not supported", e);
         }
@@ -58,41 +59,41 @@ public class MarkDownUtils {
 
     public String getEmojiForSeverity(Severity severity) {
         switch (severity) {
-        case BLOCKER:
-            return ":no_entry:";
-        case CRITICAL:
-            return ":no_entry_sign:";
-        case MAJOR:
-            return ":warning:";
-        case MINOR:
-            return ":arrow_down_small:";
-        case INFO:
-            return ":information_source:";
-        default:
-            return ":grey_question:";
+            case BLOCKER:
+                return ":no_entry:";
+            case CRITICAL:
+                return ":no_entry_sign:";
+            case MAJOR:
+                return ":warning:";
+            case MINOR:
+                return ":arrow_down_small:";
+            case INFO:
+                return ":information_source:";
+            default:
+                return ":grey_question:";
         }
     }
 
-    public String inlineIssue(Severity severity, String message, String ruleKey) {
-        String ruleLink = getRuleLink(ruleKey);
-        return getEmojiForSeverity(severity) + " " + message + " " + ruleLink;
+    public String getImageForSeverity(Severity severity) {
+        return "![" + severity + "](" + IMAGES_ROOT_URL + "severity-" + severity.name().toLowerCase() + ".png)";
     }
 
-    public String globalIssue(Severity severity, String message, String ruleKey, @Nullable String url, String componentKey) {
-        String ruleLink = getRuleLink(ruleKey);
+    public String printIssue(Severity severity, String message, String ruleKey, @Nullable String url, @Nullable String componentKey) {
         StringBuilder sb = new StringBuilder();
         sb.append(getEmojiForSeverity(severity)).append(" ");
         if (url != null) {
             sb.append("[").append(message).append("]").append("(").append(url).append(")");
         } else {
-            sb.append(message).append(" ").append("(").append(componentKey).append(")");
+            sb.append(message);
+            if (componentKey != null) {
+                sb.append(" ").append("(").append(componentKey).append(")");
+            }
         }
-        sb.append(" ").append(ruleLink);
+        sb.append(" ").append("[:blue_book:](").append(getRuleLink(ruleKey)).append(")");
         return sb.toString();
     }
 
-    private String getRuleLink(String ruleKey) {
-        return "[:blue_book:](" + ruleUrlPrefix + "coding_rules#rule_key=" + encodeForUrl(ruleKey) + ")";
+    public String getRuleLink(String ruleKey) {
+        return ruleUrlPrefix + "coding_rules#rule_key=" + encodeForUrl(ruleKey);
     }
-
 }
