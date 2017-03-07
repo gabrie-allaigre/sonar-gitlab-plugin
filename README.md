@@ -1,9 +1,9 @@
 Sonar GitLab Plugin
 ===================
 
-![https://travis-ci.org/gabrie-allaigre/sonar-gitlab-plugin](https://api.travis-ci.org/gabrie-allaigre/sonar-gitlab-plugin.png?branch=master)
+[![Build Status](https://travis-ci.org/gabrie-allaigre/sonar-gitlab-plugin.svg?branch=master)](https://travis-ci.org/gabrie-allaigre/sonar-gitlab-plugin)
 
-Inspire by https://github.com/SonarCommunity/sonar-github
+Inspired by https://github.com/SonarCommunity/sonar-github
 
 # Goal
 
