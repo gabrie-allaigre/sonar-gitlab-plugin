@@ -1,6 +1,8 @@
 Sonar GitLab Plugin
 ===================
 
+![https://travis-ci.org/gabrie-allaigre/sonar-gitlab-plugin](https://api.travis-ci.org/gabrie-allaigre/sonar-gitlab-plugin.png?branch=master)
+
 Inspire by https://github.com/SonarCommunity/sonar-github
 
 # Goal
@@ -60,6 +62,7 @@ mvn --batch-mode verify sonar:sonar -Dsonar.host.url=$SONAR_URL -Dsonar.analysis
 | sonar.gitlab.build_init_state | State that should be the first when build commit status update is called (default pending) | Administration, Variable | >= 2.0.0 |
 | sonar.gitlab.disable_global_comment | Disable global comment, report only inline (default false) | Administration, Variable | >= 2.0.0 |
 | sonar.gitlab.failure_notification_mode | Notification is in current build (exit-code) or in commit status (commit-status) (default commit-status) | Administration, Variable | >= 2.0.0 |
+| sonar.gitlab.global_template | Template for global comment in commit | Administration, Variable | >= 2.0.0 |
 
 - Administration : **Settings** globals in SonarQube
 - Project : **Settings** of project in SonarQube
