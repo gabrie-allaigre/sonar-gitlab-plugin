@@ -101,14 +101,14 @@ public class GlobalCommentBuilder {
 
     private void appendSeverities(StringBuilder builder) {
         int notReportedDisplayedIssueCount = 0;
-        int i = 0;
+        int reportedIssueCount = 0;
 
         for (Severity severity : Reporter.SEVERITIES) {
             List<Reporter.ReportIssue> reportIssues = reporter.getNotReportedOnDiffReportIssueForSeverity(severity);
             if (reportIssues != null && !reportIssues.isEmpty()) {
                 for (Reporter.ReportIssue reportIssue : reportIssues) {
-                    notReportedDisplayedIssueCount += appendIssue(builder, reportIssue, i);
-                    i++;
+                    notReportedDisplayedIssueCount += appendIssue(builder, reportIssue, reportedIssueCount);
+                    reportedIssueCount++;
                 }
             }
         }
@@ -116,11 +116,12 @@ public class GlobalCommentBuilder {
         appendMore(builder, notReportedDisplayedIssueCount);
     }
 
-    private int appendIssue(StringBuilder builder, Reporter.ReportIssue reportIssue, int i) {
-        PostJobIssue postJobIssue = reportIssue.getPostJobIssue();
-        String msg = "1. " + markDownUtils.globalIssue(postJobIssue.severity(), postJobIssue.message(), postJobIssue.ruleKey().toString(), reportIssue.getUrl(), postJobIssue.componentKey());
-        if (i < gitLabPluginConfiguration.maxGlobalIssues()) {
-            builder.append(msg).append("\n");
+    private int appendIssue(StringBuilder builder, Reporter.ReportIssue reportIssue, int reportedIssueCount) {
+        if (reportedIssueCount < gitLabPluginConfiguration.maxGlobalIssues()) {
+            PostJobIssue postJobIssue = reportIssue.getPostJobIssue();
+            builder.append("1. ") // Markdown increments automatically.
+                    .append(markDownUtils.globalIssue(postJobIssue.severity(), postJobIssue.message(), postJobIssue.ruleKey().toString(), reportIssue.getUrl(), postJobIssue.componentKey()))
+                    .append("\n");
             return 0;
         } else {
             return 1;
