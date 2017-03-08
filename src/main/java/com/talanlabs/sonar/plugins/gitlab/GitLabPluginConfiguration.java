@@ -134,6 +134,11 @@ public class GitLabPluginConfiguration {
         return settings.getString(GitLabPlugin.GITLAB_GLOBAL_TEMPLATE);
     }
 
+    @CheckForNull
+    public String inlineTemplate() {
+        return settings.getString(GitLabPlugin.GITLAB_INLINE_TEMPLATE);
+    }
+
     public boolean commentNoIssue() {
         return settings.getBoolean(GitLabPlugin.GITLAB_COMMENT_NO_ISSUE);
     }

@@ -103,6 +103,10 @@ public class GitLabPluginConfigurationTest {
         Assertions.assertThat(config.globalTemplate()).isNull();
         settings.setProperty(GitLabPlugin.GITLAB_GLOBAL_TEMPLATE, "# Test");
         Assertions.assertThat(config.globalTemplate()).isEqualTo("# Test");
+
+        Assertions.assertThat(config.inlineTemplate()).isNull();
+        settings.setProperty(GitLabPlugin.GITLAB_INLINE_TEMPLATE, "# Test");
+        Assertions.assertThat(config.inlineTemplate()).isEqualTo("# Test");
     }
 
     @Test

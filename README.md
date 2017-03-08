@@ -39,7 +39,7 @@ For SonarQube >= 5.4:
 Example :
 
 ``` shell
-mvn --batch-mode verify sonar:sonar -Dsonar.host.url=$SONAR_URL -Dsonar.analysis.mode=preview -Dsonar.issuesReport.console.enable=true -Dsonar.gitlab.commit_sha=$CI_BUILD_REF -Dsonar.gitlab.ref_name=$CI_BUILD_REF_NAME
+mvn --batch-mode verify sonar:sonar -Dsonar.host.url=$SONAR_URL -Dsonar.analysis.mode=preview -Dsonar.gitlab.commit_sha=$CI_BUILD_REF -Dsonar.gitlab.ref_name=$CI_BUILD_REF_NAME
 ```
 
 | Variable | Comment | Type | Version |
@@ -98,10 +98,9 @@ A new version is work in progress
 - Add quality project https://sonarqube.com/dashboard?id=com.talanlabs%3Asonar-gitlab-plugin 
 - Custom global comment (Template)
 
-
 # Templates
 
-Custom global comment : Change language, change image, change order, etc
+Custom global comment : Change language, change image, change order, print all issues, etc
 
 **Use FreeMarker syntax [http://freemarker.org/](http://freemarker.org/)**
 

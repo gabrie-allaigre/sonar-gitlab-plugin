@@ -29,7 +29,7 @@ import org.sonar.api.config.PropertyDefinitions;
 import org.sonar.api.config.Settings;
 import org.sonar.api.utils.System2;
 
-public class TemplateTest {
+public class GlobalTemplateTest {
 
     private static final String GITLAB_URL = "https://gitlab.com/test/test";
 

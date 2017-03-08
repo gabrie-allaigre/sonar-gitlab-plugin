@@ -19,93 +19,24 @@
  */
 package com.talanlabs.sonar.plugins.gitlab;
 
-import com.talanlabs.sonar.plugins.gitlab.freemarker.*;
-import freemarker.template.Configuration;
-import freemarker.template.Template;
-import freemarker.template.TemplateException;
-import freemarker.template.TemplateExceptionHandler;
 import org.sonar.api.batch.postjob.issue.PostJobIssue;
 import org.sonar.api.batch.rule.Severity;
-import org.sonar.api.utils.MessageException;
-import org.sonar.api.utils.log.Logger;
-import org.sonar.api.utils.log.Loggers;
 
-import java.io.IOException;
-import java.io.StringWriter;
-import java.util.*;
+import java.util.List;
+import java.util.Locale;
 
-public class GlobalCommentBuilder {
+public class GlobalCommentBuilder extends AbstractCommentBuilder {
 
-    private static final Logger LOG = Loggers.get(GlobalCommentBuilder.class);
-
-    private final GitLabPluginConfiguration gitLabPluginConfiguration;
     private final Reporter reporter;
-    private final MarkDownUtils markDownUtils;
 
     public GlobalCommentBuilder(GitLabPluginConfiguration gitLabPluginConfiguration, Reporter reporter, MarkDownUtils markDownUtils) {
-        super();
+        super(gitLabPluginConfiguration, reporter.getReportIssues(), markDownUtils, "global", gitLabPluginConfiguration.globalTemplate());
 
-        this.gitLabPluginConfiguration = gitLabPluginConfiguration;
         this.reporter = reporter;
-        this.markDownUtils = markDownUtils;
     }
 
-    public String buildForMarkdown() {
-        String template = gitLabPluginConfiguration.globalTemplate();
-        if (template != null && !template.isEmpty()) {
-            return buildFreemarkerComment();
-        }
-        return buildDefaultComment();
-    }
-
-    private String buildFreemarkerComment() {
-        Configuration cfg = new Configuration(Configuration.getVersion());
-        cfg.setDefaultEncoding("UTF-8");
-        cfg.setTemplateExceptionHandler(TemplateExceptionHandler.RETHROW_HANDLER);
-        cfg.setLogTemplateExceptions(false);
-
-        try {
-            Template template = new Template("global", gitLabPluginConfiguration.globalTemplate(), cfg);
-
-            StringWriter sw = new StringWriter();
-            template.process(createContext(), sw);
-
-            return sw.toString();
-        } catch (IOException | TemplateException e) {
-            LOG.error("Failed to create template global", e);
-            throw MessageException.of("Failed to create template global");
-        }
-    }
-
-    private Map<String, Object> createContext() {
-        Map<String, Object> root = new HashMap<>();
-        // Config
-        root.put("projectId", gitLabPluginConfiguration.projectId());
-        root.put("commitSHA", gitLabPluginConfiguration.commitSHA());
-        root.put("refName", gitLabPluginConfiguration.refName());
-        root.put("url", gitLabPluginConfiguration.url());
-        root.put("maxGlobalIssues", gitLabPluginConfiguration.maxGlobalIssues());
-        root.put("maxBlockerIssuesGate", gitLabPluginConfiguration.maxBlockerIssuesGate());
-        root.put("maxCriticalIssuesGate", gitLabPluginConfiguration.maxCriticalIssuesGate());
-        root.put("maxMajorIssuesGate", gitLabPluginConfiguration.maxMajorIssuesGate());
-        root.put("maxMinorIssuesGate", gitLabPluginConfiguration.maxMinorIssuesGate());
-        root.put("maxInfoIssuesGate", gitLabPluginConfiguration.maxInfoIssuesGate());
-        root.put("disableIssuesInline", !gitLabPluginConfiguration.tryReportIssuesInline());
-        root.put("disableGlobalComment", !gitLabPluginConfiguration.disableGlobalComment());
-        root.put("onlyIssueFromCommitFile", gitLabPluginConfiguration.onlyIssueFromCommitFile());
-        root.put("commentNoIssue", gitLabPluginConfiguration.commentNoIssue());
-        // Report
-        Arrays.stream(Severity.values()).forEach(severity -> root.put(severity.name(), severity));
-        root.put("issueCount", new IssueCountTemplateMethodModelEx(reporter.getReportIssues()));
-        root.put("issues", new IssuesTemplateMethodModelEx(reporter.getReportIssues()));
-        root.put("print", new PrintTemplateMethodModelEx(markDownUtils));
-        root.put("emojiSeverity", new EmojiSeverityTemplateMethodModelEx(markDownUtils));
-        root.put("imageSeverity", new ImageSeverityTemplateMethodModelEx(markDownUtils));
-        root.put("ruleLink", new RuleLinkTemplateMethodModelEx(markDownUtils));
-        return root;
-    }
-
-    private String buildDefaultComment() {
+    @Override
+    protected String buildDefaultComment() {
         StringBuilder sb = new StringBuilder();
 
         int newIssues = reporter.getIssueCount();

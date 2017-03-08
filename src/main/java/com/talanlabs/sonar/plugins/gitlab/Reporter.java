@@ -19,6 +19,7 @@
  */
 package com.talanlabs.sonar.plugins.gitlab;
 
+import org.sonar.api.batch.fs.InputFile;
 import org.sonar.api.batch.postjob.issue.PostJobIssue;
 import org.sonar.api.batch.rule.Severity;
 
@@ -35,6 +36,7 @@ public class Reporter {
     private int[] newIssuesBySeverity = new int[SEVERITIES.size()];
     private Map<Severity, List<ReportIssue>> reportIssuesMap = new EnumMap<>(Severity.class);
     private Map<Severity, List<ReportIssue>> notReportedOnDiffMap = new EnumMap<>(Severity.class);
+    private Map<InputFile, Map<Integer, List<ReportIssue>>> fileLineMap = new HashMap<>();
     private int notReportedIssueCount = 0;
 
     public Reporter(GitLabPluginConfiguration gitLabPluginConfiguration) {
@@ -54,6 +56,9 @@ public class Reporter {
 
             List<ReportIssue> notReportedOnDiffs = notReportedOnDiffMap.computeIfAbsent(postJobIssue.severity(), k -> new ArrayList<>());
             notReportedOnDiffs.add(reportIssue);
+        } else {
+            Map<Integer, List<ReportIssue>> issuesByLine = fileLineMap.computeIfAbsent((InputFile) postJobIssue.inputComponent(), k -> new HashMap<>());
+            issuesByLine.computeIfAbsent(postJobIssue.line(), k -> new ArrayList<>()).add(reportIssue);
         }
     }
 
@@ -95,7 +100,8 @@ public class Reporter {
     }
 
     public int getIssueCount() {
-        return getIssueCountForSeverity(Severity.BLOCKER) + getIssueCountForSeverity(Severity.CRITICAL) + getIssueCountForSeverity(Severity.MAJOR) + getIssueCountForSeverity(Severity.MINOR) + getIssueCountForSeverity(Severity.INFO);
+        return getIssueCountForSeverity(Severity.BLOCKER) + getIssueCountForSeverity(Severity.CRITICAL) + getIssueCountForSeverity(Severity.MAJOR) + getIssueCountForSeverity(Severity.MINOR)
+                + getIssueCountForSeverity(Severity.INFO);
     }
 
     public List<ReportIssue> getReportIssues() {
@@ -104,6 +110,14 @@ public class Reporter {
 
     public List<ReportIssue> getNotReportedOnDiffReportIssueForSeverity(Severity severity) {
         return Collections.unmodifiableList(notReportedOnDiffMap.getOrDefault(severity, Collections.emptyList()));
+    }
+
+    public Map<InputFile, Map<Integer, List<ReportIssue>>> getFileLineMap() {
+        return Collections.unmodifiableMap(fileLineMap);
+    }
+
+    public boolean hasFileLine() {
+        return !fileLineMap.isEmpty();
     }
 
     public String getStatusDescription() {

@@ -42,6 +42,7 @@ public class GitLabPlugin implements Plugin {
     public static final String GITLAB_COMMIT_SHA = "sonar.gitlab.commit_sha";
     public static final String GITLAB_REF_NAME = "sonar.gitlab.ref_name";
     public static final String GITLAB_GLOBAL_TEMPLATE = "sonar.gitlab.global_template";
+    public static final String GITLAB_INLINE_TEMPLATE = "sonar.gitlab.inline_template";
     public static final String GITLAB_COMMENT_NO_ISSUE = "sonar.gitlab.comment_no_issue";
     public static final String GITLAB_DISABLE_INLINE_COMMENTS = "sonar.gitlab.disable_inline_comments";
     public static final String GITLAB_ONLY_ISSUE_FROM_COMMIT_FILE = "sonar.gitlab.only_issue_from_commit_file";
@@ -97,8 +98,10 @@ public class GitLabPlugin implements Plugin {
                                 .category(CATEGORY).subCategory(SUBCATEGORY).type(PropertyType.SINGLE_SELECT_LIST)
                                 .options(StatusNotificationsMode.COMMIT_STATUS.getMeaning(), StatusNotificationsMode.EXIT_CODE.getMeaning()).defaultValue(StatusNotificationsMode.COMMIT_STATUS.getMeaning())
                                 .index(19).build(),
-                        PropertyDefinition.builder(GITLAB_GLOBAL_TEMPLATE).name("GitLab Global Template").description("Template for global comment in commit.").category(CATEGORY)
-                                .subCategory(SUBCATEGORY).type(PropertyType.TEXT).index(20).build());
+                        PropertyDefinition.builder(GITLAB_GLOBAL_TEMPLATE).name("Global template").description("Template for global comment in commit.").category(CATEGORY).subCategory(SUBCATEGORY)
+                                .type(PropertyType.TEXT).index(20).build(),
+                        PropertyDefinition.builder(GITLAB_INLINE_TEMPLATE).name("Inline template").description("Template for inline comment in commit.").category(CATEGORY).subCategory(SUBCATEGORY)
+                                .type(PropertyType.TEXT).index(21).build());
     }
 
     @Override

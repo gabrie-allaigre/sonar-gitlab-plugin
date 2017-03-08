@@ -27,6 +27,7 @@ import org.sonar.api.batch.rule.Severity;
 import org.sonar.api.config.PropertyDefinition;
 import org.sonar.api.config.PropertyDefinitions;
 import org.sonar.api.config.Settings;
+import org.sonar.api.utils.MessageException;
 import org.sonar.api.utils.System2;
 
 public class GlobalCommentBuilderTest {
@@ -303,5 +304,12 @@ public class GlobalCommentBuilderTest {
                 ":warning: [Issue number:14](https://gitlab.com/test/test/File.java#L14) [:blue_book:](http://myserver/coding_rules#rule_key=repo%3Arule14)\n" +
                 ":warning: [Issue number:15](https://gitlab.com/test/test/File.java#L15) [:blue_book:](http://myserver/coding_rules#rule_key=repo%3Arule15)\n" +
                 ":warning: [Issue number:16](https://gitlab.com/test/test/File.java#L16) [:blue_book:](http://myserver/coding_rules#rule_key=repo%3Arule16)\n");
+    }
+
+    @Test
+    public void testTemplateIssueFail() {
+        settings.setProperty(GitLabPlugin.GITLAB_GLOBAL_TEMPLATE, "<#toto>");
+
+        Assertions.assertThatThrownBy(() -> new GlobalCommentBuilder(config, new Reporter(config), new MarkDownUtils(settings)).buildForMarkdown()).isInstanceOf(MessageException.class);
     }
 }
