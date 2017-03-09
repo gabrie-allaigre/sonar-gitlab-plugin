@@ -18,6 +18,8 @@ Inspired by https://github.com/SonarCommunity/sonar-github
 - Custom global comment (Template)
 - Custom inline comment (Template)
 
+**Update**
+
 - Add test unit
 - Add quality project https://sonarqube.com/dashboard?id=com.talanlabs%3Asonar-gitlab-plugin
 - GitLab API is in maven central
