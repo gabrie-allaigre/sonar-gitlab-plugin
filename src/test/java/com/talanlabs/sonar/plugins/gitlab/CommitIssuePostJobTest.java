@@ -129,7 +129,7 @@ public class CommitIssuePostJobTest {
 
         PostJobIssue globalIssue = newMockedIssue("foo:src/Foo.php", inputFile1, null, Severity.BLOCKER, true, "msg5");
 
-        Mockito.when(context.issues()).thenReturn(Arrays.<PostJobIssue>asList(newIssue, globalIssue, issueOnProject, issueOnDir, fileNotInPR, lineNotVisible, notNewIssue));
+        Mockito.when(context.issues()).thenReturn(Arrays.asList(newIssue, globalIssue, issueOnProject, issueOnDir, fileNotInPR, lineNotVisible, notNewIssue));
         Mockito.when(commitFacade.hasFile(inputFile1)).thenReturn(true);
         Mockito.when(commitFacade.hasFileLine(inputFile1, 1)).thenReturn(true);
 
@@ -164,7 +164,7 @@ public class CommitIssuePostJobTest {
 
         PostJobIssue globalIssue = newMockedIssue("foo:src/Foo.php", inputFile1, null, Severity.BLOCKER, true, "msg5");
 
-        Mockito.when(context.issues()).thenReturn(Arrays.<PostJobIssue>asList(newIssue, globalIssue, issueOnProject, issueOnDir, fileNotInPR, lineNotVisible, notNewIssue));
+        Mockito.when(context.issues()).thenReturn(Arrays.asList(newIssue, globalIssue, issueOnProject, issueOnDir, fileNotInPR, lineNotVisible, notNewIssue));
         Mockito.when(commitFacade.hasFile(inputFile1)).thenReturn(true);
         Mockito.when(commitFacade.hasFileLine(inputFile1, 1)).thenReturn(true);
 
@@ -175,9 +175,34 @@ public class CommitIssuePostJobTest {
         Mockito.verify(commitFacade)
                 .addGlobalComment(Mockito.contains("1. :no_entry: [msg2](http://gitlab/blob/abc123/src/Foo.php#L2) [:blue_book:](http://myserver/coding_rules#rule_key=repo%3Arule)"));
 
+        Mockito.verify(commitFacade).createOrUpdateReviewComment(inputFile1, 1, ":no_entry: msg1 [:blue_book:](http://myserver/coding_rules#rule_key=repo%3Arule)");
+
         Mockito.verify(commitFacade).createOrUpdateSonarQubeStatus("failed", "SonarQube reported 5 issues, with 5 blocker (fail)");
     }
 
+    @Test
+    public void testCommitAnalysisWithNewIssuesOnlyReview() {
+        settings.setProperty(GitLabPlugin.GITLAB_ONLY_ISSUE_FROM_COMMIT_FILE, true);
+
+        DefaultInputFile inputFile1 = new DefaultInputFile("foo", "src/Foo.php");
+        PostJobIssue newIssue1 = newMockedIssue("foo:src/Foo.php", inputFile1, 1, Severity.BLOCKER, true, "msg1");
+        PostJobIssue newIssue2 = newMockedIssue("foo:src/Foo.php", inputFile1, 1, Severity.BLOCKER, true, "msg2");
+        Mockito.when(commitFacade.getGitLabUrl(inputFile1, 1)).thenReturn("http://gitlab/blob/abc123/src/Foo.php#L1");
+
+        PostJobIssue newIssue3 = newMockedIssue("foo:src/Foo.php", inputFile1, 2, Severity.BLOCKER, true, "msg3");
+        Mockito.when(commitFacade.getGitLabUrl(inputFile1, 2)).thenReturn("http://gitlab/blob/abc123/src/Foo.php#L2");
+
+        Mockito.when(context.issues()).thenReturn(Arrays.asList(newIssue1, newIssue2, newIssue3));
+        Mockito.when(commitFacade.hasFile(inputFile1)).thenReturn(true);
+        Mockito.when(commitFacade.hasFileLine(inputFile1, 1)).thenReturn(true);
+        Mockito.when(commitFacade.hasFileLine(inputFile1, 2)).thenReturn(true);
+
+        commitIssuePostJob.execute(context);
+
+        Mockito.verify(commitFacade).createOrUpdateReviewComment(inputFile1, 1,
+                ":no_entry: msg1 [:blue_book:](http://myserver/coding_rules#rule_key=repo%3Arule)\n" + ":no_entry: msg2 [:blue_book:](http://myserver/coding_rules#rule_key=repo%3Arule)");
+        Mockito.verify(commitFacade).createOrUpdateReviewComment(inputFile1, 2, ":no_entry: msg3 [:blue_book:](http://myserver/coding_rules#rule_key=repo%3Arule)");
+    }
 
     @Test
     public void testSortIssues() {
@@ -208,7 +233,7 @@ public class CommitIssuePostJobTest {
         // Blocker and no line => Should be displayed in 2nd position
         PostJobIssue globalIssue = newMockedIssue("foo:src/Foo.php", inputFile1, null, Severity.BLOCKER, true, "msg7");
 
-        Mockito.when(context.issues()).thenReturn(Arrays.<PostJobIssue>asList(newIssue, globalIssue, issueOnProject, newIssue4, newIssue2, issueInSecondFile, newIssue3));
+        Mockito.when(context.issues()).thenReturn(Arrays.asList(newIssue, globalIssue, issueOnProject, newIssue4, newIssue2, issueInSecondFile, newIssue3));
         Mockito.when(commitFacade.hasFile(any(InputFile.class))).thenReturn(true);
         Mockito.when(commitFacade.hasFileLine(any(InputFile.class), anyInt())).thenReturn(false);
 
@@ -259,7 +284,7 @@ public class CommitIssuePostJobTest {
         PostJobIssue lineNotVisible = newMockedIssue("foo:src/Foo.php", inputFile1, 2, Severity.BLOCKER, true, "msg2");
         when(commitFacade.getGitLabUrl(inputFile1, 2)).thenReturn("http://gitlab/blob/abc123/src/Foo.php#L2");
 
-        when(context.issues()).thenReturn(Arrays.<PostJobIssue>asList(newIssue, lineNotVisible));
+        when(context.issues()).thenReturn(Arrays.asList(newIssue, lineNotVisible));
         when(commitFacade.hasFile(inputFile1)).thenReturn(true);
         when(commitFacade.hasFileLine(inputFile1, 1)).thenReturn(true);
 
@@ -314,7 +339,7 @@ public class CommitIssuePostJobTest {
 
         PostJobIssue globalIssue = newMockedIssue("foo:src/Foo.php", inputFile1, null, Severity.BLOCKER, true, "msg5");
 
-        Mockito.when(context.issues()).thenReturn(Arrays.<PostJobIssue>asList(newIssue, globalIssue, issueOnProject, issueOnDir, fileNotInPR, lineNotVisible, notNewIssue));
+        Mockito.when(context.issues()).thenReturn(Arrays.asList(newIssue, globalIssue, issueOnProject, issueOnDir, fileNotInPR, lineNotVisible, notNewIssue));
         Mockito.when(commitFacade.hasFile(inputFile1)).thenReturn(true);
         Mockito.when(commitFacade.hasFileLine(inputFile1, 1)).thenReturn(true);
 

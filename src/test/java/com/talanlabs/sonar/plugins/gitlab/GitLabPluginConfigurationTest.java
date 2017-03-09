@@ -77,10 +77,6 @@ public class GitLabPluginConfigurationTest {
         settings.setProperty(GitLabPlugin.GITLAB_PROJECT_ID, "123");
         Assertions.assertThat(config.projectId()).isEqualTo("123");
 
-        Assertions.assertThat(config.ignoreFileNotModified()).isFalse();
-        settings.setProperty(GitLabPlugin.GITLAB_IGNORE_FILE, "true");
-        Assertions.assertThat(config.ignoreFileNotModified()).isTrue();
-
         settings.setProperty(GitLabPlugin.GITLAB_REF_NAME, "123");
         Assertions.assertThat(config.refName()).isEqualTo("123");
 
@@ -103,6 +99,14 @@ public class GitLabPluginConfigurationTest {
         Assertions.assertThat(config.statusNotificationsMode()).isEqualTo(StatusNotificationsMode.EXIT_CODE);
         settings.setProperty(GitLabPlugin.GITLAB_STATUS_NOTIFICATION_MODE, "toto");
         Assertions.assertThat(config.statusNotificationsMode()).isEqualTo(StatusNotificationsMode.COMMIT_STATUS);
+
+        Assertions.assertThat(config.globalTemplate()).isNull();
+        settings.setProperty(GitLabPlugin.GITLAB_GLOBAL_TEMPLATE, "# Test");
+        Assertions.assertThat(config.globalTemplate()).isEqualTo("# Test");
+
+        Assertions.assertThat(config.inlineTemplate()).isNull();
+        settings.setProperty(GitLabPlugin.GITLAB_INLINE_TEMPLATE, "# Test");
+        Assertions.assertThat(config.inlineTemplate()).isEqualTo("# Test");
     }
 
     @Test

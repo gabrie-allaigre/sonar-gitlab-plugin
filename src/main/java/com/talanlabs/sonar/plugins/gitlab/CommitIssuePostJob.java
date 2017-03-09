@@ -30,7 +30,7 @@ import org.sonar.api.utils.log.Logger;
 import org.sonar.api.utils.log.Loggers;
 
 import java.util.Comparator;
-import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
@@ -64,9 +64,11 @@ public class CommitIssuePostJob implements PostJob {
         Reporter report = new Reporter(gitLabPluginConfiguration);
 
         try {
-            Map<InputFile, Map<Integer, StringBuilder>> commentsToBeAddedByLine = processIssues(report, context.issues());
+            processIssues(report, context.issues());
 
-            updateReviewComments(commentsToBeAddedByLine);
+            if (gitLabPluginConfiguration.tryReportIssuesInline() && report.hasFileLine()) {
+                updateReviewComments(report);
+            }
 
             if (!gitLabPluginConfiguration.disableGlobalComment() && (report.hasIssue() || gitLabPluginConfiguration.commentNoIssue())) {
                 commitFacade.addGlobalComment(new GlobalCommentBuilder(gitLabPluginConfiguration, report, markDownUtils).buildForMarkdown());
@@ -107,11 +109,8 @@ public class CommitIssuePostJob implements PostJob {
         return "GitLab Commit Issue Publisher";
     }
 
-    private Map<InputFile, Map<Integer, StringBuilder>> processIssues(Reporter report, Iterable<PostJobIssue> issues) {
-        Map<InputFile, Map<Integer, StringBuilder>> commentToBeAddedByFileAndByLine = new HashMap<>();
-
-        getStreamPostJobIssue(issues).sorted(ISSUE_COMPARATOR).forEach(i -> processIssue(report, commentToBeAddedByFileAndByLine, i));
-        return commentToBeAddedByFileAndByLine;
+    private void processIssues(Reporter report, Iterable<PostJobIssue> issues) {
+        getStreamPostJobIssue(issues).sorted(ISSUE_COMPARATOR).forEach(i -> processIssue(report, i));
     }
 
     private Stream<PostJobIssue> getStreamPostJobIssue(Iterable<PostJobIssue> issues) {
@@ -121,40 +120,19 @@ public class CommitIssuePostJob implements PostJob {
         });
     }
 
-    private void processIssue(Reporter report, Map<InputFile, Map<Integer, StringBuilder>> commentToBeAddedByFileAndByLine, PostJobIssue issue) {
+    private void processIssue(Reporter report, PostJobIssue issue) {
         boolean reportedInline = false;
         InputComponent inputComponent = issue.inputComponent();
         if (gitLabPluginConfiguration.tryReportIssuesInline() && inputComponent != null && inputComponent.isFile()) {
-            reportedInline = tryReportInline(commentToBeAddedByFileAndByLine, issue, (InputFile) inputComponent);
+            reportedInline = issue.line() != null && commitFacade.hasFileLine((InputFile) inputComponent, issue.line());
         }
         report.process(issue, commitFacade.getGitLabUrl(inputComponent, issue.line()), reportedInline);
     }
 
-    private boolean tryReportInline(Map<InputFile, Map<Integer, StringBuilder>> commentToBeAddedByFileAndByLine, PostJobIssue issue, InputFile inputFile) {
-        Integer lineOrNull = issue.line();
-        if (lineOrNull != null) {
-            int line = lineOrNull;
-            if (commitFacade.hasFileLine(inputFile, line)) {
-                String message = issue.message();
-                String ruleKey = issue.ruleKey().toString();
-                if (!commentToBeAddedByFileAndByLine.containsKey(inputFile)) {
-                    commentToBeAddedByFileAndByLine.put(inputFile, new HashMap<>());
-                }
-                Map<Integer, StringBuilder> commentsByLine = commentToBeAddedByFileAndByLine.get(inputFile);
-                if (!commentsByLine.containsKey(line)) {
-                    commentsByLine.put(line, new StringBuilder());
-                }
-                commentsByLine.get(line).append(markDownUtils.inlineIssue(issue.severity(), message, ruleKey)).append("\n");
-                return true;
-            }
-        }
-        return false;
-    }
-
-    private void updateReviewComments(Map<InputFile, Map<Integer, StringBuilder>> commentsToBeAddedByLine) {
-        for (Map.Entry<InputFile, Map<Integer, StringBuilder>> entry : commentsToBeAddedByLine.entrySet()) {
-            for (Map.Entry<Integer, StringBuilder> entryPerLine : entry.getValue().entrySet()) {
-                String body = entryPerLine.getValue().toString();
+    private void updateReviewComments(Reporter report) {
+        for (Map.Entry<InputFile, Map<Integer, List<Reporter.ReportIssue>>> entry : report.getFileLineMap().entrySet()) {
+            for (Map.Entry<Integer, List<Reporter.ReportIssue>> entryPerLine : entry.getValue().entrySet()) {
+                String body = new InlineCommentBuilder(gitLabPluginConfiguration, entryPerLine.getValue(), markDownUtils).buildForMarkdown();
                 commitFacade.createOrUpdateReviewComment(entry.getKey(), entryPerLine.getKey(), body);
             }
         }

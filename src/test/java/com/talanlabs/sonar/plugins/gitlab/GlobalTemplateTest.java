@@ -27,12 +27,68 @@ import org.sonar.api.batch.rule.Severity;
 import org.sonar.api.config.PropertyDefinition;
 import org.sonar.api.config.PropertyDefinitions;
 import org.sonar.api.config.Settings;
-import org.sonar.api.utils.MessageException;
 import org.sonar.api.utils.System2;
 
-public class GlobalCommentBuilderTest {
+public class GlobalTemplateTest {
 
     private static final String GITLAB_URL = "https://gitlab.com/test/test";
+
+    private static final String TEMPLATE = "<#assign newIssueCount = issueCount() notReportedIssueCount = issueCount(false)>\n" +
+            "<#assign hasInlineIssues = newIssueCount gt notReportedIssueCount extraIssuesTruncated = notReportedIssueCount gt maxGlobalIssues>\n" +
+            "<#if newIssueCount == 0>\n" +
+            "SonarQube analysis reported no issues.\n" +
+            "<#else>\n" +
+            "SonarQube analysis reported ${newIssueCount} issue<#if newIssueCount gt 1>s</#if>\n" +
+            "    <#assign newIssuesBlocker = issueCount(BLOCKER) newIssuesCritical = issueCount(CRITICAL) newIssuesMajor = issueCount(MAJOR) newIssuesMinor = issueCount(MINOR) newIssuesInfo = issueCount(INFO)>\n" +
+            "    <#if newIssuesBlocker gt 0>\n" +
+            "* ${emojiSeverity(BLOCKER)} ${newIssuesBlocker} blocker\n" +
+            "    </#if>\n" +
+            "    <#if newIssuesCritical gt 0>\n" +
+            "* ${emojiSeverity(CRITICAL)} ${newIssuesCritical} critical\n" +
+            "    </#if>\n" +
+            "    <#if newIssuesMajor gt 0>\n" +
+            "* ${emojiSeverity(MAJOR)} ${newIssuesMajor} major\n" +
+            "    </#if>\n" +
+            "    <#if newIssuesMinor gt 0>\n" +
+            "* ${emojiSeverity(MINOR)} ${newIssuesMinor} minor\n" +
+            "    </#if>\n" +
+            "    <#if newIssuesInfo gt 0>\n" +
+            "* ${emojiSeverity(INFO)} ${newIssuesInfo} info\n" +
+            "    </#if>\n" +
+            "    <#if !disableIssuesInline && hasInlineIssues>\n" +
+            "\n" +
+            "Watch the comments in this conversation to review them.\n" +
+            "    </#if>\n" +
+            "    <#if notReportedIssueCount gt 0>\n" +
+            "        <#if !disableIssuesInline>\n" +
+            "            <#if hasInlineIssues || extraIssuesTruncated>\n" +
+            "                <#if notReportedIssueCount <= maxGlobalIssues>\n" +
+            "\n" +
+            "#### ${notReportedIssueCount} extra issue<#if notReportedIssueCount gt 1>s</#if>\n" +
+            "                <#else>\n" +
+            "\n" +
+            "#### Top ${maxGlobalIssues} extra issue<#if maxGlobalIssues gt 1>s</#if>\n" +
+            "                </#if>\n" +
+            "            </#if>\n" +
+            "\n" +
+            "Note: The following issues were found on lines that were not modified in the commit. Because these issues can't be reported as line comments, they are summarized here:\n" +
+            "        <#elseif extraIssuesTruncated>\n" +
+            "\n" +
+            "#### Top ${maxGlobalIssues} issue<#if maxGlobalIssues gt 1>s</#if>\n" +
+            "        </#if>\n" +
+            "\n" +
+            "        <#assign reportedIssueCount = 0>\n" +
+            "        <#list issues(false) as issue>\n" +
+            "            <#if reportedIssueCount < maxGlobalIssues>\n" +
+            "1. ${print(issue)}\n" +
+            "            </#if>\n" +
+            "            <#assign reportedIssueCount++>\n" +
+            "        </#list>\n" +
+            "        <#if notReportedIssueCount gt maxGlobalIssues>\n" +
+            "* ... ${notReportedIssueCount-maxGlobalIssues} more\n" +
+            "        </#if>\n" +
+            "    </#if>\n" +
+            "</#if>";
 
     private Settings settings;
     private GitLabPluginConfiguration config;
@@ -46,17 +102,17 @@ public class GlobalCommentBuilderTest {
         settings.setProperty(CoreProperties.SERVER_BASE_URL, "http://myserver");
 
         config = new GitLabPluginConfiguration(settings, new System2());
+
+        settings.setProperty(GitLabPlugin.GITLAB_GLOBAL_TEMPLATE, TEMPLATE);
     }
 
     @Test
     public void testNoIssues() {
-        Assertions.assertThat(new GlobalCommentBuilder(config, new Reporter(config), new MarkDownUtils(settings)).buildForMarkdown()).isEqualTo("SonarQube analysis reported no issues.");
+        Assertions.assertThat(new GlobalCommentBuilder(config, new Reporter(config), new MarkDownUtils(settings)).buildForMarkdown()).isEqualTo("SonarQube analysis reported no issues.\n");
     }
 
     @Test
     public void testOneIssue() {
-        settings.setProperty(GitLabPlugin.GITLAB_DISABLE_INLINE_COMMENTS, false);
-
         Reporter reporter = new Reporter(config);
         reporter.process(Utils.newMockedIssue("component", null, null, Severity.INFO, true, "Issue", "rule"), GITLAB_URL, true);
 
@@ -201,115 +257,92 @@ public class GlobalCommentBuilderTest {
     }
 
     @Test
-    public void testTemplateConfig() {
-        settings.setProperty(GitLabPlugin.GITLAB_PROJECT_ID, "123");
-        settings.setProperty(GitLabPlugin.GITLAB_COMMIT_SHA, "123456789");
-        settings.setProperty(GitLabPlugin.GITLAB_REF_NAME, "master");
-
-        settings.setProperty(GitLabPlugin.GITLAB_GLOBAL_TEMPLATE, "${projectId}\n${commitSHA}\n${refName}\n${url}\n"
-                + "${maxGlobalIssues}\n${maxBlockerIssuesGate}\n${maxCriticalIssuesGate}\n${maxMajorIssuesGate}\n${maxMinorIssuesGate}\n${maxInfoIssuesGate}\n"
-                + "${disableIssuesInline?c}\n${onlyIssueFromCommitFile?c}\n${commentNoIssue?c}");
-
-        Reporter reporter = new Reporter(config);
-
-        Assertions.assertThat(new GlobalCommentBuilder(config, reporter, new MarkDownUtils(settings)).buildForMarkdown())
-                .isEqualTo("123\n" + "123456789\n" + "master\n" + "https://gitlab.com\n" + "10\n" + "0\n" + "0\n" + "-1\n" + "-1\n" + "-1\n" + "false\n" + "false\n" + "false");
-    }
-
-    @Test
-    public void testTemplateIssue() {
-        settings.setProperty(GitLabPlugin.GITLAB_GLOBAL_TEMPLATE, "${issueCount()}\n<#list issues() as issue>\n${issue.componentKey}\n</#list>");
-
-        Reporter reporter = new Reporter(config);
-        for (int i = 0; i < 17; i++) {
-            reporter.process(Utils.newMockedIssue("component", null, null, Severity.MAJOR, true, "Issue number:" + i, "rule" + i), GITLAB_URL + "/File.java#L" + i, false);
-        }
-
-        Assertions.assertThat(new GlobalCommentBuilder(config, reporter, new MarkDownUtils(settings)).buildForMarkdown()).isEqualTo(
-                "17\n" + "component\n" + "component\n" + "component\n" + "component\n" + "component\n" + "component\n" + "component\n" + "component\n" + "component\n" + "component\n" + "component\n"
-                        + "component\n" + "component\n" + "component\n" + "component\n" + "component\n" + "component\n");
-    }
-
-    @Test
-    public void testTemplateIssueForSeverity() {
-        settings.setProperty(GitLabPlugin.GITLAB_GLOBAL_TEMPLATE, "${issueCount(MAJOR)}\n<#list issues(MAJOR) as issue>\n${issue.componentKey}\n</#list>"
-                + "${issueCount(\"MAJOR\")}\n<#list issues(\"MAJOR\") as issue>\n${issue.componentKey}\n</#list>");
-
-        Reporter reporter = new Reporter(config);
-        for (int i = 0; i < 17; i++) {
-            reporter.process(Utils.newMockedIssue("component", null, null, i % 2 == 0 ? Severity.MAJOR : Severity.BLOCKER, true, "Issue number:" + i, "rule" + i), GITLAB_URL + "/File.java#L" + i, false);
-        }
-
-        Assertions.assertThat(new GlobalCommentBuilder(config, reporter, new MarkDownUtils(settings)).buildForMarkdown()).isEqualTo(
-                "9\n" + "component\n" + "component\n" + "component\n" + "component\n" + "component\n" + "component\n" + "component\n" + "component\n" + "component\n" + "9\n" + "component\n"
-                        + "component\n" + "component\n" + "component\n" + "component\n" + "component\n" + "component\n" + "component\n" + "component\n");
-    }
-
-    @Test
-    public void testTemplateIssueReported() {
-        settings.setProperty(GitLabPlugin.GITLAB_GLOBAL_TEMPLATE,
-                "${issueCount(true)}\n<#list issues(true) as issue>\n${issue.componentKey}\n</#list>\n${issueCount(false)}\n<#list issues(false) as issue>\n${issue.componentKey}\n</#list>");
-
-        Reporter reporter = new Reporter(config);
-        for (int i = 0; i < 17; i++) {
-            reporter.process(Utils.newMockedIssue("component", null, null, Severity.MAJOR, true, "Issue number:" + i, "rule" + i), GITLAB_URL + "/File.java#L" + i, false);
-        }
-
-        Assertions.assertThat(new GlobalCommentBuilder(config, reporter, new MarkDownUtils(settings)).buildForMarkdown()).isEqualTo(
-                "0\n" + "17\n" + "component\n" + "component\n" + "component\n" + "component\n" + "component\n" + "component\n" + "component\n" + "component\n" + "component\n" + "component\n"
-                        + "component\n" + "component\n" + "component\n" + "component\n" + "component\n" + "component\n" + "component\n");
-    }
-
-    @Test
-    public void testTemplateIssueReportedForSeverity() {
-        settings.setProperty(GitLabPlugin.GITLAB_GLOBAL_TEMPLATE, "${issueCount(MAJOR,true)}\n<#list issues(MAJOR,true) as issue>\n${issue.componentKey}\n</#list>"
-                + "${issueCount(\"MAJOR\",false)}\n<#list issues(\"MAJOR\",false) as issue>\n${issue.componentKey}\n</#list>");
+    public void testOtherTemplate() {
+        settings.setProperty(GitLabPlugin.GITLAB_GLOBAL_TEMPLATE, "<#assign newIssueCount = issueCount() notReportedIssueCount = issueCount(false)>\n" +
+                "<#assign hasInlineIssues = newIssueCount gt notReportedIssueCount extraIssuesTruncated = notReportedIssueCount gt maxGlobalIssues>\n" +
+                "<#if newIssueCount == 0>\n" +
+                "SonarQube analysis reported no issues.\n" +
+                "<#else>\n" +
+                "SonarQube analysis reported ${newIssueCount} issue<#if newIssueCount gt 1>s</#if>\n" +
+                "    <#assign newIssuesBlocker = issueCount(BLOCKER) newIssuesCritical = issueCount(CRITICAL) newIssuesMajor = issueCount(MAJOR) newIssuesMinor = issueCount(MINOR) newIssuesInfo = issueCount(INFO)>\n" +
+                "    <#if newIssuesBlocker gt 0>\n" +
+                "* ${imageSeverity(BLOCKER)} ${newIssuesBlocker} blocker\n" +
+                "    </#if>\n" +
+                "    <#if newIssuesCritical gt 0>\n" +
+                "* ${imageSeverity(CRITICAL)} ${newIssuesCritical} critical\n" +
+                "    </#if>\n" +
+                "    <#if newIssuesMajor gt 0>\n" +
+                "* ${imageSeverity(MAJOR)} ${newIssuesMajor} major\n" +
+                "    </#if>\n" +
+                "    <#if newIssuesMinor gt 0>\n" +
+                "* ${imageSeverity(MINOR)} ${newIssuesMinor} minor\n" +
+                "    </#if>\n" +
+                "    <#if newIssuesInfo gt 0>\n" +
+                "* ${imageSeverity(INFO)} ${newIssuesInfo} info\n" +
+                "    </#if>\n" +
+                "    <#if !disableIssuesInline && hasInlineIssues>\n" +
+                "\n" +
+                "Watch the comments in this conversation to review them.\n" +
+                "    </#if>\n" +
+                "    <#if notReportedIssueCount gt 0>\n" +
+                "        <#if !disableIssuesInline>\n" +
+                "            <#if hasInlineIssues || extraIssuesTruncated>\n" +
+                "                <#if notReportedIssueCount <= maxGlobalIssues>\n" +
+                "\n" +
+                "#### ${notReportedIssueCount} extra issue<#if notReportedIssueCount gt 1>s</#if>\n" +
+                "                <#else>\n" +
+                "\n" +
+                "#### Top ${maxGlobalIssues} extra issue<#if maxGlobalIssues gt 1>s</#if>\n" +
+                "                </#if>\n" +
+                "            </#if>\n" +
+                "\n" +
+                "Note: The following issues were found on lines that were not modified in the commit. Because these issues can't be reported as line comments, they are summarized here:\n" +
+                "        <#elseif extraIssuesTruncated>\n" +
+                "\n" +
+                "#### Top ${maxGlobalIssues} issue<#if maxGlobalIssues gt 1>s</#if>\n" +
+                "        </#if>\n" +
+                "\n" +
+                "        <#assign reportedIssueCount = 0>\n" +
+                "        <#list issues(false) as issue>\n" +
+                "            <#if reportedIssueCount < maxGlobalIssues>\n" +
+                "1. <@p issue=issue/>\n" +
+                "            </#if>\n" +
+                "            <#assign reportedIssueCount++>\n" +
+                "        </#list>\n" +
+                "        <#if notReportedIssueCount gt maxGlobalIssues>\n" +
+                "* ... ${notReportedIssueCount-maxGlobalIssues} more\n" +
+                "        </#if>\n" +
+                "    </#if>\n" +
+                "</#if>\n" +
+                "<#macro p issue>\n" +
+                "${imageSeverity(issue.severity)} <#if issue.url??>[${issue.message}](${issue.url})<#else>${issue.message}<#if issue.componentKey??>${issue.componentKey}</#if></#if> [![RULE](https://github.com/gabrie-allaigre/sonar-gitlab-plugin/raw/master/images/rule.png)](${ruleLink(issue.ruleKey)})" +
+                "</#macro>");
 
         Reporter reporter = new Reporter(config);
         for (int i = 0; i < 17; i++) {
-            reporter.process(Utils.newMockedIssue("component", null, null, i % 2 == 0 ? Severity.MAJOR : Severity.BLOCKER, true, "Issue number:" + i, "rule" + i), GITLAB_URL + "/File.java#L" + i, false);
+            reporter.process(Utils.newMockedIssue("component", null, null, i % 2 == 0 ? Severity.MAJOR : Severity.MINOR, true, "Issue number:" + i, "rule" + i), GITLAB_URL + "/File.java#L" + i, i % 3 == 0);
         }
 
-        Assertions.assertThat(new GlobalCommentBuilder(config, reporter, new MarkDownUtils(settings)).buildForMarkdown())
-                .isEqualTo("0\n" + "9\n" + "component\n" + "component\n" + "component\n" + "component\n" + "component\n" + "component\n" + "component\n" + "component\n" + "component\n");
-    }
-
-    @Test
-    public void testTemplateIssueOthers() {
-        settings.setProperty(GitLabPlugin.GITLAB_GLOBAL_TEMPLATE,
-                "${emojiSeverity(BLOCKER)}\n${imageSeverity(BLOCKER)}\n${ruleLink(\"repo%3Arule0\")}\n<#list issues() as issue>${print(issue)}\n</#list>");
-
-        Reporter reporter = new Reporter(config);
-        for (int i = 0; i < 17; i++) {
-            reporter.process(Utils.newMockedIssue("component", null, null, Severity.MAJOR, true, "Issue number:" + i, "rule" + i), GITLAB_URL + "/File.java#L" + i, false);
-        }
-
-        Assertions.assertThat(new GlobalCommentBuilder(config, reporter, new MarkDownUtils(settings)).buildForMarkdown()).isEqualTo(":no_entry:\n" +
-                "![BLOCKER](https://github.com/gabrie-allaigre/sonar-gitlab-plugin/raw/master/images/severity-blocker.png)\n" +
-                "http://myserver/coding_rules#rule_key=repo%253Arule0\n" +
-                ":warning: [Issue number:0](https://gitlab.com/test/test/File.java#L0) [:blue_book:](http://myserver/coding_rules#rule_key=repo%3Arule0)\n" +
-                ":warning: [Issue number:1](https://gitlab.com/test/test/File.java#L1) [:blue_book:](http://myserver/coding_rules#rule_key=repo%3Arule1)\n" +
-                ":warning: [Issue number:2](https://gitlab.com/test/test/File.java#L2) [:blue_book:](http://myserver/coding_rules#rule_key=repo%3Arule2)\n" +
-                ":warning: [Issue number:3](https://gitlab.com/test/test/File.java#L3) [:blue_book:](http://myserver/coding_rules#rule_key=repo%3Arule3)\n" +
-                ":warning: [Issue number:4](https://gitlab.com/test/test/File.java#L4) [:blue_book:](http://myserver/coding_rules#rule_key=repo%3Arule4)\n" +
-                ":warning: [Issue number:5](https://gitlab.com/test/test/File.java#L5) [:blue_book:](http://myserver/coding_rules#rule_key=repo%3Arule5)\n" +
-                ":warning: [Issue number:6](https://gitlab.com/test/test/File.java#L6) [:blue_book:](http://myserver/coding_rules#rule_key=repo%3Arule6)\n" +
-                ":warning: [Issue number:7](https://gitlab.com/test/test/File.java#L7) [:blue_book:](http://myserver/coding_rules#rule_key=repo%3Arule7)\n" +
-                ":warning: [Issue number:8](https://gitlab.com/test/test/File.java#L8) [:blue_book:](http://myserver/coding_rules#rule_key=repo%3Arule8)\n" +
-                ":warning: [Issue number:9](https://gitlab.com/test/test/File.java#L9) [:blue_book:](http://myserver/coding_rules#rule_key=repo%3Arule9)\n" +
-                ":warning: [Issue number:10](https://gitlab.com/test/test/File.java#L10) [:blue_book:](http://myserver/coding_rules#rule_key=repo%3Arule10)\n" +
-                ":warning: [Issue number:11](https://gitlab.com/test/test/File.java#L11) [:blue_book:](http://myserver/coding_rules#rule_key=repo%3Arule11)\n" +
-                ":warning: [Issue number:12](https://gitlab.com/test/test/File.java#L12) [:blue_book:](http://myserver/coding_rules#rule_key=repo%3Arule12)\n" +
-                ":warning: [Issue number:13](https://gitlab.com/test/test/File.java#L13) [:blue_book:](http://myserver/coding_rules#rule_key=repo%3Arule13)\n" +
-                ":warning: [Issue number:14](https://gitlab.com/test/test/File.java#L14) [:blue_book:](http://myserver/coding_rules#rule_key=repo%3Arule14)\n" +
-                ":warning: [Issue number:15](https://gitlab.com/test/test/File.java#L15) [:blue_book:](http://myserver/coding_rules#rule_key=repo%3Arule15)\n" +
-                ":warning: [Issue number:16](https://gitlab.com/test/test/File.java#L16) [:blue_book:](http://myserver/coding_rules#rule_key=repo%3Arule16)\n");
-    }
-
-    @Test
-    public void testTemplateIssueFail() {
-        settings.setProperty(GitLabPlugin.GITLAB_GLOBAL_TEMPLATE, "<#toto>");
-
-        Assertions.assertThatThrownBy(() -> new GlobalCommentBuilder(config, new Reporter(config), new MarkDownUtils(settings)).buildForMarkdown()).isInstanceOf(MessageException.class);
+        Assertions.assertThat(new GlobalCommentBuilder(config, reporter, new MarkDownUtils(settings)).buildForMarkdown()).isEqualTo("SonarQube analysis reported 17 issues\n" +
+                "* ![MAJOR](https://github.com/gabrie-allaigre/sonar-gitlab-plugin/raw/master/images/severity-major.png) 9 major\n" +
+                "* ![MINOR](https://github.com/gabrie-allaigre/sonar-gitlab-plugin/raw/master/images/severity-minor.png) 8 minor\n" +
+                "\n" +
+                "Watch the comments in this conversation to review them.\n" +
+                "\n" +
+                "#### Top 10 extra issues\n" +
+                "\n" +
+                "Note: The following issues were found on lines that were not modified in the commit. Because these issues can't be reported as line comments, they are summarized here:\n" +
+                "\n" +
+                "1. ![MAJOR](https://github.com/gabrie-allaigre/sonar-gitlab-plugin/raw/master/images/severity-major.png) [Issue number:2](https://gitlab.com/test/test/File.java#L2) [![RULE](https://github.com/gabrie-allaigre/sonar-gitlab-plugin/raw/master/images/rule.png)](http://myserver/coding_rules#rule_key=repo%3Arule2)\n" +
+                "1. ![MAJOR](https://github.com/gabrie-allaigre/sonar-gitlab-plugin/raw/master/images/severity-major.png) [Issue number:4](https://gitlab.com/test/test/File.java#L4) [![RULE](https://github.com/gabrie-allaigre/sonar-gitlab-plugin/raw/master/images/rule.png)](http://myserver/coding_rules#rule_key=repo%3Arule4)\n" +
+                "1. ![MAJOR](https://github.com/gabrie-allaigre/sonar-gitlab-plugin/raw/master/images/severity-major.png) [Issue number:8](https://gitlab.com/test/test/File.java#L8) [![RULE](https://github.com/gabrie-allaigre/sonar-gitlab-plugin/raw/master/images/rule.png)](http://myserver/coding_rules#rule_key=repo%3Arule8)\n" +
+                "1. ![MAJOR](https://github.com/gabrie-allaigre/sonar-gitlab-plugin/raw/master/images/severity-major.png) [Issue number:10](https://gitlab.com/test/test/File.java#L10) [![RULE](https://github.com/gabrie-allaigre/sonar-gitlab-plugin/raw/master/images/rule.png)](http://myserver/coding_rules#rule_key=repo%3Arule10)\n" +
+                "1. ![MAJOR](https://github.com/gabrie-allaigre/sonar-gitlab-plugin/raw/master/images/severity-major.png) [Issue number:14](https://gitlab.com/test/test/File.java#L14) [![RULE](https://github.com/gabrie-allaigre/sonar-gitlab-plugin/raw/master/images/rule.png)](http://myserver/coding_rules#rule_key=repo%3Arule14)\n" +
+                "1. ![MAJOR](https://github.com/gabrie-allaigre/sonar-gitlab-plugin/raw/master/images/severity-major.png) [Issue number:16](https://gitlab.com/test/test/File.java#L16) [![RULE](https://github.com/gabrie-allaigre/sonar-gitlab-plugin/raw/master/images/rule.png)](http://myserver/coding_rules#rule_key=repo%3Arule16)\n" +
+                "1. ![MINOR](https://github.com/gabrie-allaigre/sonar-gitlab-plugin/raw/master/images/severity-minor.png) [Issue number:1](https://gitlab.com/test/test/File.java#L1) [![RULE](https://github.com/gabrie-allaigre/sonar-gitlab-plugin/raw/master/images/rule.png)](http://myserver/coding_rules#rule_key=repo%3Arule1)\n" +
+                "1. ![MINOR](https://github.com/gabrie-allaigre/sonar-gitlab-plugin/raw/master/images/severity-minor.png) [Issue number:5](https://gitlab.com/test/test/File.java#L5) [![RULE](https://github.com/gabrie-allaigre/sonar-gitlab-plugin/raw/master/images/rule.png)](http://myserver/coding_rules#rule_key=repo%3Arule5)\n" +
+                "1. ![MINOR](https://github.com/gabrie-allaigre/sonar-gitlab-plugin/raw/master/images/severity-minor.png) [Issue number:7](https://gitlab.com/test/test/File.java#L7) [![RULE](https://github.com/gabrie-allaigre/sonar-gitlab-plugin/raw/master/images/rule.png)](http://myserver/coding_rules#rule_key=repo%3Arule7)\n" +
+                "1. ![MINOR](https://github.com/gabrie-allaigre/sonar-gitlab-plugin/raw/master/images/severity-minor.png) [Issue number:11](https://gitlab.com/test/test/File.java#L11) [![RULE](https://github.com/gabrie-allaigre/sonar-gitlab-plugin/raw/master/images/rule.png)](http://myserver/coding_rules#rule_key=repo%3Arule11)\n" +
+                "* ... 1 more\n");
     }
 }

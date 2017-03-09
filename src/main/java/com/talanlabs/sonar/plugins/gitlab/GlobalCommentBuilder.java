@@ -25,21 +25,18 @@ import org.sonar.api.batch.rule.Severity;
 import java.util.List;
 import java.util.Locale;
 
-public class GlobalCommentBuilder {
+public class GlobalCommentBuilder extends AbstractCommentBuilder {
 
-    private final GitLabPluginConfiguration gitLabPluginConfiguration;
     private final Reporter reporter;
-    private final MarkDownUtils markDownUtils;
 
     public GlobalCommentBuilder(GitLabPluginConfiguration gitLabPluginConfiguration, Reporter reporter, MarkDownUtils markDownUtils) {
-        super();
+        super(gitLabPluginConfiguration, reporter.getReportIssues(), markDownUtils, "global", gitLabPluginConfiguration.globalTemplate());
 
-        this.gitLabPluginConfiguration = gitLabPluginConfiguration;
         this.reporter = reporter;
-        this.markDownUtils = markDownUtils;
     }
 
-    public String buildForMarkdown() {
+    @Override
+    protected String buildDefaultComment() {
         StringBuilder sb = new StringBuilder();
 
         int newIssues = reporter.getIssueCount();
@@ -91,7 +88,7 @@ public class GlobalCommentBuilder {
             builder.append(
                     "\nNote: The following issues were found on lines that were not modified in the commit. " + "Because these issues can't be reported as line comments, they are summarized here:\n");
         } else if (extraIssuesTruncated) {
-            builder.append("\n#### Top ").append(gitLabPluginConfiguration.maxGlobalIssues()).append(" issues\n");
+            builder.append("\n#### Top ").append(gitLabPluginConfiguration.maxGlobalIssues()).append(" issue").append(gitLabPluginConfiguration.maxGlobalIssues() > 1 ? "s" : "").append("\n");
         }
 
         builder.append("\n");
@@ -101,14 +98,14 @@ public class GlobalCommentBuilder {
 
     private void appendSeverities(StringBuilder builder) {
         int notReportedDisplayedIssueCount = 0;
-        int i = 0;
+        int reportedIssueCount = 0;
 
         for (Severity severity : Reporter.SEVERITIES) {
             List<Reporter.ReportIssue> reportIssues = reporter.getNotReportedOnDiffReportIssueForSeverity(severity);
             if (reportIssues != null && !reportIssues.isEmpty()) {
                 for (Reporter.ReportIssue reportIssue : reportIssues) {
-                    notReportedDisplayedIssueCount += appendIssue(builder, reportIssue, i);
-                    i++;
+                    notReportedDisplayedIssueCount += appendIssue(builder, reportIssue, reportedIssueCount);
+                    reportedIssueCount++;
                 }
             }
         }
@@ -116,11 +113,10 @@ public class GlobalCommentBuilder {
         appendMore(builder, notReportedDisplayedIssueCount);
     }
 
-    private int appendIssue(StringBuilder builder, Reporter.ReportIssue reportIssue, int i) {
+    private int appendIssue(StringBuilder builder, Reporter.ReportIssue reportIssue, int reportedIssueCount) {
         PostJobIssue postJobIssue = reportIssue.getPostJobIssue();
-        String msg = "1. " + markDownUtils.globalIssue(postJobIssue.severity(), postJobIssue.message(), postJobIssue.ruleKey().toString(), reportIssue.getUrl(), postJobIssue.componentKey());
-        if (i < gitLabPluginConfiguration.maxGlobalIssues()) {
-            builder.append(msg).append("\n");
+        if (reportedIssueCount < gitLabPluginConfiguration.maxGlobalIssues()) {
+            builder.append("1. ").append(markDownUtils.printIssue(postJobIssue.severity(), postJobIssue.message(), postJobIssue.ruleKey().toString(), reportIssue.getUrl(), postJobIssue.componentKey())).append("\n");
             return 0;
         } else {
             return 1;

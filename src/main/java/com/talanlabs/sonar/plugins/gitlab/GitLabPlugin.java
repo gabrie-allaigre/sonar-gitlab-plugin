@@ -41,7 +41,6 @@ public class GitLabPlugin implements Plugin {
     public static final String GITLAB_PROJECT_ID = "sonar.gitlab.project_id";
     public static final String GITLAB_COMMIT_SHA = "sonar.gitlab.commit_sha";
     public static final String GITLAB_REF_NAME = "sonar.gitlab.ref_name";
-    public static final String GITLAB_IGNORE_FILE = "sonar.gitlab.ignore_file";
     public static final String GITLAB_GLOBAL_TEMPLATE = "sonar.gitlab.global_template";
     public static final String GITLAB_INLINE_TEMPLATE = "sonar.gitlab.inline_template";
     public static final String GITLAB_COMMENT_NO_ISSUE = "sonar.gitlab.comment_no_issue";
@@ -73,8 +72,6 @@ public class GitLabPlugin implements Plugin {
                                 .subCategory(SUBCATEGORY).index(6).hidden().build(),
                         PropertyDefinition.builder(GITLAB_REF_NAME).name("GitLab Ref Name").description("The commit revision for which project is built.").category(CATEGORY).subCategory(SUBCATEGORY)
                                 .index(7).hidden().build(),
-                        PropertyDefinition.builder(GITLAB_IGNORE_FILE).name("Ignore file").description("Ignore issues on files no modified by the commit").category(CATEGORY).subCategory(SUBCATEGORY)
-                                .type(PropertyType.BOOLEAN).defaultValue(String.valueOf(false)).index(8).hidden().build(),
                         PropertyDefinition.builder(GITLAB_MAX_BLOCKER_ISSUES_GATE).name("Max Blocker Issues Gate").description("Max blocker issues to make the status fail.").category(CATEGORY)
                                 .subCategory(SUBCATEGORY).type(PropertyType.INTEGER).defaultValue(String.valueOf(0)).onlyOnQualifiers(Qualifiers.PROJECT).index(9).build(),
                         PropertyDefinition.builder(GITLAB_MAX_CRITICAL_ISSUES_GATE).name("Max Critical Issues Gate").description("Max critical issues to make the status fail.").category(CATEGORY)
@@ -100,10 +97,11 @@ public class GitLabPlugin implements Plugin {
                         PropertyDefinition.builder(GITLAB_STATUS_NOTIFICATION_MODE).name("Status notification mode").description("Status notification mode: commit-status or exit-code")
                                 .category(CATEGORY).subCategory(SUBCATEGORY).type(PropertyType.SINGLE_SELECT_LIST)
                                 .options(StatusNotificationsMode.COMMIT_STATUS.getMeaning(), StatusNotificationsMode.EXIT_CODE.getMeaning()).defaultValue(StatusNotificationsMode.COMMIT_STATUS.getMeaning())
-                                .index(19).build()
-                        /*,
-                        PropertyDefinition.builder(GITLAB_GLOBAL_TEMPLATE).name("GitLab Global Template").description("Template for global comment in commit.").category(CATEGORY)
-                                .subCategory(SUBCATEGORY).type(PropertyType.TEXT).index(8).build()*/);
+                                .index(19).build(),
+                        PropertyDefinition.builder(GITLAB_GLOBAL_TEMPLATE).name("Global template").description("Template for global comment in commit.").category(CATEGORY).subCategory(SUBCATEGORY)
+                                .type(PropertyType.TEXT).index(20).build(),
+                        PropertyDefinition.builder(GITLAB_INLINE_TEMPLATE).name("Inline template").description("Template for inline comment in commit.").category(CATEGORY).subCategory(SUBCATEGORY)
+                                .type(PropertyType.TEXT).index(21).build());
     }
 
     @Override
