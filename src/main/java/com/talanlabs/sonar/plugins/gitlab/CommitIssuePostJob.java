@@ -29,9 +29,7 @@ import org.sonar.api.utils.MessageException;
 import org.sonar.api.utils.log.Logger;
 import org.sonar.api.utils.log.Loggers;
 
-import java.util.Comparator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
@@ -71,7 +69,7 @@ public class CommitIssuePostJob implements PostJob {
             }
 
             if (!gitLabPluginConfiguration.disableGlobalComment() && (report.hasIssue() || gitLabPluginConfiguration.commentNoIssue())) {
-                commitFacade.addGlobalComment(new GlobalCommentBuilder(gitLabPluginConfiguration, report, markDownUtils).buildForMarkdown());
+                updateGlobalComments(report);
             }
 
             String status = report.getStatus();
@@ -123,20 +121,60 @@ public class CommitIssuePostJob implements PostJob {
     private void processIssue(Reporter report, PostJobIssue issue) {
         boolean reportedInline = false;
         InputComponent inputComponent = issue.inputComponent();
-        if (gitLabPluginConfiguration.tryReportIssuesInline() && inputComponent != null && inputComponent.isFile()) {
-            reportedInline = issue.line() != null && commitFacade.hasFileLine((InputFile) inputComponent, issue.line());
+
+        String revision = null;
+        if (inputComponent != null && inputComponent.isFile() && issue.line() != null) {
+            revision = commitFacade.getRevisionForLine((InputFile) inputComponent, issue.line());
+            reportedInline = gitLabPluginConfiguration.tryReportIssuesInline() && revision != null;
         }
-        report.process(issue, commitFacade.getGitLabUrl(inputComponent, issue.line()), reportedInline);
+        report.process(issue, revision, commitFacade.getGitLabUrl(revision, inputComponent, issue.line()), reportedInline);
     }
 
     private void updateReviewComments(Reporter report) {
-        for (Map.Entry<InputFile, Map<Integer, List<Reporter.ReportIssue>>> entry : report.getFileLineMap().entrySet()) {
-            for (Map.Entry<Integer, List<Reporter.ReportIssue>> entryPerLine : entry.getValue().entrySet()) {
-                String body = new InlineCommentBuilder(gitLabPluginConfiguration, entryPerLine.getValue(), markDownUtils).buildForMarkdown();
-                if(body != null && !body.isEmpty()) {
-                    commitFacade.createOrUpdateReviewComment(entry.getKey(), entryPerLine.getKey(), body);
-                }
+        for (Map.Entry<String, Map<InputFile, Map<Integer, List<Reporter.ReportIssue>>>> entry : report.getFileLineMap().entrySet()) {
+            String revision = entry.getKey();
+
+            String username = commitFacade.getUsernameForRevision(revision);
+
+            for (Map.Entry<InputFile, Map<Integer, List<Reporter.ReportIssue>>> entryPerFile : entry.getValue().entrySet()) {
+                updateReviewComments(revision, username, entryPerFile.getKey(), entryPerFile.getValue());
             }
+        }
+    }
+
+    private void updateReviewComments(String revision, String username, InputFile inputFile, Map<Integer, List<Reporter.ReportIssue>> linePerIssuesMap) {
+        for (Map.Entry<Integer, List<Reporter.ReportIssue>> entryPerLine : linePerIssuesMap.entrySet()) {
+            updateReviewComments(revision, username, inputFile, entryPerLine.getKey(), entryPerLine.getValue());
+        }
+    }
+
+    private void updateReviewComments(String revision, String username, InputFile inputFile, Integer lineNumber, List<Reporter.ReportIssue> reportIssues) {
+        if (gitLabPluginConfiguration.uniqueIssuePerInline()) {
+            for (Reporter.ReportIssue reportIssue : reportIssues) {
+                updateReviewCommentsPerInline(revision, username, inputFile, lineNumber, Collections.singletonList(reportIssue));
+            }
+        } else {
+            updateReviewCommentsPerInline(revision, username, inputFile, lineNumber, reportIssues);
+        }
+    }
+
+    private void updateReviewCommentsPerInline(String revision, String username, InputFile inputFile, Integer lineNumber, List<Reporter.ReportIssue> reportIssues) {
+        String body = new InlineCommentBuilder(gitLabPluginConfiguration, revision, username, lineNumber, reportIssues, markDownUtils).buildForMarkdown();
+        if (body != null && !body.trim().isEmpty()) {
+            boolean exists = commitFacade.getCommitCommentsForFile(revision, inputFile)
+                    .stream()
+                    .anyMatch(c -> Objects.equals(c.getLine(), lineNumber) && c.getNote().equals(body));
+            if (!exists) {
+                commitFacade.createOrUpdateReviewComment(revision, inputFile, lineNumber, body);
+            }
+        }
+    }
+
+    private void updateGlobalComments(Reporter report) {
+        String username = commitFacade.getUsernameForRevision(gitLabPluginConfiguration.commitSHA().get(0));
+        String body = new GlobalCommentBuilder(gitLabPluginConfiguration, username, report, markDownUtils).buildForMarkdown();
+        if (body != null && !body.trim().isEmpty()) {
+            commitFacade.addGlobalComment(body);
         }
     }
 }

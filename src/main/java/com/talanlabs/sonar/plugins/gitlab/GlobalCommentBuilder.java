@@ -24,15 +24,25 @@ import org.sonar.api.batch.rule.Severity;
 
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 
 public class GlobalCommentBuilder extends AbstractCommentBuilder {
 
+    private final String author;
     private final Reporter reporter;
 
-    public GlobalCommentBuilder(GitLabPluginConfiguration gitLabPluginConfiguration, Reporter reporter, MarkDownUtils markDownUtils) {
-        super(gitLabPluginConfiguration, reporter.getReportIssues(), markDownUtils, "global", gitLabPluginConfiguration.globalTemplate());
+    public GlobalCommentBuilder(GitLabPluginConfiguration gitLabPluginConfiguration, String author, Reporter reporter, MarkDownUtils markDownUtils) {
+        super(gitLabPluginConfiguration, gitLabPluginConfiguration.commitSHA().get(0), reporter.getReportIssues(), markDownUtils, "global", gitLabPluginConfiguration.globalTemplate());
 
         this.reporter = reporter;
+        this.author = author;
+    }
+
+    @Override
+    protected Map<String, Object> createContext() {
+        Map<String, Object> root = super.createContext();
+        root.put("author", author);
+        return root;
     }
 
     @Override

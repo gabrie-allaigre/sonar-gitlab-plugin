@@ -21,9 +21,11 @@ package com.talanlabs.sonar.plugins.gitlab;
 
 import com.talanlabs.gitlab.api.GitLabAPI;
 import com.talanlabs.gitlab.api.Paged;
+import com.talanlabs.gitlab.api.models.commits.GitLabCommit;
+import com.talanlabs.gitlab.api.models.commits.GitLabCommitComments;
 import com.talanlabs.gitlab.api.models.commits.GitLabCommitDiff;
 import com.talanlabs.gitlab.api.models.projects.GitLabProject;
-import org.apache.commons.io.IOUtils;
+import com.talanlabs.gitlab.api.models.users.GitLabUser;
 import org.sonar.api.batch.BatchSide;
 import org.sonar.api.batch.InstantiationStrategy;
 import org.sonar.api.batch.fs.InputComponent;
@@ -37,7 +39,7 @@ import javax.annotation.CheckForNull;
 import javax.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
-import java.io.StringReader;
+import java.nio.file.Files;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -60,46 +62,11 @@ public class CommitFacade {
     private File gitBaseDir;
     private GitLabAPI gitLabAPI;
     private GitLabProject gitLabProject;
-    private Map<String, Set<Integer>> patchPositionMappingByFile;
+    private Map<String, List<GitLabCommitComments>> commitCommentPerRevision;
+    private Map<String, Map<String, Set<Line>>> patchPositionByFile;
 
     public CommitFacade(GitLabPluginConfiguration config) {
         this.config = config;
-    }
-
-    static Map<String, Set<Integer>> mapPatchPositionsToLines(List<GitLabCommitDiff> diffs) throws IOException {
-        Map<String, Set<Integer>> patchPositionMappingByFile = new HashMap<>();
-        for (GitLabCommitDiff file : diffs) {
-            Set<Integer> patchLocationMapping = new HashSet<>();
-            patchPositionMappingByFile.put(file.getNewPath(), patchLocationMapping);
-            String patch = file.getDiff();
-            if (patch == null) {
-                continue;
-            }
-            processPatch(patchLocationMapping, patch);
-        }
-        return patchPositionMappingByFile;
-    }
-
-    static void processPatch(Set<Integer> patchLocationMapping, String patch) throws IOException {
-        int currentLine = -1;
-        for (String line : IOUtils.readLines(new StringReader(patch))) {
-            if (line.startsWith("@")) {
-                Matcher matcher = PATCH_PATTERN.matcher(line);
-                if (!matcher.matches()) {
-                    throw new IllegalStateException("Unable to parse patch line " + line + "\nFull patch: \n" + patch);
-                }
-                currentLine = Integer.parseInt(matcher.group(1));
-            } else if (line.startsWith("-")) {
-                // Skip removed lines
-            } else if (line.startsWith("+") || line.startsWith(" ")) {
-                // Count added and unmodified lines
-                patchLocationMapping.add(currentLine);
-                currentLine++;
-            } else if (line.startsWith("\\")) {
-                // I'm only aware of \ No newline at end of file
-                // Ignore
-            }
-        }
     }
 
     public void init(File projectBaseDir) {
@@ -112,14 +79,8 @@ public class CommitFacade {
         try {
             gitLabProject = getGitLabProject();
 
-            Paged<GitLabCommitDiff> paged = gitLabAPI.getGitLabAPICommits().getCommitDiffs(gitLabProject.getId(), config.commitSHA(), null);
-            List<GitLabCommitDiff> commitDiffs = new ArrayList<>();
-            do {
-                if (paged.getResults() != null) {
-                    commitDiffs.addAll(paged.getResults());
-                }
-            } while ((paged = paged.nextPage()) != null);
-            patchPositionMappingByFile = mapPatchPositionsToLines(commitDiffs);
+            commitCommentPerRevision = getCommitCommentsPerRevision(config.commitSHA());
+            patchPositionByFile = getPatchPositionsToLineMapping(config.commitSHA());
         } catch (IOException e) {
             throw new IllegalStateException("Unable to perform GitLab WS operation", e);
         }
@@ -159,6 +120,15 @@ public class CommitFacade {
             throw new IllegalStateException("Unable found project for null project name. Set Configuration sonar.gitlab.project_id");
         }
 
+        try {
+            GitLabProject project = gitLabAPI.getGitLabAPIProjects().getProject(config.projectId());
+            if (project != null) {
+                return project;
+            }
+        } catch (IOException e) {
+            LOG.trace("Not found project with id", e);
+        }
+
         Paged<GitLabProject> paged = gitLabAPI.getGitLabAPIProjects().getProjects(null, null, null, null, null, null);
         if (paged == null) {
             throw new IllegalStateException("Unable found project for " + config.projectId() + " Verify Configuration sonar.gitlab.project_id or sonar.gitlab.user_token access project");
@@ -166,23 +136,121 @@ public class CommitFacade {
         List<GitLabProject> projects = new ArrayList<>();
         do {
             if (paged.getResults() != null) {
-                projects.addAll(paged.getResults());
+                projects.addAll(paged.getResults().stream().filter(this::isMatchingProject).collect(Collectors.toList()));
             }
         } while ((paged = paged.nextPage()) != null);
 
-        List<GitLabProject> res = projects.stream().filter(this::isMatchingProject).collect(Collectors.toList());
-        if (res.isEmpty()) {
+        if (projects.isEmpty()) {
             throw new IllegalStateException("Unable found project for " + config.projectId() + " Verify Configuration sonar.gitlab.project_id or sonar.gitlab.user_token access project");
         }
-        if (res.size() > 1) {
+        if (projects.size() > 1) {
             throw new IllegalStateException("Multiple found projects for " + config.projectId());
         }
-        return res.get(0);
+        return projects.get(0);
     }
 
     void setGitLabProject(GitLabProject gitLabProject) {
         this.gitLabProject = gitLabProject;
     }
+
+    Map<String, List<GitLabCommitComments>> getCommitCommentsPerRevision(List<String> revisions) throws IOException {
+        Map<String, List<GitLabCommitComments>> result = new HashMap<>();
+        for (String revision : revisions) {
+            Paged<GitLabCommitComments> paged = gitLabAPI.getGitLabAPICommits().getCommitComments(gitLabProject.getId(), revision, null);
+
+            List<GitLabCommitComments> gitLabCommitCommentss = new ArrayList<>();
+            do {
+                if (paged.getResults() != null) {
+                    gitLabCommitCommentss.addAll(paged.getResults());
+                }
+            } while ((paged = paged.nextPage()) != null);
+
+            result.put(revision, gitLabCommitCommentss);
+        }
+        return result;
+    }
+
+
+    Set<GitLabCommitComments> getCommitCommentsForFile(String revision, InputFile inputFile) {
+        String path = getPath(inputFile);
+        List<GitLabCommitComments> value = commitCommentPerRevision.get(revision);
+        return Optional.ofNullable(value)
+                .orElse(Collections.emptyList())
+                .stream()
+                .filter(Objects::nonNull)
+                .filter(c -> path.equals(c.getPath()))
+                .collect(Collectors.toSet());
+    }
+
+    private Map<String, Map<String, Set<Line>>> getPatchPositionsToLineMapping(List<String> revisions) throws IOException {
+        Map<String, Map<String, Set<Line>>> result = new HashMap<>();
+
+        for (String revision : revisions) {
+            Paged<GitLabCommitDiff> paged = gitLabAPI.getGitLabAPICommits().getCommitDiffs(gitLabProject.getId(), revision, null);
+            List<GitLabCommitDiff> commitDiffs = new ArrayList<>();
+            do {
+                if (paged.getResults() != null) {
+                    commitDiffs.addAll(paged.getResults());
+                }
+            } while ((paged = paged.nextPage()) != null);
+
+            result.put(revision, commitDiffs
+                    .stream()
+                    .collect(Collectors.toMap(GitLabCommitDiff::getNewPath, d -> getPositionsFromPatch(d.getDiff()))));
+        }
+
+        return result;
+    }
+
+    /**
+     * Author Email is access only for admin gitlab user but search work for all users
+     */
+    public String getUsernameForRevision(String revision) {
+        try {
+            GitLabCommit commit = gitLabAPI.getGitLabAPICommits().getCommit(gitLabProject.getId(), revision);
+
+            Paged<GitLabUser> paged = gitLabAPI.getGitLabAPIUsers().getUsers(commit.getAuthorEmail(), null);
+            List<GitLabUser> users = new ArrayList<>();
+            do {
+                if (paged.getResults() != null) {
+                    users.addAll(paged.getResults());
+                }
+            } while ((paged = paged.nextPage()) != null);
+
+            if (users.size() == 1) {
+                return users.get(0).getUsername();
+            }
+            return users.stream().filter(x -> commit.getAuthorEmail().equals(x.getEmail()))
+                    .map(GitLabUser::getUsername).findFirst().orElse(null);
+        } catch (IOException e) {
+            throw new IllegalStateException("Unable to create retrive author for commit " + revision, e);
+        }
+    }
+
+    Set<Line> getPositionsFromPatch(String patch) {
+        Set<Line> positions = new HashSet<>();
+
+        int currentLine = -1;
+        for (String line : patch.split("\n")) {
+            if (line.startsWith("@")) {
+                Matcher matcher = PATCH_PATTERN.matcher(line);
+                if (!matcher.matches()) {
+                    throw new IllegalStateException("Unable to parse line:\n\t" + line + "\nFull patch: \n\t" + patch);
+                }
+                currentLine = Integer.parseInt(matcher.group(1));
+            } else if (line.startsWith("+")) {
+                positions.add(new Line(currentLine, line.replaceFirst("\\+", "")));
+                currentLine++;
+            } else if (line.startsWith(" ")) {
+                // Can't comment line if not addition or deletion due to following bug
+                // https://gitlab.com/gitlab-org/gitlab-ce/issues/26606
+                currentLine++;
+            }
+        }
+
+        return positions;
+    }
+
 
     private boolean isMatchingProject(GitLabProject project) {
         return config.projectId().equals(project.getId().toString()) || verifyProjectName(project) || verifyProjectUrl(project);
@@ -198,7 +266,7 @@ public class CommitFacade {
 
     public void createOrUpdateSonarQubeStatus(String status, String statusDescription) {
         try {
-            gitLabAPI.getGitLabAPICommits().postCommitStatus(gitLabProject.getId(), config.commitSHA(), status, config.refName(), COMMIT_CONTEXT, null, statusDescription);
+            gitLabAPI.getGitLabAPICommits().postCommitStatus(gitLabProject.getId(), getFirstCommitSHA(), status, config.refName(), COMMIT_CONTEXT, null, statusDescription);
         } catch (IOException e) {
             // Workaround for https://gitlab.com/gitlab-org/gitlab-ce/issues/25807
             if (e.getMessage() != null && e.getMessage().contains("Cannot transition status")) {
@@ -210,26 +278,48 @@ public class CommitFacade {
     }
 
     public boolean hasFile(InputFile inputFile) {
-        return patchPositionMappingByFile.containsKey(getPath(inputFile));
+        String path = getPath(inputFile);
+        for (String revision : config.commitSHA()) {
+            if (patchPositionByFile.get(revision).containsKey(path)) {
+                return true;
+            }
+        }
+        return false;
     }
 
-    public boolean hasFileLine(InputFile inputFile, int line) {
-        return hasFile(inputFile) && patchPositionMappingByFile.get(getPath(inputFile)).contains(line);
-    }
+    public String getRevisionForLine(InputFile inputFile, int lineNumber) {
+        String value = null;
+        try {
+            List<String> ss = Files.readAllLines(inputFile.path());
+            value = ss.size() >= lineNumber ? ss.get(lineNumber - 1) : null;
+        } catch (IOException e) {
+            LOG.trace("Not read all line for file {}", inputFile.path(), e);
+        }
+        Line line = new Line(lineNumber, value);
+        String path = getPath(inputFile);
 
-    @CheckForNull
-    public String getGitLabUrl(@Nullable InputComponent inputComponent, @Nullable Integer issueLine) {
-        if (inputComponent instanceof InputPath) {
-            String path = getPath((InputPath) inputComponent);
-            return gitLabProject.getWebUrl() + "/blob/" + config.commitSHA() + "/" + path + (issueLine != null ? ("#L" + issueLine) : "");
+        for (String revision : config.commitSHA()) {
+            if (patchPositionByFile.get(revision).entrySet().stream().anyMatch(v ->
+                    v.getKey().equals(path) && v.getValue().contains(line))) {
+                return revision;
+            }
         }
         return null;
     }
 
-    public void createOrUpdateReviewComment(InputFile inputFile, Integer line, String body) {
+    @CheckForNull
+    public String getGitLabUrl(@Nullable String revision, @Nullable InputComponent inputComponent, @Nullable Integer issueLine) {
+        if (inputComponent instanceof InputPath) {
+            String path = getPath((InputPath) inputComponent);
+            return gitLabProject.getWebUrl() + "/blob/" + (revision != null ? revision : getFirstCommitSHA()) + "/" + path + (issueLine != null ? ("#L" + issueLine) : "");
+        }
+        return null;
+    }
+
+    public void createOrUpdateReviewComment(String revision, InputFile inputFile, Integer line, String body) {
         String fullPath = getPath(inputFile);
         try {
-            gitLabAPI.getGitLabAPICommits().postCommitComments(gitLabProject.getId(), config.commitSHA(), body, fullPath, line, "new");
+            gitLabAPI.getGitLabAPICommits().postCommitComments(gitLabProject.getId(), revision != null ? revision : getFirstCommitSHA(), body, fullPath, line, "new");
         } catch (IOException e) {
             throw new IllegalStateException("Unable to create or update review comment in file " + fullPath + " at line " + line, e);
         }
@@ -241,9 +331,50 @@ public class CommitFacade {
 
     public void addGlobalComment(String comment) {
         try {
-            gitLabAPI.getGitLabAPICommits().postCommitComments(gitLabProject.getId(), config.commitSHA(), comment, null, null, null);
+            gitLabAPI.getGitLabAPICommits().postCommitComments(gitLabProject.getId(), getFirstCommitSHA(), comment, null, null, null);
         } catch (IOException e) {
             throw new IllegalStateException("Unable to comment the commit", e);
+        }
+    }
+
+    private String getFirstCommitSHA() {
+        return config.commitSHA() != null && !config.commitSHA().isEmpty() ? config.commitSHA().get(0) : null;
+    }
+
+    static class Line {
+
+        private Integer number;
+
+        private String content;
+
+        Line(Integer number, String content) {
+            this.number = number;
+            this.content = content;
+        }
+
+        @Override
+        public String toString() {
+            return "Line{" + "number=" + number +
+                    ", content='" + content + '\'' +
+                    '}';
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) {
+                return true;
+            }
+            if (o == null || getClass() != o.getClass()) {
+                return false;
+            }
+            Line line = (Line) o;
+            return Objects.equals(number, line.number) &&
+                    Objects.equals(content, line.content);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(number, content);
         }
     }
 }

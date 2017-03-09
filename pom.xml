@@ -16,7 +16,7 @@
   <packaging>sonar-plugin</packaging>
   <url>https://github.com/gabrie-allaigre/sonar-gitlab-plugin</url>
   <properties>
-    <java-gitlab-api.version>1.1.0</java-gitlab-api.version>
+    <java-gitlab-api.version>1.2.0-SNAPSHOT</java-gitlab-api.version>
     <freemarker.version>2.3.23</freemarker.version>
 
     <license.mailto>gabriel.allaigre@talanlabs.com</license.mailto>
@@ -35,7 +35,7 @@
     <jacoco.ut.execution.data.file>${project.build.directory}/coverage-reports/jacoco-ut.exec
     </jacoco.ut.execution.data.file>
 
-    <sonar.jacoco.reportPath>${jacoco.ut.execution.data.file}</sonar.jacoco.reportPath>
+    <sonar.jacoco.reportPaths>${jacoco.ut.execution.data.file}</sonar.jacoco.reportPaths>
     <sonar.sourceEncoding>UTF-8</sonar.sourceEncoding>
   </properties>
   <inceptionYear>2016</inceptionYear>

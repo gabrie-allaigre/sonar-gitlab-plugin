@@ -49,6 +49,8 @@ public class GitLabPlugin implements Plugin {
     public static final String GITLAB_BUILD_INIT_STATE = "sonar.gitlab.build_init_state";
     public static final String GITLAB_DISABLE_GLOBAL_COMMENT = "sonar.gitlab.disable_global_comment";
     public static final String GITLAB_STATUS_NOTIFICATION_MODE = "sonar.gitlab.failure_notification_mode";
+    public static final String GITLAB_PING_USER = "sonar.gitlab.ping_user";
+    public static final String GITLAB_UNIQUE_ISSUE_PER_INLINE = "sonar.gitlab.unique_issue_per_inline";
 
     public static final String CATEGORY = "gitlab";
     public static final String SUBCATEGORY = "reporting";
@@ -101,7 +103,12 @@ public class GitLabPlugin implements Plugin {
                         PropertyDefinition.builder(GITLAB_GLOBAL_TEMPLATE).name("Global template").description("Template for global comment in commit.").category(CATEGORY).subCategory(SUBCATEGORY)
                                 .type(PropertyType.TEXT).index(20).build(),
                         PropertyDefinition.builder(GITLAB_INLINE_TEMPLATE).name("Inline template").description("Template for inline comment in commit.").category(CATEGORY).subCategory(SUBCATEGORY)
-                                .type(PropertyType.TEXT).index(21).build());
+                                .type(PropertyType.TEXT).index(21).build(),
+                        PropertyDefinition.builder(GITLAB_PING_USER).name("Ping the user").description("Ping the user who made an issue by @ mentioning.").category(CATEGORY).subCategory(SUBCATEGORY)
+                                .type(PropertyType.BOOLEAN).defaultValue(String.valueOf(false)).index(22).build(),
+                        PropertyDefinition.builder(GITLAB_UNIQUE_ISSUE_PER_INLINE).name("Unique issue per inline comment").description("Per inline comment, set only one issue").category(CATEGORY).subCategory(SUBCATEGORY)
+                                .type(PropertyType.BOOLEAN).defaultValue(String.valueOf(false)).index(23).build())
+                ;
     }
 
     @Override

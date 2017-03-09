@@ -53,6 +53,7 @@ public class InlineTemplateTest {
                 .category(CoreProperties.CATEGORY_GENERAL).defaultValue(CoreProperties.SERVER_BASE_URL_DEFAULT_VALUE).build()).addComponents(GitLabPlugin.definitions()));
 
         settings.setProperty(CoreProperties.SERVER_BASE_URL, "http://myserver");
+        settings.setProperty(GitLabPlugin.GITLAB_COMMIT_SHA, "abc123");
 
         config = new GitLabPluginConfiguration(settings, new System2());
 
@@ -61,18 +62,18 @@ public class InlineTemplateTest {
 
     @Test
     public void testOneIssue() {
-        Reporter.ReportIssue r1 = new Reporter.ReportIssue(Utils.newMockedIssue("component", null, 1, Severity.INFO, true, "Issue", "rule"), "lalal", true);
+        Reporter.ReportIssue r1 = new Reporter.ReportIssue(Utils.newMockedIssue("component", null, 1, Severity.INFO, true, "Issue", "rule"), null, "lalal", true);
 
-        Assertions.assertThat(new InlineCommentBuilder(config, Collections.singletonList(r1), new MarkDownUtils(settings)).buildForMarkdown())
+        Assertions.assertThat(new InlineCommentBuilder(config, "123", null, 1, Collections.singletonList(r1), new MarkDownUtils(settings)).buildForMarkdown())
                 .isEqualTo(":information_source: Issue [:blue_book:](http://myserver/coding_rules#rule_key=repo%3Arule)\n");
     }
 
     @Test
     public void testTwoIssue() {
         List<Reporter.ReportIssue> ris = Stream.iterate(0, i -> i++).limit(2)
-                .map(i -> new Reporter.ReportIssue(Utils.newMockedIssue("component", null, 1, Severity.INFO, true, "Issue", "rule"), "lalal", true)).collect(Collectors.toList());
+                .map(i -> new Reporter.ReportIssue(Utils.newMockedIssue("component", null, 1, Severity.INFO, true, "Issue", "rule"), null, "lalal", true)).collect(Collectors.toList());
 
-        Assertions.assertThat(new InlineCommentBuilder(config, ris, new MarkDownUtils(settings)).buildForMarkdown())
+        Assertions.assertThat(new InlineCommentBuilder(config, "123", null, 1, ris, new MarkDownUtils(settings)).buildForMarkdown())
                 .isEqualTo(":information_source: Issue [:blue_book:](http://myserver/coding_rules#rule_key=repo%3Arule)\n" +
                         ":information_source: Issue [:blue_book:](http://myserver/coding_rules#rule_key=repo%3Arule)\n");
     }
