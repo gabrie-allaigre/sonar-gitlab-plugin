@@ -5,17 +5,39 @@ Sonar GitLab Plugin
 
 Inspired by https://github.com/SonarCommunity/sonar-github
 
+**New version 2.0.0-beta1**
+
+- Add test unit
+- GitLab API is in maven central
+- Java 8
+- Sonarqube >= 5.6
+- New functionnality
+- Remove personal repository
+- Use emoticon (Thanks Artpej)
+- Change fail rule (Thanks Artpej)
+- Add comment for no issue (Thanks frol2103)
+- Clean code and dead code (Thanks johnou)
+- Disable reporting in global comments
+- Disable reporting in inline comments
+- Add support Proxy
+- Ignore certficate if auto-signed
+- Add quality project https://sonarqube.com/dashboard?id=com.talanlabs%3Asonar-gitlab-plugin 
+- Custom global comment (Template)
+- Custom inline comment (Template)
+
+**Download beta version** https://github.com/gabrie-allaigre/sonar-gitlab-plugin/releases/download/2.0.0-beta1/sonar-gitlab-plugin-2.0.0-beta1.jar
+
 # Goal
 
 Add to each **commit** GitLab in a global commentary on the new anomalies added by this **commit** and add comment lines of modified files.
 
-Comment commits:
-![Comment commits](doc/comment_commits.jpg)
+**Comment commits:**
+![Comment commits](doc/sonar_global.jpg)
 
-Comment line:
-![Comment line](doc/comment_line.jpg)
+**Comment line:**
+![Comment line](doc/sonar_inline.jpg)
 
-Add build line:
+**Add build line:**
 ![Add buids](doc/builds.jpg)
 
 # Usage
@@ -72,35 +94,15 @@ mvn --batch-mode verify sonar:sonar -Dsonar.host.url=$SONAR_URL -Dsonar.analysis
 
 - In SonarQube: Administration -> General Settings -> GitLab -> **Reporting**. Set GitLab Url and Token
 
-![Sonar settings](doc/sonar_settings.jpg)
+![Sonar settings](doc/sonar_admin_settings.jpg)
 
 - In SonarQube: Project Administration -> General Settings -> GitLab -> **Reporting**. Set project identifier in GitLab
 
 ![Sonar settings](doc/sonar_project_settings.jpg)
 
-# New version 2.0.0
-
-A new version is work in progress
-
-- Add test unit
-- GitLab API is in maven central
-- Java 8
-- Sonarqube >= 5.6
-- New functionnality
-- Remove personal repository
-- Use emoticon (Thanks Artpej)
-- Change fail rule (Thanks Artpej)
-- Add comment for no issue (Thanks frol2103)
-- Clean code and dead code (Thanks johnou)
-- Disable reporting in inline comments
-- Add support Proxy
-- Ignore certficate if auto-signed
-- Add quality project https://sonarqube.com/dashboard?id=com.talanlabs%3Asonar-gitlab-plugin 
-- Custom global comment (Template)
-
 # Templates
 
-Custom global comment : Change language, change image, change order, print all issues, etc
+Custom global/inline comment : Change language, change image, change order, print all issues, etc
 
 **Use FreeMarker syntax [http://freemarker.org/](http://freemarker.org/)**
 
@@ -167,7 +169,7 @@ Usage : `${Issue.name}`
 
 ## Examples
 
-### Default template
+### Global
 
 ```injectedfreemarker
 <#assign newIssueCount = issueCount() notReportedIssueCount = issueCount(false)>
@@ -228,98 +230,22 @@ Note: The following issues were found on lines that were not modified in the com
 </#if>
 ```
 
-### Default template with image
+**Others examples for global :**
+- [Template Default](templates/global/default.md) Current template
+- [Template Default with Images](templates/global/default-image.md) Same template as default but with images
+- [Template All Issues](templates/global/all-issues.md) Print all issues
+
+### Inline
 
 ```injectedfreemarker
-<#assign newIssueCount = issueCount() notReportedIssueCount = issueCount(false)>
-<#assign hasInlineIssues = newIssueCount gt notReportedIssueCount extraIssuesTruncated = notReportedIssueCount gt maxGlobalIssues>
-<#if newIssueCount == 0>
-SonarQube analysis reported no issues.
-<#else>
-SonarQube analysis reported ${newIssueCount} issue<#if newIssueCount gt 1>s</#if>
-    <#assign newIssuesBlocker = issueCount(BLOCKER) newIssuesCritical = issueCount(CRITICAL) newIssuesMajor = issueCount(MAJOR) newIssuesMinor = issueCount(MINOR) newIssuesInfo = issueCount(INFO)>
-    <#if newIssuesBlocker gt 0>
-* ${imageSeverity(BLOCKER)} ${newIssuesBlocker} blocker
-    </#if>
-    <#if newIssuesCritical gt 0>
-* ${imageSeverity(CRITICAL)} ${newIssuesCritical} critical
-    </#if>
-    <#if newIssuesMajor gt 0>
-* ${imageSeverity(MAJOR)} ${newIssuesMajor} major
-    </#if>
-    <#if newIssuesMinor gt 0>
-* ${imageSeverity(MINOR)} ${newIssuesMinor} minor
-    </#if>
-    <#if newIssuesInfo gt 0>
-* ${imageSeverity(INFO)} ${newIssuesInfo} info
-    </#if>
-    <#if !disableIssuesInline && hasInlineIssues>
-
-Watch the comments in this conversation to review them.
-    </#if>
-    <#if notReportedIssueCount gt 0>
-        <#if !disableIssuesInline>
-            <#if hasInlineIssues || extraIssuesTruncated>
-                <#if notReportedIssueCount <= maxGlobalIssues>
-
-#### ${notReportedIssueCount} extra issue<#if notReportedIssueCount gt 1>s</#if>
-                <#else>
-
-#### Top ${maxGlobalIssues} extra issue<#if maxGlobalIssues gt 1>s</#if>
-                </#if>
-            </#if>
-
-Note: The following issues were found on lines that were not modified in the commit. Because these issues can't be reported as line comments, they are summarized here:
-        <#elseif extraIssuesTruncated>
-
-#### Top ${maxGlobalIssues} issue<#if maxGlobalIssues gt 1>s</#if>
-        </#if>
-
-        <#assign reportedIssueCount = 0>
-        <#list issues(false) as issue>
-            <#if reportedIssueCount < maxGlobalIssues>
-1. <@p issue=issue/>
-            </#if>
-            <#assign reportedIssueCount++>
-        </#list>
-        <#if notReportedIssueCount gt maxGlobalIssues>
-* ... ${notReportedIssueCount-maxGlobalIssues} more
-        </#if>
-    </#if>
-</#if>
+<#list issues() as issue>
+<@p issue=issue/>
+</#list>
 <#macro p issue>
-${imageSeverity(issue.severity)} <#if issue.url??>[${issue.message}](${issue.url})<#else>${issue.message}<#if issue.componentKey??>${issue.componentKey}</#if></#if> [![RULE](https://github.com/gabrie-allaigre/sonar-gitlab-plugin/raw/master/images/rule.png)](${ruleLink(issue.ruleKey)})
+${emojiSeverity(issue.severity)} ${issue.message} [:blue_book:](${ruleLink(issue.ruleKey)})
 </#macro>
 ```
 
-### All issues
-
-```injectedfreemarker
-<#assign newIssueCount = issueCount() notReportedIssueCount = issueCount(false)>
-<#assign hasInlineIssues = newIssueCount gt notReportedIssueCount extraIssuesTruncated = notReportedIssueCount gt maxGlobalIssues>
-<#if newIssueCount == 0>
-SonarQube analysis reported no issues.
-<#else>
-SonarQube analysis reported ${newIssueCount} issue<#if newIssueCount gt 1>s</#if>
-    <#assign newIssuesBlocker = issueCount(BLOCKER) newIssuesCritical = issueCount(CRITICAL) newIssuesMajor = issueCount(MAJOR) newIssuesMinor = issueCount(MINOR) newIssuesInfo = issueCount(INFO)>
-    <#if newIssuesBlocker gt 0>
-* ${emojiSeverity(BLOCKER)} ${newIssuesBlocker} blocker
-    </#if>
-    <#if newIssuesCritical gt 0>
-* ${emojiSeverity(CRITICAL)} ${newIssuesCritical} critical
-    </#if>
-    <#if newIssuesMajor gt 0>
-* ${emojiSeverity(MAJOR)} ${newIssuesMajor} major
-    </#if>
-    <#if newIssuesMinor gt 0>
-* ${emojiSeverity(MINOR)} ${newIssuesMinor} minor
-    </#if>
-    <#if newIssuesInfo gt 0>
-* ${emojiSeverity(INFO)} ${newIssuesInfo} info
-    </#if>
-
-    <#list issues() as issue>
-1. ${print(issue)}
-    </#list>
-</#if>
-```
+**Others examples for inline :**
+- [Template Default](templates/inline/default.md) Current template
+- [Template Default with Images](templates/inline/default-image.md) Same template as default but with images
