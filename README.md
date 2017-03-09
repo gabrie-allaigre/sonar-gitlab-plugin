@@ -7,12 +7,6 @@ Inspired by https://github.com/SonarCommunity/sonar-github
 
 **New version 2.0.0-beta1**
 
-- Add test unit
-- GitLab API is in maven central
-- Java 8
-- Sonarqube >= 5.6
-- New functionnality
-- Remove personal repository
 - Use emoticon (Thanks Artpej)
 - Change fail rule (Thanks Artpej)
 - Add comment for no issue (Thanks frol2103)
@@ -20,10 +14,16 @@ Inspired by https://github.com/SonarCommunity/sonar-github
 - Disable reporting in global comments
 - Disable reporting in inline comments
 - Add support Proxy
-- Ignore certficate if auto-signed
-- Add quality project https://sonarqube.com/dashboard?id=com.talanlabs%3Asonar-gitlab-plugin 
+- Ignore certficate if auto-signed 
 - Custom global comment (Template)
 - Custom inline comment (Template)
+
+- Add test unit
+- Add quality project https://sonarqube.com/dashboard?id=com.talanlabs%3Asonar-gitlab-plugin
+- GitLab API is in maven central
+- Java 8
+- Sonarqube >= 5.6
+- Remove personal repository
 
 **Download beta version** https://github.com/gabrie-allaigre/sonar-gitlab-plugin/releases/download/2.0.0-beta1/sonar-gitlab-plugin-2.0.0-beta1.jar
 

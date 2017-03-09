@@ -20,14 +20,9 @@
 package com.talanlabs.sonar.plugins.gitlab.freemarker;
 
 import com.talanlabs.sonar.plugins.gitlab.MarkDownUtils;
-import freemarker.template.TemplateMethodModelEx;
-import freemarker.template.TemplateModelException;
-import freemarker.template.TemplateScalarModel;
 import org.sonar.api.batch.rule.Severity;
 
-import java.util.List;
-
-public class EmojiSeverityTemplateMethodModelEx implements TemplateMethodModelEx {
+public class EmojiSeverityTemplateMethodModelEx extends AbstractSeverityTemplateMethodModelEx {
 
     private final MarkDownUtils markDownUtils;
 
@@ -38,23 +33,7 @@ public class EmojiSeverityTemplateMethodModelEx implements TemplateMethodModelEx
     }
 
     @Override
-    public Object exec(List arguments) throws TemplateModelException {
-        if (arguments.size() == 1) {
-            return execOneArg(arguments.get(0));
-        }
-        throw new TemplateModelException("Failed call accept 1 Severity arg (INFO,MINOR,MAJOR,CRITICAL,BLOCKER)");
-    }
-
-    private Object execOneArg(Object arg) throws TemplateModelException {
-        if (arg instanceof TemplateScalarModel) {
-            String name = ((TemplateScalarModel) arg).getAsString();
-            try {
-                Severity severity = Severity.valueOf(name);
-                return markDownUtils.getEmojiForSeverity(severity);
-            } catch (IllegalArgumentException e) {
-                throw new TemplateModelException("Failed call 1 Severity arg (INFO,MINOR,MAJOR,CRITICAL,BLOCKER)", e);
-            }
-        }
-        throw new TemplateModelException("Failed call accept 1 Severity arg (INFO,MINOR,MAJOR,CRITICAL,BLOCKER)");
+    protected Object exec(Severity severity) {
+        return markDownUtils.getEmojiForSeverity(severity);
     }
 }
