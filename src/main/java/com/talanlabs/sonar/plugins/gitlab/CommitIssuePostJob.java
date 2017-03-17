@@ -133,7 +133,9 @@ public class CommitIssuePostJob implements PostJob {
         for (Map.Entry<InputFile, Map<Integer, List<Reporter.ReportIssue>>> entry : report.getFileLineMap().entrySet()) {
             for (Map.Entry<Integer, List<Reporter.ReportIssue>> entryPerLine : entry.getValue().entrySet()) {
                 String body = new InlineCommentBuilder(gitLabPluginConfiguration, entryPerLine.getValue(), markDownUtils).buildForMarkdown();
-                commitFacade.createOrUpdateReviewComment(entry.getKey(), entryPerLine.getKey(), body);
+                if(body != null && !body.isEmpty()) {
+                    commitFacade.createOrUpdateReviewComment(entry.getKey(), entryPerLine.getKey(), body);
+                }
             }
         }
     }
