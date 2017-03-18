@@ -63,18 +63,45 @@ For SonarQube >= 5.4:
 
 **Optional Plugin: [Add Single Sign-On with GitLab in SonarQube](https://github.com/gabrie-allaigre/sonar-auth-gitlab-plugin)**
 
-# Command line
+## Command line
 
-Example :
+Example:
 
-``` shell
+```shell
 mvn --batch-mode verify sonar:sonar -Dsonar.host.url=$SONAR_URL -Dsonar.analysis.mode=preview -Dsonar.gitlab.commit_sha=$CI_BUILD_REF -Dsonar.gitlab.ref_name=$CI_BUILD_REF_NAME -Dsonar.gitlab.project_id=$CI_PROJECT_ID
 ```
 
-or for comment inline in all commits of branch 
+or for comment inline in all commits of branch:
 
-``` shell
+```shell
 mvn --batch-mode verify sonar:sonar -Dsonar.host.url=$SONAR_URL -Dsonar.analysis.mode=preview -Dsonar.gitlab.commit_sha=$(git log --pretty=format:%H origin/master..$CI_BUILD_REF | tr '\n' ',') -Dsonar.gitlab.ref_name=$CI_BUILD_REF_NAME -Dsonar.gitlab.project_id=$CI_PROJECT_ID -Dsonar.gitlab.unique_issue_per_inline=true 
+```
+
+## GitLab CI
+
+.gitlab-ci.yml sample:
+
+```yml
+sonarqube_preview:
+  script:
+    - mvn --batch-mode verify sonar:sonar -Dgpg.sign=false -Dsonar.host.url=$SONAR_URL -Dsonar.analysis.mode=preview -Dsonar.issuesReport.console.enable=true -Dsonar.gitlab.project_id=$CI_PROJECT_PATH -Dsonar.gitlab.commit_sha=$(git log --pretty=format:%H origin/master..$CI_BUILD_REF | tr '\n' ',') -Dsonar.gitlab.ref_name=$CI_BUILD_REF_NAME
+  stage: test
+  except:
+    - develop
+    - master
+    - /^hotfix_.*$/
+    - /.*-hotfix$/
+  tags:
+    - java
+
+sonarqube:
+  script:
+    - mvn --batch-mode verify sonar:sonar -Dsonar.host.url=$SONAR_URL
+  stage: test
+  only:
+    - master
+  tags:
+    - java
 ```
 
 | Variable | Comment | Type | Version |
