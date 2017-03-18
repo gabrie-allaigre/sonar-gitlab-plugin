@@ -17,6 +17,8 @@ Inspired by https://github.com/SonarCommunity/sonar-github
 - Ignore certficate if auto-signed 
 - Custom global comment (Template)
 - Custom inline comment (Template)
+- Get multi SHA for comment inline all commits
+- Custom comment maybe empty then no comment add
 
 **Update**
 
@@ -63,7 +65,13 @@ For SonarQube >= 5.4:
 Example :
 
 ``` shell
-mvn --batch-mode verify sonar:sonar -Dsonar.host.url=$SONAR_URL -Dsonar.analysis.mode=preview -Dsonar.gitlab.commit_sha=$CI_BUILD_REF -Dsonar.gitlab.ref_name=$CI_BUILD_REF_NAME -Dsonar.gitlab.project_id=$CI_PROJECT_PATH
+mvn --batch-mode verify sonar:sonar -Dsonar.host.url=$SONAR_URL -Dsonar.analysis.mode=preview -Dsonar.gitlab.commit_sha=$CI_BUILD_REF -Dsonar.gitlab.ref_name=$CI_BUILD_REF_NAME -Dsonar.gitlab.project_id=$CI_PROJECT_ID
+```
+
+or for comment inline in all commits of branch 
+
+``` shell
+mvn --batch-mode verify sonar:sonar -Dsonar.host.url=$SONAR_URL -Dsonar.analysis.mode=preview -Dsonar.gitlab.commit_sha=$(git log --pretty=format:%H origin/master..$CI_BUILD_REF | tr '\n' ',') -Dsonar.gitlab.ref_name=$CI_BUILD_REF_NAME -Dsonar.gitlab.project_id=$CI_PROJECT_ID -Dsonar.gitlab.unique_issue_per_inline=true 
 ```
 
 | Variable | Comment | Type | Version |
@@ -87,6 +95,8 @@ mvn --batch-mode verify sonar:sonar -Dsonar.host.url=$SONAR_URL -Dsonar.analysis
 | sonar.gitlab.disable_global_comment | Disable global comment, report only inline (default false) | Administration, Variable | >= 2.0.0 |
 | sonar.gitlab.failure_notification_mode | Notification is in current build (exit-code) or in commit status (commit-status) (default commit-status) | Administration, Variable | >= 2.0.0 |
 | sonar.gitlab.global_template | Template for global comment in commit | Administration, Variable | >= 2.0.0 |
+| sonar.gitlab.ping_user | Ping the user who made an issue by @ mentioning (default false) | Administration, Variable | >= 2.0.0 |
+| sonar.gitlab.unique_issue_per_inline | Unique issue per inline comment (default false) | Administration, Variable | >= 2.0.0 |
 
 - Administration : **Settings** globals in SonarQube
 - Project : **Settings** of project in SonarQube
@@ -116,7 +126,7 @@ Usage : `${name}`
 | --- | --- | --- |
 | url | String | GitLab url |
 | projectId | String | Project ID in GitLab or internal id or namespace + name or namespace + path or url http or ssh url or url or web |
-| commitSHA | String | SHA of the commit comment |
+| commitSHA | String[] | SHA of the commit comment. Get first `commitSHA[0]` |
 | refName | String | Branch name or reference of the commit |
 | maxGlobalIssues | Integer | Maximum number of anomalies to be displayed in the global comment |
 | maxBlockerIssuesGate | Integer | Max blocker issue for build failed |
@@ -128,6 +138,9 @@ Usage : `${name}`
 | disableGlobalComment | Boolean | Disable global comment, report only inline |
 | onlyIssueFromCommitFile | Boolean | Show issue for commit file only |
 | commentNoIssue | Boolean | Add a comment even when there is no new issue |
+| revision | String | Current revision |
+| author | String | Commit's author for inline |
+| lineNumber | Integer | Current line number for inline issues only |
 | BLOCKER | Severity | Blocker |
 | CRITICAL | Severity | Critical |
 | MAJOR | Severity | Major |

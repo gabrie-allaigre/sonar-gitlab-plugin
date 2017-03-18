@@ -63,7 +63,9 @@ public class GitLabPluginConfigurationTest {
     public void testProject() {
         Assertions.assertThat(config.isEnabled()).isFalse();
         settings.setProperty(GitLabPlugin.GITLAB_COMMIT_SHA, "3");
-        Assertions.assertThat(config.commitSHA()).isEqualTo("3");
+        Assertions.assertThat(config.commitSHA()).containsExactly("3");
+        settings.setProperty(GitLabPlugin.GITLAB_COMMIT_SHA, "3,4,5");
+        Assertions.assertThat(config.commitSHA()).containsExactly("3", "4", "5");
         Assertions.assertThat(config.isEnabled()).isTrue();
 
         Assertions.assertThat(config.commentNoIssue()).isFalse();
@@ -107,6 +109,14 @@ public class GitLabPluginConfigurationTest {
         Assertions.assertThat(config.inlineTemplate()).isNull();
         settings.setProperty(GitLabPlugin.GITLAB_INLINE_TEMPLATE, "# Test");
         Assertions.assertThat(config.inlineTemplate()).isEqualTo("# Test");
+
+        Assertions.assertThat(config.pingUser()).isFalse();
+        settings.setProperty(GitLabPlugin.GITLAB_PING_USER, "true");
+        Assertions.assertThat(config.pingUser()).isTrue();
+
+        Assertions.assertThat(config.uniqueIssuePerInline()).isFalse();
+        settings.setProperty(GitLabPlugin.GITLAB_UNIQUE_ISSUE_PER_INLINE, "true");
+        Assertions.assertThat(config.uniqueIssuePerInline()).isTrue();
     }
 
     @Test

@@ -20,18 +20,37 @@
 package com.talanlabs.sonar.plugins.gitlab;
 
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 public class InlineCommentBuilder extends AbstractCommentBuilder {
 
-    public InlineCommentBuilder(GitLabPluginConfiguration gitLabPluginConfiguration, List<Reporter.ReportIssue> reportIssues, MarkDownUtils markDownUtils) {
-        super(gitLabPluginConfiguration, reportIssues, markDownUtils, "inline", gitLabPluginConfiguration.inlineTemplate());
+    private final Integer lineNumber;
+    private final String author;
+
+    public InlineCommentBuilder(GitLabPluginConfiguration gitLabPluginConfiguration, String revision, String author, Integer lineNumber, List<Reporter.ReportIssue> reportIssues, MarkDownUtils markDownUtils) {
+        super(gitLabPluginConfiguration, revision, reportIssues, markDownUtils, "inline", gitLabPluginConfiguration.inlineTemplate());
+
+        this.lineNumber = lineNumber;
+        this.author = author;
     }
 
     @Override
     protected String buildDefaultComment() {
-        return reportIssues.stream().map(reportIssue -> markDownUtils
+        String msg = reportIssues.stream().map(reportIssue -> markDownUtils
                 .printIssue(reportIssue.getPostJobIssue().severity(), reportIssue.getPostJobIssue().message(), reportIssue.getPostJobIssue().ruleKey().toString(), null, null))
                 .collect(Collectors.joining("\n"));
+        if (gitLabPluginConfiguration.pingUser() && author != null) {
+            msg += " @" + author;
+        }
+        return msg;
+    }
+
+    @Override
+    protected Map<String, Object> createContext() {
+        Map<String, Object> root = super.createContext();
+        root.put("lineNumber", lineNumber);
+        root.put("author", author);
+        return root;
     }
 }

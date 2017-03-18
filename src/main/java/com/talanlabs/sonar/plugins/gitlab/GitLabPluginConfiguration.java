@@ -28,6 +28,8 @@ import org.sonar.api.utils.log.Loggers;
 
 import javax.annotation.CheckForNull;
 import java.net.*;
+import java.util.Arrays;
+import java.util.List;
 
 @InstantiationStrategy(InstantiationStrategy.PER_BATCH)
 @BatchSide
@@ -55,9 +57,8 @@ public class GitLabPluginConfiguration {
         return settings.getString(GitLabPlugin.GITLAB_PROJECT_ID);
     }
 
-    @CheckForNull
-    public String commitSHA() {
-        return settings.getString(GitLabPlugin.GITLAB_COMMIT_SHA);
+    public List<String> commitSHA() {
+        return Arrays.asList(settings.getStringArray(GitLabPlugin.GITLAB_COMMIT_SHA));
     }
 
     @CheckForNull
@@ -141,6 +142,14 @@ public class GitLabPluginConfiguration {
 
     public boolean commentNoIssue() {
         return settings.getBoolean(GitLabPlugin.GITLAB_COMMENT_NO_ISSUE);
+    }
+
+    public boolean pingUser() {
+        return settings.getBoolean(GitLabPlugin.GITLAB_PING_USER);
+    }
+
+    public boolean uniqueIssuePerInline() {
+        return settings.getBoolean(GitLabPlugin.GITLAB_UNIQUE_ISSUE_PER_INLINE);
     }
 
     /**

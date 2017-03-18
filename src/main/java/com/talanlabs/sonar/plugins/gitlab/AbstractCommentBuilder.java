@@ -41,15 +41,17 @@ public abstract class AbstractCommentBuilder {
     private static final Logger LOG = Loggers.get(AbstractCommentBuilder.class);
 
     protected final GitLabPluginConfiguration gitLabPluginConfiguration;
+    protected final String revision;
     protected final List<Reporter.ReportIssue> reportIssues;
     protected final MarkDownUtils markDownUtils;
     private final String templateName;
     private final String template;
 
-    AbstractCommentBuilder(GitLabPluginConfiguration gitLabPluginConfiguration, List<Reporter.ReportIssue> reportIssues, MarkDownUtils markDownUtils, String templateName, String template) {
+    AbstractCommentBuilder(GitLabPluginConfiguration gitLabPluginConfiguration, String revision, List<Reporter.ReportIssue> reportIssues, MarkDownUtils markDownUtils, String templateName, String template) {
         super();
 
         this.gitLabPluginConfiguration = gitLabPluginConfiguration;
+        this.revision = revision;
         this.reportIssues = reportIssues;
         this.markDownUtils = markDownUtils;
         this.templateName = templateName;
@@ -78,7 +80,7 @@ public abstract class AbstractCommentBuilder {
         }
     }
 
-    private Map<String, Object> createContext() {
+    protected Map<String, Object> createContext() {
         Map<String, Object> root = new HashMap<>();
         // Config
         root.put("projectId", gitLabPluginConfiguration.projectId());
@@ -96,6 +98,7 @@ public abstract class AbstractCommentBuilder {
         root.put("onlyIssueFromCommitFile", gitLabPluginConfiguration.onlyIssueFromCommitFile());
         root.put("commentNoIssue", gitLabPluginConfiguration.commentNoIssue());
         // Report
+        root.put("revision", revision);
         Arrays.stream(Severity.values()).forEach(severity -> root.put(severity.name(), severity));
         root.put("issueCount", new IssueCountTemplateMethodModelEx(reportIssues));
         root.put("issues", new IssuesTemplateMethodModelEx(reportIssues));

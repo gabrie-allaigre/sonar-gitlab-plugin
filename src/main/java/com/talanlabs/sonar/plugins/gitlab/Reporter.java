@@ -36,7 +36,7 @@ public class Reporter {
     private int[] newIssuesBySeverity = new int[SEVERITIES.size()];
     private Map<Severity, List<ReportIssue>> reportIssuesMap = new EnumMap<>(Severity.class);
     private Map<Severity, List<ReportIssue>> notReportedOnDiffMap = new EnumMap<>(Severity.class);
-    private Map<InputFile, Map<Integer, List<ReportIssue>>> fileLineMap = new HashMap<>();
+    private Map<String, Map<InputFile, Map<Integer, List<ReportIssue>>>> revisionFileLineMap = new HashMap<>();
     private int notReportedIssueCount = 0;
 
     public Reporter(GitLabPluginConfiguration gitLabPluginConfiguration) {
@@ -45,8 +45,9 @@ public class Reporter {
         this.gitLabPluginConfiguration = gitLabPluginConfiguration;
     }
 
-    public void process(PostJobIssue postJobIssue, @Nullable String gitLabUrl, boolean reportedOnDiff) {
-        ReportIssue reportIssue = new ReportIssue(postJobIssue, gitLabUrl, reportedOnDiff);
+    public void process(PostJobIssue postJobIssue, @Nullable String revision, @Nullable String gitLabUrl, boolean reportedOnDiff) {
+        String r = revision != null ? revision : gitLabPluginConfiguration.commitSHA().get(0);
+        ReportIssue reportIssue = new ReportIssue(postJobIssue, r, gitLabUrl, reportedOnDiff);
         List<ReportIssue> reportIssues = reportIssuesMap.computeIfAbsent(postJobIssue.severity(), k -> new ArrayList<>());
         reportIssues.add(reportIssue);
 
@@ -57,6 +58,7 @@ public class Reporter {
             List<ReportIssue> notReportedOnDiffs = notReportedOnDiffMap.computeIfAbsent(postJobIssue.severity(), k -> new ArrayList<>());
             notReportedOnDiffs.add(reportIssue);
         } else {
+            Map<InputFile, Map<Integer, List<ReportIssue>>> fileLineMap = revisionFileLineMap.computeIfAbsent(r, k -> new HashMap<>());
             Map<Integer, List<ReportIssue>> issuesByLine = fileLineMap.computeIfAbsent((InputFile) postJobIssue.inputComponent(), k -> new HashMap<>());
             issuesByLine.computeIfAbsent(postJobIssue.line(), k -> new ArrayList<>()).add(reportIssue);
         }
@@ -112,12 +114,12 @@ public class Reporter {
         return Collections.unmodifiableList(notReportedOnDiffMap.getOrDefault(severity, Collections.emptyList()));
     }
 
-    public Map<InputFile, Map<Integer, List<ReportIssue>>> getFileLineMap() {
-        return Collections.unmodifiableMap(fileLineMap);
+    public Map<String, Map<InputFile, Map<Integer, List<ReportIssue>>>> getFileLineMap() {
+        return Collections.unmodifiableMap(revisionFileLineMap);
     }
 
     public boolean hasFileLine() {
-        return !fileLineMap.isEmpty();
+        return !revisionFileLineMap.isEmpty();
     }
 
     public String getStatusDescription() {
@@ -159,17 +161,23 @@ public class Reporter {
     public static class ReportIssue {
 
         private final PostJobIssue postJobIssue;
+        private final String revision;
         private final String url;
         private final boolean reportedOnDiff;
 
-        public ReportIssue(PostJobIssue postJobIssue, String url, boolean reportedOnDiff) {
+        public ReportIssue(PostJobIssue postJobIssue, String revision, String url, boolean reportedOnDiff) {
             this.postJobIssue = postJobIssue;
+            this.revision = revision;
             this.url = url;
             this.reportedOnDiff = reportedOnDiff;
         }
 
         public PostJobIssue getPostJobIssue() {
             return postJobIssue;
+        }
+
+        public String getRevision() {
+            return revision;
         }
 
         public String getUrl() {

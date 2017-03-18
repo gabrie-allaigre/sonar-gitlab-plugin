@@ -26,11 +26,24 @@ import org.sonar.api.batch.rule.Severity;
 import org.sonar.api.rule.RuleKey;
 
 import javax.annotation.CheckForNull;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.IOException;
+import java.nio.charset.Charset;
+import java.nio.file.Files;
 
 public class Utils {
 
     private Utils() {
         super();
+    }
+
+    public static PostJobIssue newMockedIssue(String componentKey, Severity severity, boolean isNew, String message) {
+        return newMockedIssue(componentKey, null, null, severity, isNew, message);
+    }
+
+    public static PostJobIssue newMockedIssue(String componentKey, @CheckForNull DefaultInputFile inputFile, @CheckForNull Integer line, Severity severity, boolean isNew, String message) {
+        return newMockedIssue(componentKey, inputFile, line, severity, isNew, message, "rule");
     }
 
     public static PostJobIssue newMockedIssue(String componentKey, @CheckForNull DefaultInputFile inputFile, @CheckForNull Integer line, Severity severity, boolean isNew, String message, String rule) {
@@ -46,5 +59,21 @@ public class Utils {
         Mockito.when(issue.message()).thenReturn(message);
 
         return issue;
+    }
+
+    public static void createFile(File root, String path, String filename, String value) throws IOException {
+        File dir = new File(root, path);
+        if (!dir.exists()) {
+            if (!dir.mkdirs()) {
+                throw new IOException("Failed to create directories " + dir.toString());
+            }
+        }
+        File file = new File(dir, filename);
+        if (!file.createNewFile()) {
+            throw new IOException("Failed to create file " + file.toString());
+        }
+        try (BufferedWriter bw = Files.newBufferedWriter(file.toPath(), Charset.defaultCharset())) {
+            bw.write(value);
+        }
     }
 }
