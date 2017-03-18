@@ -16,7 +16,7 @@
   <packaging>sonar-plugin</packaging>
   <url>https://github.com/gabrie-allaigre/sonar-gitlab-plugin</url>
   <properties>
-    <java-gitlab-api.version>1.2.0-SNAPSHOT</java-gitlab-api.version>
+    <java-gitlab-api.version>1.2.0</java-gitlab-api.version>
     <freemarker.version>2.3.23</freemarker.version>
 
     <license.mailto>gabriel.allaigre@talanlabs.com</license.mailto>
