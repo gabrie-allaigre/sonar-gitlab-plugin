@@ -15,7 +15,7 @@ Inspired by https://github.com/SonarCommunity/sonar-github
 - Use emoticon (Thanks Artpej)
 - Change fail rule (Thanks Artpej)
 - Add comment for no issue (Thanks frol2103)
-- Clean code and dead code (Thanks johnou)
+- Refactored code (Thanks johnou)
 - Disable reporting in global comments
 - Disable reporting in inline comments
 - Add support Proxy
@@ -61,7 +61,7 @@ For SonarQube >= 5.4:
 - Copy file in extensions directory `SONARQUBE_HOME/extensions/plugins`
 - Restart SonarQube
 
-**Other Plugin: [Add Single Sign-On with GitLab in SonarQube](https://github.com/gabrie-allaigre/sonar-auth-gitlab-plugin)**
+**Optional Plugin: [Add Single Sign-On with GitLab in SonarQube](https://github.com/gabrie-allaigre/sonar-auth-gitlab-plugin)**
 
 # Command line
 
