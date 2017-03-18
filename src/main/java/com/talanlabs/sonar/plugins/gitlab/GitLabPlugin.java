@@ -95,7 +95,7 @@ public class GitLabPlugin implements Plugin {
                                 .category(CATEGORY).subCategory(SUBCATEGORY).type(PropertyType.SINGLE_SELECT_LIST)
                                 .options(BuildInitState.PENDING.getMeaning(), BuildInitState.RUNNING.getMeaning()).defaultValue(BuildInitState.PENDING.getMeaning()).index(17).build(),
                         PropertyDefinition.builder(GITLAB_DISABLE_GLOBAL_COMMENT).name("Disable global comment").description("Disable global comment, report only inline.")
-                                .category(CATEGORY).subCategory(SUBCATEGORY).defaultValue(String.valueOf(false)).index(18).build(),
+                                .category(CATEGORY).subCategory(SUBCATEGORY).type(PropertyType.BOOLEAN).defaultValue(String.valueOf(false)).index(18).build(),
                         PropertyDefinition.builder(GITLAB_STATUS_NOTIFICATION_MODE).name("Status notification mode").description("Status notification mode: commit-status or exit-code")
                                 .category(CATEGORY).subCategory(SUBCATEGORY).type(PropertyType.SINGLE_SELECT_LIST)
                                 .options(StatusNotificationsMode.COMMIT_STATUS.getMeaning(), StatusNotificationsMode.EXIT_CODE.getMeaning()).defaultValue(StatusNotificationsMode.COMMIT_STATUS.getMeaning())
