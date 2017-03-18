@@ -25,6 +25,7 @@ import freemarker.template.Template;
 import freemarker.template.TemplateException;
 import freemarker.template.TemplateExceptionHandler;
 import org.sonar.api.batch.rule.Severity;
+import org.sonar.api.internal.apachecommons.lang.StringEscapeUtils;
 import org.sonar.api.utils.MessageException;
 import org.sonar.api.utils.log.Logger;
 import org.sonar.api.utils.log.Loggers;
@@ -73,7 +74,7 @@ public abstract class AbstractCommentBuilder {
 
         try (StringWriter sw = new StringWriter()) {
             new Template(templateName, template, cfg).process(createContext(), sw);
-            return sw.toString();
+            return StringEscapeUtils.unescapeHtml(sw.toString());
         } catch (IOException | TemplateException e) {
             LOG.error("Failed to create template {}", templateName, e);
             throw MessageException.of("Failed to create template " + templateName);

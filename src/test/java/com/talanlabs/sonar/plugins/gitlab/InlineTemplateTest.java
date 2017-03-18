@@ -77,4 +77,14 @@ public class InlineTemplateTest {
                 .isEqualTo(":information_source: Issue [:blue_book:](http://myserver/coding_rules#rule_key=repo%3Arule)\n" +
                         ":information_source: Issue [:blue_book:](http://myserver/coding_rules#rule_key=repo%3Arule)\n");
     }
+
+    @Test
+    public void testUnescapeHTML() {
+        settings.setProperty(GitLabPlugin.GITLAB_INLINE_TEMPLATE, TEMPLATE + "&agrave;&acirc;&eacute;&ccedil;");
+
+        Reporter.ReportIssue r1 = new Reporter.ReportIssue(Utils.newMockedIssue("component", null, 1, Severity.INFO, true, "Issue", "rule"), null, "lalal", true);
+
+        Assertions.assertThat(new InlineCommentBuilder(config, "123", null, 1, Collections.singletonList(r1), new MarkDownUtils(settings)).buildForMarkdown())
+                .isEqualTo(":information_source: Issue [:blue_book:](http://myserver/coding_rules#rule_key=repo%3Arule)\nàâéç");
+    }
 }
