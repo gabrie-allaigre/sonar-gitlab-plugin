@@ -5,6 +5,11 @@ Sonar GitLab Plugin
 
 Inspired by https://github.com/SonarCommunity/sonar-github
 
+**New version 2.0.0-beta2**
+
+- Get multi SHA for comment inline all commits
+- Custom comment maybe empty then no comment added
+
 **New version 2.0.0-beta1**
 
 - Use emoticon (Thanks Artpej)
@@ -17,8 +22,6 @@ Inspired by https://github.com/SonarCommunity/sonar-github
 - Ignore certficate if auto-signed 
 - Custom global comment (Template)
 - Custom inline comment (Template)
-- Get multi SHA for comment inline all commits
-- Custom comment maybe empty then no comment add
 
 **Update**
 
@@ -29,7 +32,7 @@ Inspired by https://github.com/SonarCommunity/sonar-github
 - Sonarqube >= 5.6
 - Remove personal repository
 
-**Download beta version** https://github.com/gabrie-allaigre/sonar-gitlab-plugin/releases/download/2.0.0-beta1/sonar-gitlab-plugin-2.0.0-beta1.jar
+**Download beta version** https://github.com/gabrie-allaigre/sonar-gitlab-plugin/releases/download/2.0.0-beta2/sonar-gitlab-plugin-2.0.0-beta2.jar
 
 # Goal
 
