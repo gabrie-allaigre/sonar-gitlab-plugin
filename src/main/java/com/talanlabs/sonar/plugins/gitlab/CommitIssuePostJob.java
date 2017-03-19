@@ -127,6 +127,8 @@ public class CommitIssuePostJob implements PostJob {
             revision = commitFacade.getRevisionForLine((InputFile) inputComponent, issue.line());
             reportedInline = gitLabPluginConfiguration.tryReportIssuesInline() && revision != null;
         }
+        LOG.debug("Revision for issue {} {} {}", issue, revision, reportedInline);
+        LOG.debug("inputComponent {} {}", inputComponent, issue.line());
         report.process(issue, revision, commitFacade.getGitLabUrl(revision, inputComponent, issue.line()), reportedInline);
     }
 
@@ -149,6 +151,7 @@ public class CommitIssuePostJob implements PostJob {
     }
 
     private void updateReviewComments(String revision, String username, InputFile inputFile, Integer lineNumber, List<Reporter.ReportIssue> reportIssues) {
+        LOG.debug("updateReviewComments {} {}", revision, reportIssues);
         if (gitLabPluginConfiguration.uniqueIssuePerInline()) {
             for (Reporter.ReportIssue reportIssue : reportIssues) {
                 updateReviewCommentsPerInline(revision, username, inputFile, lineNumber, Collections.singletonList(reportIssue));

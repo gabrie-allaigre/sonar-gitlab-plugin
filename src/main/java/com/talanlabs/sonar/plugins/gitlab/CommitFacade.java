@@ -199,6 +199,8 @@ public class CommitFacade {
                     .collect(Collectors.toMap(GitLabCommitDiff::getNewPath, d -> getPositionsFromPatch(d.getDiff()))));
         }
 
+        LOG.debug("getPatchPositionsToLineMapping {}", result);
+
         return result;
     }
 
@@ -279,11 +281,14 @@ public class CommitFacade {
 
     public boolean hasFile(InputFile inputFile) {
         String path = getPath(inputFile);
+        LOG.debug("hasFile {}", path);
         for (String revision : config.commitSHA()) {
             if (patchPositionByFile.get(revision).containsKey(path)) {
+                LOG.debug("hasFile found {}", revision);
                 return true;
             }
         }
+        LOG.debug("hasFile notfound");
         return false;
     }
 
@@ -298,12 +303,17 @@ public class CommitFacade {
         Line line = new Line(lineNumber, value);
         String path = getPath(inputFile);
 
+        LOG.debug("getRevisionForLine {} {}", path, line);
+
         for (String revision : config.commitSHA()) {
+            LOG.debug("getRevisionForLine " + patchPositionByFile.get(revision));
             if (patchPositionByFile.get(revision).entrySet().stream().anyMatch(v ->
                     v.getKey().equals(path) && v.getValue().contains(line))) {
+                LOG.debug("getRevisionForLine found {}");
                 return revision;
             }
         }
+        LOG.info("getRevisionForLine notfound");
         return null;
     }
 
