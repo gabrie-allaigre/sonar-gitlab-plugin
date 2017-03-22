@@ -29,7 +29,7 @@ Inspired by https://github.com/SonarCommunity/sonar-github
 - Sonarqube >= 5.6
 - Remove personal repository
 
-**Download RC version** https://github.com/gabrie-allaigre/sonar-gitlab-plugin/releases/download/2.0.0-beta2/sonar-gitlab-plugin-2.0.0-rc1.jar
+**Download RC version** https://github.com/gabrie-allaigre/sonar-gitlab-plugin/releases/download/2.0.0-rc1/sonar-gitlab-plugin-2.0.0-rc1.jar
 
 # Goal
 
