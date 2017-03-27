@@ -76,12 +76,14 @@ mvn --batch-mode verify sonar:sonar -Dsonar.host.url=$SONAR_URL -Dsonar.analysis
 
 ## GitLab CI
 
-.gitlab-ci.yml sample:
+.gitlab-ci.yml sample for Maven project, comment last commit:
 
 ```yml
 sonarqube_preview:
   script:
-    - mvn --batch-mode verify sonar:sonar -Dgpg.sign=false -Dsonar.host.url=$SONAR_URL -Dsonar.analysis.mode=preview -Dsonar.issuesReport.console.enable=true -Dsonar.gitlab.project_id=$CI_PROJECT_PATH -Dsonar.gitlab.commit_sha=$(git log --pretty=format:%H origin/master..$CI_BUILD_REF | tr '\n' ',') -Dsonar.gitlab.ref_name=$CI_BUILD_REF_NAME
+    - git checkout origin/master
+    - git merge $CI_BUILD_REF --no-commit --no-ff
+    - mvn --batch-mode verify sonar:sonar -Dsonar.host.url=$SONAR_URL -Dsonar.analysis.mode=preview -Dsonar.gitlab.project_id=$CI_PROJECT_PATH -Dsonar.gitlab.commit_sha=$CI_BUILD_REF -Dsonar.gitlab.ref_name=$CI_BUILD_REF_NAME
   stage: test
   except:
     - develop
