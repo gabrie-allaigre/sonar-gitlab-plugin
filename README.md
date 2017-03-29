@@ -29,7 +29,7 @@ Inspired by https://github.com/SonarCommunity/sonar-github
 - Sonarqube >= 5.6
 - Remove personal repository
 
-**Download RC version** https://github.com/gabrie-allaigre/sonar-gitlab-plugin/releases/download/2.0.0-rc1/sonar-gitlab-plugin-2.0.0-rc1.jar
+**Download 2.0.0 version** https://github.com/gabrie-allaigre/sonar-gitlab-plugin/releases/download/2.0.0/sonar-gitlab-plugin-2.0.0.jar
 
 # Goal
 
@@ -55,6 +55,12 @@ For SonarQube < 5.4:
 For SonarQube >= 5.4:
 
 - Download last version https://github.com/gabrie-allaigre/sonar-gitlab-plugin/releases/download/1.7.0/sonar-gitlab-plugin-1.7.0.jar
+- Copy file in extensions directory `SONARQUBE_HOME/extensions/plugins`
+- Restart SonarQube
+
+For SonarQube >= 5.6:
+
+- Download last version https://github.com/gabrie-allaigre/sonar-gitlab-plugin/releases/download/2.0.0/sonar-gitlab-plugin-2.0.0.jar
 - Copy file in extensions directory `SONARQUBE_HOME/extensions/plugins`
 - Restart SonarQube
 
