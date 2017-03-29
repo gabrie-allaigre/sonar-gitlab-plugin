@@ -5,6 +5,12 @@ Sonar GitLab Plugin
 
 Inspired by https://github.com/SonarCommunity/sonar-github
 
+**New version 2.0.1-rc1**
+
+- Fixbug : NoClassDefFoundError with internal sonar class #26
+
+https://github.com/gabrie-allaigre/sonar-gitlab-plugin/releases/download/2.0.1-rc1/sonar-gitlab-plugin-2.0.1-rc1.jar
+
 **The new version 2.0.0 is directly in the SonarQube update center**
 
 **New version 2.0.0**

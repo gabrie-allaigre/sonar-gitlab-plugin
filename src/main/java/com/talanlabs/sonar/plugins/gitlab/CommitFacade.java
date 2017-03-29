@@ -313,7 +313,7 @@ public class CommitFacade {
                 return revision;
             }
         }
-        LOG.info("getRevisionForLine notfound");
+        LOG.debug("getRevisionForLine notfound");
         return null;
     }
 
