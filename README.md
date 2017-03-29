@@ -5,6 +5,8 @@ Sonar GitLab Plugin
 
 Inspired by https://github.com/SonarCommunity/sonar-github
 
+**The new version 2.0.0 is directly in the SonarQube update center**
+
 **New version 2.0.0**
 
 - Use emoticon (Thanks Artpej)
