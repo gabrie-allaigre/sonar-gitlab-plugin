@@ -5,11 +5,11 @@ Sonar GitLab Plugin
 
 Inspired by https://github.com/SonarCommunity/sonar-github
 
-**New version 2.0.1-rc1**
+**New version 2.0.1**
 
 - Fixbug : NoClassDefFoundError with internal sonar class #26
 
-https://github.com/gabrie-allaigre/sonar-gitlab-plugin/releases/download/2.0.1-rc1/sonar-gitlab-plugin-2.0.1-rc1.jar
+**Download 2.0.1 version** https://github.com/gabrie-allaigre/sonar-gitlab-plugin/releases/download/2.0.1/sonar-gitlab-plugin-2.0.1.jar
 
 **The new version 2.0.0 is directly in the SonarQube update center**
 
@@ -36,8 +36,6 @@ https://github.com/gabrie-allaigre/sonar-gitlab-plugin/releases/download/2.0.1-r
 - Java 8
 - Sonarqube >= 5.6
 - Remove personal repository
-
-**Download 2.0.0 version** https://github.com/gabrie-allaigre/sonar-gitlab-plugin/releases/download/2.0.0/sonar-gitlab-plugin-2.0.0.jar
 
 # Goal
 
@@ -68,7 +66,7 @@ For SonarQube >= 5.4:
 
 For SonarQube >= 5.6:
 
-- Download last version https://github.com/gabrie-allaigre/sonar-gitlab-plugin/releases/download/2.0.0/sonar-gitlab-plugin-2.0.0.jar
+- Download last version https://github.com/gabrie-allaigre/sonar-gitlab-plugin/releases/download/2.0.1/sonar-gitlab-plugin-2.0.1.jar
 - Copy file in extensions directory `SONARQUBE_HOME/extensions/plugins`
 - Restart SonarQube
 
