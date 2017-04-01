@@ -115,6 +115,15 @@ sonarqube:
     - java
 ```
 
+| GitLab 8.x name | GitLab 9.x name |
+| -------- | ----------- |
+| CI_BUILD_REF | CI_COMMIT_SHA |
+| CI_BUILD_REF_NAME | CI_COMMIT_REF_NAME |
+
+https://docs.gitlab.com/ce/ci/variables/#9-0-renaming
+
+## Plugins properties
+
 | Variable | Comment | Type | Version |
 | -------- | ----------- | ---- | --- |
 | sonar.gitlab.url | GitLab url | Administration, Variable | >= 1.6.6 |
