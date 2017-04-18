@@ -162,6 +162,44 @@ public class CommitIssuePostJobTest {
     }
 
     @Test
+    public void testCommitAnalysisWithNewIssuesOnlyLine() {
+        settings.setProperty(GitLabPlugin.GITLAB_ONLY_ISSUE_FROM_COMMIT_LINE, true);
+
+        DefaultInputFile inputFile1 = new DefaultInputFile("foo", "src/Foo.php");
+        PostJobIssue newIssue = Utils.newMockedIssue("foo:src/Foo.php", inputFile1, 1, Severity.BLOCKER, true, "msg1");
+        Mockito.when(commitFacade.getGitLabUrl(null, inputFile1, 1)).thenReturn("http://gitlab/blob/abc123/src/Foo.php#L1");
+
+        PostJobIssue lineNotVisible = Utils.newMockedIssue("foo:src/Foo.php", inputFile1, 2, Severity.BLOCKER, true, "msg2");
+        Mockito.when(commitFacade.getGitLabUrl(null, inputFile1, 2)).thenReturn("http://gitlab/blob/abc123/src/Foo.php#L2");
+
+        DefaultInputFile inputFile2 = new DefaultInputFile("foo", "src/Foo2.php");
+        PostJobIssue fileNotInPR = Utils.newMockedIssue("foo:src/Foo2.php", inputFile2, 1, Severity.BLOCKER, true, "msg3");
+
+        PostJobIssue notNewIssue = Utils.newMockedIssue("foo:src/Foo.php", inputFile1, 1, Severity.BLOCKER, false, "msg");
+
+        PostJobIssue issueOnDir = Utils.newMockedIssue("foo:src", Severity.BLOCKER, true, "msg4");
+
+        PostJobIssue issueOnProject = Utils.newMockedIssue("foo", Severity.BLOCKER, true, "msg");
+
+        PostJobIssue globalIssue = Utils.newMockedIssue("foo:src/Foo.php", inputFile1, null, Severity.BLOCKER, true, "msg5");
+
+        Mockito.when(context.issues()).thenReturn(Arrays.asList(newIssue, globalIssue, issueOnProject, issueOnDir, fileNotInPR, lineNotVisible, notNewIssue));
+        Mockito.when(commitFacade.hasFile(inputFile1)).thenReturn(true);
+        Mockito.when(commitFacade.getRevisionForLine(inputFile1, 1)).thenReturn("abc123");
+
+        commitIssuePostJob.execute(context);
+        Mockito.verify(commitFacade).addGlobalComment(Mockito.contains("SonarQube analysis reported 1 issue"));
+        Mockito.verify(commitFacade).addGlobalComment(Mockito.contains("* :no_entry: 1 blocker"));
+        Mockito.verify(commitFacade).addGlobalComment(AdditionalMatchers.not(Mockito.contains("1. [Project")));
+        Mockito.verify(commitFacade)
+                .addGlobalComment(AdditionalMatchers.not(Mockito.contains("1. :no_entry: [msg2](http://gitlab/blob/abc123/src/Foo.php#L2) [:blue_book:](http://myserver/coding_rules#rule_key=repo%3Arule)")));
+
+        Mockito.verify(commitFacade).createOrUpdateReviewComment("abc123", inputFile1, 1, ":no_entry: msg1 [:blue_book:](http://myserver/coding_rules#rule_key=repo%3Arule)");
+
+        Mockito.verify(commitFacade).createOrUpdateSonarQubeStatus("failed", "SonarQube reported 1 issue, with 1 blocker (fail)");
+    }
+
+    @Test
     public void testCommitAnalysisWithNewIssuesOnlyReview() {
         settings.setProperty(GitLabPlugin.GITLAB_ONLY_ISSUE_FROM_COMMIT_FILE, true);
 

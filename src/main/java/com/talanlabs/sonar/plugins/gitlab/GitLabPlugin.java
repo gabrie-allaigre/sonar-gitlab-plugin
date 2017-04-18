@@ -46,6 +46,7 @@ public class GitLabPlugin implements Plugin {
     public static final String GITLAB_COMMENT_NO_ISSUE = "sonar.gitlab.comment_no_issue";
     public static final String GITLAB_DISABLE_INLINE_COMMENTS = "sonar.gitlab.disable_inline_comments";
     public static final String GITLAB_ONLY_ISSUE_FROM_COMMIT_FILE = "sonar.gitlab.only_issue_from_commit_file";
+    public static final String GITLAB_ONLY_ISSUE_FROM_COMMIT_LINE = "sonar.gitlab.only_issue_from_commit_line";
     public static final String GITLAB_BUILD_INIT_STATE = "sonar.gitlab.build_init_state";
     public static final String GITLAB_DISABLE_GLOBAL_COMMENT = "sonar.gitlab.disable_global_comment";
     public static final String GITLAB_STATUS_NOTIFICATION_MODE = "sonar.gitlab.failure_notification_mode";
@@ -107,7 +108,9 @@ public class GitLabPlugin implements Plugin {
                         PropertyDefinition.builder(GITLAB_PING_USER).name("Ping the user").description("Ping the user who made an issue by @ mentioning.").category(CATEGORY).subCategory(SUBCATEGORY)
                                 .type(PropertyType.BOOLEAN).defaultValue(String.valueOf(false)).index(22).build(),
                         PropertyDefinition.builder(GITLAB_UNIQUE_ISSUE_PER_INLINE).name("Unique issue per inline comment").description("Per inline comment, set only one issue").category(CATEGORY).subCategory(SUBCATEGORY)
-                                .type(PropertyType.BOOLEAN).defaultValue(String.valueOf(false)).index(23).build())
+                                .type(PropertyType.BOOLEAN).defaultValue(String.valueOf(false)).index(23).build(),
+                        PropertyDefinition.builder(GITLAB_ONLY_ISSUE_FROM_COMMIT_LINE).name("Show issue for commit line only").description("Issues will be reported if in current commit")
+                                .category(CATEGORY).subCategory(SUBCATEGORY).type(PropertyType.BOOLEAN).defaultValue(String.valueOf(false)).index(24).hidden().build())
                 ;
     }
 

@@ -86,6 +86,10 @@ public class GitLabPluginConfigurationTest {
         settings.setProperty(GitLabPlugin.GITLAB_ONLY_ISSUE_FROM_COMMIT_FILE, "true");
         Assertions.assertThat(config.onlyIssueFromCommitFile()).isTrue();
 
+        Assertions.assertThat(config.onlyIssueFromCommitLine()).isFalse();
+        settings.setProperty(GitLabPlugin.GITLAB_ONLY_ISSUE_FROM_COMMIT_LINE, "true");
+        Assertions.assertThat(config.onlyIssueFromCommitLine()).isTrue();
+
         Assertions.assertThat(config.buildInitState()).isEqualTo(BuildInitState.PENDING);
         settings.setProperty(GitLabPlugin.GITLAB_BUILD_INIT_STATE, BuildInitState.RUNNING.getMeaning());
         Assertions.assertThat(config.buildInitState()).isEqualTo(BuildInitState.RUNNING);

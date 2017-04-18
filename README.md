@@ -11,9 +11,9 @@ Inspired by https://github.com/SonarCommunity/sonar-github
 
 **Download 2.0.1 version** https://github.com/gabrie-allaigre/sonar-gitlab-plugin/releases/download/2.0.1/sonar-gitlab-plugin-2.0.1.jar
 
-**The new version 2.0.0 is directly in the SonarQube update center**
+**The version 2.0.1 is directly in the SonarQube update center**
 
-**New version 2.0.0**
+**Version 2.0.0**
 
 - Use emoticon (Thanks Artpej)
 - Change fail rule (Thanks Artpej)
@@ -141,6 +141,7 @@ https://docs.gitlab.com/ce/ci/variables/#9-0-renaming
 | sonar.gitlab.comment_no_issue | Add a comment even when there is no new issue (default false) | Administration, Variable | >= 2.0.0 |
 | sonar.gitlab.disable_inline_comments | Disable issue reporting as inline comments (default false) | Administration, Variable | >= 2.0.0 |
 | sonar.gitlab.only_issue_from_commit_file | Show issue for commit file only (default false) | Variable | >= 2.0.0 |
+| sonar.gitlab.only_issue_from_commit_line | Show issue for commit line only (default false) | Variable | >= 2.1.0 |
 | sonar.gitlab.build_init_state | State that should be the first when build commit status update is called (default pending) | Administration, Variable | >= 2.0.0 |
 | sonar.gitlab.disable_global_comment | Disable global comment, report only inline (default false) | Administration, Variable | >= 2.0.0 |
 | sonar.gitlab.failure_notification_mode | Notification is in current build (exit-code) or in commit status (commit-status) (default commit-status) | Administration, Variable | >= 2.0.0 |
