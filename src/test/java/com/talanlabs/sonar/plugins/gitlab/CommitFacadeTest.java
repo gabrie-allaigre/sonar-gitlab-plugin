@@ -22,6 +22,7 @@ package com.talanlabs.sonar.plugins.gitlab;
 import com.talanlabs.gitlab.api.GitLabAPI;
 import com.talanlabs.gitlab.api.models.projects.GitLabProject;
 import com.talanlabs.gitlab.api.services.GitLabAPICommits;
+import org.assertj.core.api.Assertions;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
@@ -222,5 +223,25 @@ public class CommitFacadeTest {
         facade.createOrUpdateReviewComment(null, inputFile, 5, "nothing");
 
         verify(gitLabAPICommits).postCommitComments(1, "1", "nothing", "src/main/Foo.java", 5, "new");
+    }
+
+    @Test
+    public void tesGetPath() throws IOException {
+        GitLabPluginConfiguration gitLabPluginConfiguration = mock(GitLabPluginConfiguration.class);
+        when(gitLabPluginConfiguration.commitSHA()).thenReturn(Collections.singletonList("1"));
+        when(gitLabPluginConfiguration.refName()).thenReturn("master");
+
+        CommitFacade facade = new CommitFacade(gitLabPluginConfiguration);
+
+        File gitBasedir = temp.newFolder();
+        facade.setGitBaseDir(gitBasedir);
+
+        InputFile inputFile = mock(InputFile.class);
+        when(inputFile.file()).thenReturn(new File(gitBasedir, "src/main/Foo.java"));
+        Assertions.assertThat(facade.getPath(inputFile)).isEqualTo("src/main/Foo.java");
+
+        when(gitLabPluginConfiguration.prefixDirectory()).thenReturn("toto/");
+
+        Assertions.assertThat(facade.getPath(inputFile)).isEqualTo("toto/src/main/Foo.java");
     }
 }

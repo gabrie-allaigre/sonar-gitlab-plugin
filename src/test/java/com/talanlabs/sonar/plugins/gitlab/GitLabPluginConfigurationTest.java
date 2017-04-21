@@ -144,6 +144,10 @@ public class GitLabPluginConfigurationTest {
         Assertions.assertThat(config.maxInfoIssuesGate()).isEqualTo(-1);
         settings.setProperty(GitLabPlugin.GITLAB_MAX_INFO_ISSUES_GATE, "10");
         Assertions.assertThat(config.maxInfoIssuesGate()).isEqualTo(10);
+
+        Assertions.assertThat(config.prefixDirectory()).isNull();
+        settings.setProperty(GitLabPlugin.GITLAB_PREFIX_DIRECTORY, "/src");
+        Assertions.assertThat(config.prefixDirectory()).isEqualTo("/src");
     }
 
     @Test

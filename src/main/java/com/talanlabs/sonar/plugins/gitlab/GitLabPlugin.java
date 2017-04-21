@@ -52,6 +52,7 @@ public class GitLabPlugin implements Plugin {
     public static final String GITLAB_STATUS_NOTIFICATION_MODE = "sonar.gitlab.failure_notification_mode";
     public static final String GITLAB_PING_USER = "sonar.gitlab.ping_user";
     public static final String GITLAB_UNIQUE_ISSUE_PER_INLINE = "sonar.gitlab.unique_issue_per_inline";
+    public static final String GITLAB_PREFIX_DIRECTORY = "sonar.gitlab.prefix_directory";
 
     public static final String CATEGORY = "gitlab";
     public static final String SUBCATEGORY = "reporting";
@@ -110,7 +111,9 @@ public class GitLabPlugin implements Plugin {
                         PropertyDefinition.builder(GITLAB_UNIQUE_ISSUE_PER_INLINE).name("Unique issue per inline comment").description("Per inline comment, set only one issue").category(CATEGORY).subCategory(SUBCATEGORY)
                                 .type(PropertyType.BOOLEAN).defaultValue(String.valueOf(false)).index(23).build(),
                         PropertyDefinition.builder(GITLAB_ONLY_ISSUE_FROM_COMMIT_LINE).name("Show issue for commit line only").description("Issues will be reported if in current commit")
-                                .category(CATEGORY).subCategory(SUBCATEGORY).type(PropertyType.BOOLEAN).defaultValue(String.valueOf(false)).index(24).hidden().build())
+                                .category(CATEGORY).subCategory(SUBCATEGORY).type(PropertyType.BOOLEAN).defaultValue(String.valueOf(false)).index(24).hidden().build(),
+                        PropertyDefinition.builder(GITLAB_PREFIX_DIRECTORY).name("Prefix directory for GitLab link").description("Add prefix for GitLab link").category(CATEGORY).subCategory(SUBCATEGORY)
+                                .type(PropertyType.STRING).defaultValue("").index(24).build())
                 ;
     }
 

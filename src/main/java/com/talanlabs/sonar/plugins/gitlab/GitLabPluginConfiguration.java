@@ -19,6 +19,7 @@
  */
 package com.talanlabs.sonar.plugins.gitlab;
 
+import org.sonar.api.CoreProperties;
 import org.sonar.api.batch.BatchSide;
 import org.sonar.api.batch.InstantiationStrategy;
 import org.sonar.api.config.Settings;
@@ -51,6 +52,8 @@ public class GitLabPluginConfiguration {
 
         this.settings = settings;
         this.system2 = system2;
+
+        LOG.info("GlobalWorkingDir {}", settings.getString(CoreProperties.GLOBAL_WORKING_DIRECTORY));
     }
 
     public String projectId() {
@@ -154,6 +157,10 @@ public class GitLabPluginConfiguration {
 
     public boolean uniqueIssuePerInline() {
         return settings.getBoolean(GitLabPlugin.GITLAB_UNIQUE_ISSUE_PER_INLINE);
+    }
+
+    public String prefixDirectory() {
+        return settings.getString(GitLabPlugin.GITLAB_PREFIX_DIRECTORY);
     }
 
     /**

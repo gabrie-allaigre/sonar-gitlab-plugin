@@ -336,7 +336,8 @@ public class CommitFacade {
     }
 
     String getPath(InputPath inputPath) {
-        return new PathResolver().relativePath(gitBaseDir, inputPath.file());
+        String prefix = config.prefixDirectory() != null ? config.prefixDirectory() : "";
+        return prefix + new PathResolver().relativePath(gitBaseDir, inputPath.file());
     }
 
     public void addGlobalComment(String comment) {

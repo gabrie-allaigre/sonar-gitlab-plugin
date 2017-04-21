@@ -327,3 +327,8 @@ If you don't already have you certificate on the SonarQube server, run `openssl 
 Import it into your JRE cacerts (you can check from the "System Info" page in the Administration section of your sonarqube instance), running `sudo $JDK8/bin/keytool -import -file ~/mygitlab.crt -keystore $JDK8/jre/lib/security/cacerts -alias mygitlab`.
 
 Restart your SonarQube instance.
+
+# Changes
+
+- Add commit only line
+- Add prefix workspace (not found .git folder)
