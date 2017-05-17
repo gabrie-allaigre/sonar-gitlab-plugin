@@ -114,8 +114,17 @@ public class CommitIssuePostJob implements PostJob {
     private Stream<PostJobIssue> getStreamPostJobIssue(Iterable<PostJobIssue> issues) {
         return StreamSupport.stream(issues.spliterator(), false).filter(PostJobIssue::isNew).filter(i -> {
             InputComponent inputComponent = i.inputComponent();
+            if (gitLabPluginConfiguration.onlyIssueFromCommitLine()) {
+                return onlyIssueFromCommitLine(i);
+            }
             return !gitLabPluginConfiguration.onlyIssueFromCommitFile() || inputComponent == null || !inputComponent.isFile() || commitFacade.hasFile((InputFile) inputComponent);
         });
+    }
+
+    private boolean onlyIssueFromCommitLine(PostJobIssue issue) {
+        InputComponent inputComponent = issue.inputComponent();
+        boolean hasFile = inputComponent != null && inputComponent.isFile() && commitFacade.hasFile((InputFile) inputComponent);
+        return hasFile && issue.line() != null && commitFacade.getRevisionForLine((InputFile) inputComponent, issue.line()) != null;
     }
 
     private void processIssue(Reporter report, PostJobIssue issue) {

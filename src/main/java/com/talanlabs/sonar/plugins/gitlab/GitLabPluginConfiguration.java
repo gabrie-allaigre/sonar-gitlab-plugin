@@ -116,6 +116,10 @@ public class GitLabPluginConfiguration {
         return settings.getBoolean(GitLabPlugin.GITLAB_ONLY_ISSUE_FROM_COMMIT_FILE);
     }
 
+    public boolean onlyIssueFromCommitLine() {
+        return settings.getBoolean(GitLabPlugin.GITLAB_ONLY_ISSUE_FROM_COMMIT_LINE);
+    }
+
     public BuildInitState buildInitState() {
         BuildInitState b = BuildInitState.of(settings.getString(GitLabPlugin.GITLAB_BUILD_INIT_STATE));
         return b != null ? b : BuildInitState.PENDING;
