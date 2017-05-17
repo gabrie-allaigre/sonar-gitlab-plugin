@@ -233,7 +233,7 @@ public class CommitFacade {
         Set<Line> positions = new HashSet<>();
 
         int currentLine = -1;
-        for (String line : patch.split("\n")) {
+        for (String line : patch.split("\\n|\\r\\n")) {
             if (line.startsWith("@")) {
                 Matcher matcher = PATCH_PATTERN.matcher(line);
                 if (!matcher.matches()) {
