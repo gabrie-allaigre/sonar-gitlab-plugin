@@ -148,6 +148,7 @@ https://docs.gitlab.com/ce/ci/variables/#9-0-renaming
 | sonar.gitlab.global_template | Template for global comment in commit | Administration, Variable | >= 2.0.0 |
 | sonar.gitlab.ping_user | Ping the user who made an issue by @ mentioning (default false) | Administration, Variable | >= 2.0.0 |
 | sonar.gitlab.unique_issue_per_inline | Unique issue per inline comment (default false) | Administration, Variable | >= 2.0.0 |
+| sonar.gitlab.prefix_directory | Add prefix when create link for GitLab | Variable | >= 2.1.0 |
 
 - Administration : **Settings** globals in SonarQube
 - Project : **Settings** of project in SonarQube
