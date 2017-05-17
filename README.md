@@ -162,14 +162,6 @@ https://docs.gitlab.com/ce/ci/variables/#9-0-renaming
 
 ![Sonar settings](doc/sonar_project_settings.jpg)
 
-- **On your server** import Gitlab SSL certificate into the JRE used by SonarQube
-
-If you don't already have you certificate on the SonarQube server, run `openssl s_client -connect mygitlab.com:443 -showcerts > /home/${USER}/mygitlab.crt`
-
-Import it into your JRE cacerts (you can check from the "System Info" page in the Administration section of your sonarqube instance), running `sudo $JDK8/bin/keytool -import -file ~/mygitlab.crt -keystore $JDK8/jre/lib/security/cacerts -alias mygitlab`.
-
-Restart your SonarQube instance.
-
 # Templates
 
 Custom global/inline comment : Change language, change image, change order, print all issues, etc
@@ -322,3 +314,15 @@ ${emojiSeverity(issue.severity)} ${issue.message} [:blue_book:](${ruleLink(issue
 **Others examples for inline :**
 - [Template Default](templates/inline/default.md) Current template
 - [Template Default with Images](templates/inline/default-image.md) Same template as default but with images
+
+# Tips
+
+## Import GitLab SSL certifcate
+
+- **On your server** import Gitlab SSL certificate into the JRE used by SonarQube
+
+If you don't already have you certificate on the SonarQube server, run `openssl s_client -connect mygitlab.com:443 -showcerts > /home/${USER}/mygitlab.crt`
+
+Import it into your JRE cacerts (you can check from the "System Info" page in the Administration section of your sonarqube instance), running `sudo $JDK8/bin/keytool -import -file ~/mygitlab.crt -keystore $JDK8/jre/lib/security/cacerts -alias mygitlab`.
+
+Restart your SonarQube instance.
