@@ -83,6 +83,17 @@ public class CommitFacadeTest {
     }
 
     @Test
+    public void testPatchLineMapping_LF_and_CRLF_as_newline_characters() throws IOException {
+        CommitFacade facade = new CommitFacade(mock(GitLabPluginConfiguration.class));
+        Set<CommitFacade.Line> patchLocationMapping =
+                facade.getPositionsFromPatch(
+                        "@@ -24,9 +24,9 @@\n /**\r\n  * A plugin is a group of extensions. See <code>org.sonar.api.Extension</code> interface to browse\n  * available extension points.\r\n- * <p/>\r\n  * <p>The manifest property <code>Plugin-Class</code> must declare the name of the implementation class.\n  * It is automatically set by sonar-packaging-maven-plugin when building plugins.</p>\r\n+ * <p>Implementation must declare a public constructor with no-parameters.</p>\r\n  *\r\n  * @see org.sonar.api.Extension\r\n  * @since 1.10");
+
+        System.out.println(patchLocationMapping);
+        assertThat(patchLocationMapping).containsOnly(new CommitFacade.Line(29, " * <p>Implementation must declare a public constructor with no-parameters.</p>"));
+    }
+
+    @Test
     public void testPatchLineMapping_no_newline_at_the_end() throws IOException {
         CommitFacade facade = new CommitFacade(mock(GitLabPluginConfiguration.class));
         Set<CommitFacade.Line> patchLocationMapping =
