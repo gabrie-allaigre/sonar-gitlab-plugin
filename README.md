@@ -149,6 +149,7 @@ https://docs.gitlab.com/ce/ci/variables/#9-0-renaming
 | sonar.gitlab.ping_user | Ping the user who made an issue by @ mentioning (default false) | Administration, Variable | >= 2.0.0 |
 | sonar.gitlab.unique_issue_per_inline | Unique issue per inline comment (default false) | Administration, Variable | >= 2.0.0 |
 | sonar.gitlab.prefix_directory | Add prefix when create link for GitLab | Variable | >= 2.1.0 |
+| sonar.gitlab.api_version | GitLab API version (default v3) | Administration, Variable | >= 2.1.0 |
 
 - Administration : **Settings** globals in SonarQube
 - Project : **Settings** of project in SonarQube
@@ -333,3 +334,4 @@ Restart your SonarQube instance.
 
 - Add commit only line
 - Add prefix workspace (not found .git folder)
+- Support v3 & v4 api for GitLab
