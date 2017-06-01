@@ -58,7 +58,7 @@ For SonarQube < 5.4:
 - Copy file in extensions directory `SONARQUBE_HOME/extensions/plugins`
 - Restart SonarQube 
 
-For SonarQube >= 5.4:
+For SonarQube >= 5.4 and < 5.6:
 
 - Download last version https://github.com/gabrie-allaigre/sonar-gitlab-plugin/releases/download/1.7.0/sonar-gitlab-plugin-1.7.0.jar
 - Copy file in extensions directory `SONARQUBE_HOME/extensions/plugins`
