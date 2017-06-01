@@ -7,6 +7,14 @@ Inspired by https://github.com/SonarCommunity/sonar-github
 
 **The version 2.0.1 is directly in the SonarQube update center**
 
+**Version 2.1.0-beta1**
+
+- Add commit only line
+- Add prefix workspace (not found .git folder)
+- Support v3 & v4 api for GitLab
+
+**Download 2.1.0-beta1 version** https://github.com/gabrie-allaigre/sonar-gitlab-plugin/releases/download/2.1.0-beta1/sonar-gitlab-plugin-2.1.0-beta1.jar
+
 **Version 2.0.1**
 
 - Fixbug : NoClassDefFoundError with internal sonar class #26
@@ -329,9 +337,3 @@ If you don't already have you certificate on the SonarQube server, run `openssl 
 Import it into your JRE cacerts (you can check from the "System Info" page in the Administration section of your sonarqube instance), running `sudo $JDK8/bin/keytool -import -file ~/mygitlab.crt -keystore $JDK8/jre/lib/security/cacerts -alias mygitlab`.
 
 Restart your SonarQube instance.
-
-# Changes
-
-- Add commit only line
-- Add prefix workspace (not found .git folder)
-- Support v3 & v4 api for GitLab
