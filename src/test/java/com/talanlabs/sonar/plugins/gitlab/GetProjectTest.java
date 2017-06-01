@@ -21,8 +21,8 @@ package com.talanlabs.sonar.plugins.gitlab;
 
 import com.squareup.okhttp.mockwebserver.MockResponse;
 import com.squareup.okhttp.mockwebserver.MockWebServer;
-import com.talanlabs.gitlab.api.GitLabAPI;
-import com.talanlabs.gitlab.api.models.projects.GitLabProject;
+import com.talanlabs.gitlab.api.v3.GitLabAPI;
+import com.talanlabs.gitlab.api.v3.models.projects.GitLabProject;
 import org.assertj.core.api.Assertions;
 import org.junit.Before;
 import org.junit.Rule;
@@ -53,6 +53,7 @@ public class GetProjectTest {
         when(gitLabPluginConfiguration.url()).thenReturn(String.format("http://%s:%d", gitlab.getHostName(), gitlab.getPort()));
         when(gitLabPluginConfiguration.userToken()).thenReturn("123456789");
         when(gitLabPluginConfiguration.commitSHA()).thenReturn(Collections.singletonList("123456789"));
+        when(gitLabPluginConfiguration.apiVersion()).thenReturn(GitLabPlugin.V3_API_VERSION);
     }
 
     @Test
@@ -447,10 +448,10 @@ public class GetProjectTest {
         Assertions.assertThat(facade.getRevisionForLine(inputFile3, 100)).isNull();
         Assertions.assertThat(facade.getRevisionForLine(inputFile3, 3)).isEqualTo("456");
 
-        Assertions.assertThat(facade.getCommitCommentsForFile("123", inputFile1)).isEmpty();
-        Assertions.assertThat(facade.getCommitCommentsForFile("123", inputFile2)).hasSize(1);
-        Assertions.assertThat(facade.getCommitCommentsForFile("456", inputFile2)).isEmpty();
-        Assertions.assertThat(facade.getCommitCommentsForFile("456", inputFile3)).hasSize(1);
+        Assertions.assertThat(facade.hasSameCommitCommentsForFile("123", inputFile1, 1, "test")).isFalse();
+        Assertions.assertThat(facade.hasSameCommitCommentsForFile("123", inputFile2, 7, "test")).isTrue();
+        Assertions.assertThat(facade.hasSameCommitCommentsForFile("456", inputFile2, 7, "toto")).isFalse();
+        Assertions.assertThat(facade.hasSameCommitCommentsForFile("456", inputFile3, 10, "test")).isTrue();
     }
 
     @Test
@@ -498,7 +499,7 @@ public class GetProjectTest {
                 "]"));
 
 
-        CommitFacade facade = new CommitFacade(gitLabPluginConfiguration);
+        GitLabApiV3Wrapper facade = new GitLabApiV3Wrapper(gitLabPluginConfiguration);
         facade.setGitLabAPI(GitLabAPI.connect(gitLabPluginConfiguration.url(), gitLabPluginConfiguration.userToken()));
         GitLabProject gitLabProject = Mockito.mock(GitLabProject.class);
         Mockito.when(gitLabProject.getId()).thenReturn(1);
@@ -552,7 +553,7 @@ public class GetProjectTest {
                 "]"));
 
 
-        CommitFacade facade = new CommitFacade(gitLabPluginConfiguration);
+        GitLabApiV3Wrapper facade = new GitLabApiV3Wrapper(gitLabPluginConfiguration);
         facade.setGitLabAPI(GitLabAPI.connect(gitLabPluginConfiguration.url(), gitLabPluginConfiguration.userToken()));
         GitLabProject gitLabProject = Mockito.mock(GitLabProject.class);
         Mockito.when(gitLabProject.getId()).thenReturn(1);
@@ -608,7 +609,7 @@ public class GetProjectTest {
                 "]"));
 
 
-        CommitFacade facade = new CommitFacade(gitLabPluginConfiguration);
+        GitLabApiV3Wrapper facade = new GitLabApiV3Wrapper(gitLabPluginConfiguration);
         facade.setGitLabAPI(GitLabAPI.connect(gitLabPluginConfiguration.url(), gitLabPluginConfiguration.userToken()));
         GitLabProject gitLabProject = Mockito.mock(GitLabProject.class);
         Mockito.when(gitLabProject.getId()).thenReturn(1);

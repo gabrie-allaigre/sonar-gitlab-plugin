@@ -53,9 +53,13 @@ public class GitLabPlugin implements Plugin {
     public static final String GITLAB_PING_USER = "sonar.gitlab.ping_user";
     public static final String GITLAB_UNIQUE_ISSUE_PER_INLINE = "sonar.gitlab.unique_issue_per_inline";
     public static final String GITLAB_PREFIX_DIRECTORY = "sonar.gitlab.prefix_directory";
+    public static final String GITLAB_API_VERSION = "sonar.gitlab.api_version";
 
     public static final String CATEGORY = "gitlab";
     public static final String SUBCATEGORY = "reporting";
+
+    public static final String V3_API_VERSION = "v3";
+    public static final String V4_API_VERSION = "v4";
 
     public static List<PropertyDefinition> definitions() {
         return Arrays
@@ -113,7 +117,9 @@ public class GitLabPlugin implements Plugin {
                         PropertyDefinition.builder(GITLAB_ONLY_ISSUE_FROM_COMMIT_LINE).name("Show issue for commit line only").description("Issues will be reported if in current commit")
                                 .category(CATEGORY).subCategory(SUBCATEGORY).type(PropertyType.BOOLEAN).defaultValue(String.valueOf(false)).index(24).hidden().build(),
                         PropertyDefinition.builder(GITLAB_PREFIX_DIRECTORY).name("Prefix directory for GitLab link").description("Add prefix for GitLab link").category(CATEGORY).subCategory(SUBCATEGORY)
-                                .type(PropertyType.STRING).defaultValue("").index(24).build())
+                                .type(PropertyType.STRING).defaultValue("").index(24).build(),
+                        PropertyDefinition.builder(GITLAB_API_VERSION).name("Set GitLab API version").description("GitLab API version").category(CATEGORY).subCategory(SUBCATEGORY)
+                                .type(PropertyType.SINGLE_SELECT_LIST).options(V3_API_VERSION, V4_API_VERSION).defaultValue(V3_API_VERSION).index(25).build())
                 ;
     }
 

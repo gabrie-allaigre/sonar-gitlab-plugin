@@ -9,19 +9,19 @@ L'analyse de SonarQube indique aucun probl&egrave;me.
 L'analyse de SonarQube indique ${newIssueCount} probl&egrave;me<#if newIssueCount gt 1>s</#if>
     <#assign newIssuesBlocker = issueCount(BLOCKER) newIssuesCritical = issueCount(CRITICAL) newIssuesMajor = issueCount(MAJOR) newIssuesMinor = issueCount(MINOR) newIssuesInfo = issueCount(INFO)>
     <#if newIssuesBlocker gt 0>
-* ${emojiSeverity(BLOCKER)} ${newIssuesBlocker} bloquante
+* ${emojiSeverity(BLOCKER)} ${newIssuesBlocker} bloquante<#if newIssuesBlocker gt 1>s</#if>
     </#if>
     <#if newIssuesCritical gt 0>
-* ${emojiSeverity(CRITICAL)} ${newIssuesCritical} critique
+* ${emojiSeverity(CRITICAL)} ${newIssuesCritical} critique<#if newIssuesCritical gt 1>s</#if>
     </#if>
     <#if newIssuesMajor gt 0>
-* ${emojiSeverity(MAJOR)} ${newIssuesMajor} majeur
+* ${emojiSeverity(MAJOR)} ${newIssuesMajor} majeur<#if newIssuesMajor gt 1>s</#if>
     </#if>
     <#if newIssuesMinor gt 0>
-* ${emojiSeverity(MINOR)} ${newIssuesMinor} mineur
+* ${emojiSeverity(MINOR)} ${newIssuesMinor} mineur<#if newIssuesMinor gt 1>s</#if>
     </#if>
     <#if newIssuesInfo gt 0>
-* ${emojiSeverity(INFO)} ${newIssuesInfo} info
+* ${emojiSeverity(INFO)} ${newIssuesInfo} info<#if newIssuesInfo gt 1>s</#if>
     </#if>
     <#if !disableIssuesInline && hasInlineIssues>
 

@@ -29,7 +29,10 @@ import org.sonar.api.utils.MessageException;
 import org.sonar.api.utils.log.Logger;
 import org.sonar.api.utils.log.Loggers;
 
-import java.util.*;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
@@ -173,9 +176,7 @@ public class CommitIssuePostJob implements PostJob {
     private void updateReviewCommentsPerInline(String revision, String username, InputFile inputFile, Integer lineNumber, List<Reporter.ReportIssue> reportIssues) {
         String body = new InlineCommentBuilder(gitLabPluginConfiguration, revision, username, lineNumber, reportIssues, markDownUtils).buildForMarkdown();
         if (body != null && !body.trim().isEmpty()) {
-            boolean exists = commitFacade.getCommitCommentsForFile(revision, inputFile)
-                    .stream()
-                    .anyMatch(c -> Objects.equals(c.getLine(), lineNumber) && c.getNote().equals(body));
+            boolean exists = commitFacade.hasSameCommitCommentsForFile(revision, inputFile, lineNumber, body);
             if (!exists) {
                 commitFacade.createOrUpdateReviewComment(revision, inputFile, lineNumber, body);
             }

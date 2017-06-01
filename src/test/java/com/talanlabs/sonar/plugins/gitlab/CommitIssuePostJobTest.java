@@ -19,8 +19,6 @@
  */
 package com.talanlabs.sonar.plugins.gitlab;
 
-import com.google.common.collect.Sets;
-import com.talanlabs.gitlab.api.models.commits.GitLabCommitComments;
 import org.assertj.core.api.Assertions;
 import org.junit.Before;
 import org.junit.Test;
@@ -425,10 +423,8 @@ public class CommitIssuePostJobTest {
         Mockito.when(context.issues()).thenReturn(Arrays.asList(newIssue1, newIssue2));
         Mockito.when(commitFacade.hasFile(inputFile1)).thenReturn(true);
         Mockito.when(commitFacade.getRevisionForLine(inputFile1, 1)).thenReturn("abc123");
-        GitLabCommitComments commitComments = Mockito.mock(GitLabCommitComments.class);
-        Mockito.when(commitComments.getLine()).thenReturn(1);
-        Mockito.when(commitComments.getNote()).thenReturn(":no_entry: msg1 [:blue_book:](http://myserver/coding_rules#rule_key=repo%3Arule)");
-        Mockito.when(commitFacade.getCommitCommentsForFile("abc123", inputFile1)).thenReturn(Sets.newHashSet(commitComments));
+        Mockito.when(commitFacade.hasSameCommitCommentsForFile("abc123", inputFile1, 1, ":no_entry: msg1 [:blue_book:](http://myserver/coding_rules#rule_key=repo%3Arule)")).thenReturn(true);
+        Mockito.when(commitFacade.hasSameCommitCommentsForFile("abc123", inputFile1, 1, ":no_entry: msg2 [:blue_book:](http://myserver/coding_rules#rule_key=repo%3Arule)")).thenReturn(false);
 
         commitIssuePostJob.execute(context);
 
