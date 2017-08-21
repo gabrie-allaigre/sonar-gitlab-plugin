@@ -110,7 +110,7 @@ public class GitLabPlugin implements Plugin {
                                 .type(PropertyType.TEXT).index(20).build(),
                         PropertyDefinition.builder(GITLAB_INLINE_TEMPLATE).name("Inline template").description("Template for inline comment in commit.").category(CATEGORY).subCategory(SUBCATEGORY)
                                 .type(PropertyType.TEXT).index(21).build(),
-                        PropertyDefinition.builder(GITLAB_PING_USER).name("Ping the user").description("Ping the user who made an issue by @ mentioning.").category(CATEGORY).subCategory(SUBCATEGORY)
+                        PropertyDefinition.builder(GITLAB_PING_USER).name("Ping the user").description("Ping the user who made an issue by @ mentioning. (Only for default comment)").category(CATEGORY).subCategory(SUBCATEGORY)
                                 .type(PropertyType.BOOLEAN).defaultValue(String.valueOf(false)).index(22).build(),
                         PropertyDefinition.builder(GITLAB_UNIQUE_ISSUE_PER_INLINE).name("Unique issue per inline comment").description("Per inline comment, set only one issue").category(CATEGORY).subCategory(SUBCATEGORY)
                                 .type(PropertyType.BOOLEAN).defaultValue(String.valueOf(false)).index(23).build(),

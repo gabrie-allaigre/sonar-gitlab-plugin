@@ -44,7 +44,7 @@ public class GitLabApiV4Wrapper implements IGitLabApiWrapper {
     private static final String COMMIT_CONTEXT = "sonarqube";
 
     private final GitLabPluginConfiguration config;
-    private GitLabAPI gitLabAPI;
+    private GitLabAPI gitLabAPIV4;
     private GitLabProject gitLabProject;
     private Map<String, List<GitLabCommitComments>> commitCommentPerRevision;
     private Map<String, Map<String, Set<Line>>> patchPositionByFile;
@@ -55,9 +55,9 @@ public class GitLabApiV4Wrapper implements IGitLabApiWrapper {
 
     @Override
     public void init() {
-        gitLabAPI = GitLabAPI.connect(config.url(), config.userToken()).setIgnoreCertificateErrors(config.ignoreCertificate());
+        gitLabAPIV4 = GitLabAPI.connect(config.url(), config.userToken()).setIgnoreCertificateErrors(config.ignoreCertificate());
         if (config.isProxyConnectionEnabled()) {
-            gitLabAPI.setProxy(config.getHttpProxy());
+            gitLabAPIV4.setProxy(config.getHttpProxy());
         }
         try {
             gitLabProject = getGitLabProject();
@@ -70,7 +70,7 @@ public class GitLabApiV4Wrapper implements IGitLabApiWrapper {
     }
 
     void setGitLabAPI(GitLabAPI gitLabAPI) {
-        this.gitLabAPI = gitLabAPI;
+        this.gitLabAPIV4 = gitLabAPI;
     }
 
     private GitLabProject getGitLabProject() throws IOException {
@@ -79,7 +79,7 @@ public class GitLabApiV4Wrapper implements IGitLabApiWrapper {
         }
 
         try {
-            GitLabProject project = gitLabAPI.getGitLabAPIProjects().getProject(config.projectId());
+            GitLabProject project = gitLabAPIV4.getGitLabAPIProjects().getProject(config.projectId());
             if (project != null) {
                 return project;
             }
@@ -87,7 +87,7 @@ public class GitLabApiV4Wrapper implements IGitLabApiWrapper {
             LOG.trace("Not found project with id", e);
         }
 
-        Paged<GitLabProject> paged = gitLabAPI.getGitLabAPIProjects().getProjects(null, null, null, null, null, null);
+        Paged<GitLabProject> paged = gitLabAPIV4.getGitLabAPIProjects().getProjects(null, null, null, null, null, null);
         if (paged == null) {
             throw new IllegalStateException("Unable found project for " + config.projectId() + " Verify Configuration sonar.gitlab.project_id or sonar.gitlab.user_token access project");
         }
@@ -114,7 +114,7 @@ public class GitLabApiV4Wrapper implements IGitLabApiWrapper {
     Map<String, List<GitLabCommitComments>> getCommitCommentsPerRevision(List<String> revisions) throws IOException {
         Map<String, List<GitLabCommitComments>> result = new HashMap<>();
         for (String revision : revisions) {
-            Paged<GitLabCommitComments> paged = gitLabAPI.getGitLabAPICommits().getCommitComments(gitLabProject.getId(), revision, null);
+            Paged<GitLabCommitComments> paged = gitLabAPIV4.getGitLabAPICommits().getCommitComments(gitLabProject.getId(), revision, null);
 
             List<GitLabCommitComments> gitLabCommitCommentss = new ArrayList<>();
             do {
@@ -149,7 +149,7 @@ public class GitLabApiV4Wrapper implements IGitLabApiWrapper {
         Map<String, Map<String, Set<Line>>> result = new HashMap<>();
 
         for (String revision : revisions) {
-            Paged<GitLabCommitDiff> paged = gitLabAPI.getGitLabAPICommits().getCommitDiffs(gitLabProject.getId(), revision, null);
+            Paged<GitLabCommitDiff> paged = gitLabAPIV4.getGitLabAPICommits().getCommitDiffs(gitLabProject.getId(), revision, null);
             List<GitLabCommitDiff> commitDiffs = new ArrayList<>();
             do {
                 if (paged.getResults() != null) {
@@ -173,9 +173,9 @@ public class GitLabApiV4Wrapper implements IGitLabApiWrapper {
     @Override
     public String getUsernameForRevision(String revision) {
         try {
-            GitLabCommit commit = gitLabAPI.getGitLabAPICommits().getCommit(gitLabProject.getId(), revision);
+            GitLabCommit commit = gitLabAPIV4.getGitLabAPICommits().getCommit(gitLabProject.getId(), revision);
 
-            Paged<GitLabUser> paged = gitLabAPI.getGitLabAPIUsers().getUsers(commit.getAuthorEmail(), null);
+            Paged<GitLabUser> paged = gitLabAPIV4.getGitLabAPIUsers().getUsers(commit.getAuthorEmail(), null);
             List<GitLabUser> users = new ArrayList<>();
             do {
                 if (paged.getResults() != null) {
@@ -208,7 +208,7 @@ public class GitLabApiV4Wrapper implements IGitLabApiWrapper {
     @Override
     public void createOrUpdateSonarQubeStatus(String status, String statusDescription) {
         try {
-            gitLabAPI.getGitLabAPICommits().postCommitStatus(gitLabProject.getId(), getFirstCommitSHA(), status, config.refName(), COMMIT_CONTEXT, null, statusDescription);
+            gitLabAPIV4.getGitLabAPICommits().postCommitStatus(gitLabProject.getId(), getFirstCommitSHA(), status, config.refName(), COMMIT_CONTEXT, null, statusDescription);
         } catch (IOException e) {
             // Workaround for https://gitlab.com/gitlab-org/gitlab-ce/issues/25807
             if (e.getMessage() != null && e.getMessage().contains("Cannot transition status")) {
@@ -266,7 +266,7 @@ public class GitLabApiV4Wrapper implements IGitLabApiWrapper {
     @Override
     public void createOrUpdateReviewComment(String revision, String fullPath, Integer line, String body) {
         try {
-            gitLabAPI.getGitLabAPICommits().postCommitComments(gitLabProject.getId(), revision != null ? revision : getFirstCommitSHA(), body, fullPath, line, "new");
+            gitLabAPIV4.getGitLabAPICommits().postCommitComments(gitLabProject.getId(), revision != null ? revision : getFirstCommitSHA(), body, fullPath, line, "new");
         } catch (IOException e) {
             throw new IllegalStateException("Unable to create or update review comment in file " + fullPath + " at line " + line, e);
         }
@@ -275,7 +275,7 @@ public class GitLabApiV4Wrapper implements IGitLabApiWrapper {
     @Override
     public void addGlobalComment(String comment) {
         try {
-            gitLabAPI.getGitLabAPICommits().postCommitComments(gitLabProject.getId(), getFirstCommitSHA(), comment, null, null, null);
+            gitLabAPIV4.getGitLabAPICommits().postCommitComments(gitLabProject.getId(), getFirstCommitSHA(), comment, null, null, null);
         } catch (IOException e) {
             throw new IllegalStateException("Unable to comment the commit", e);
         }

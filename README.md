@@ -154,7 +154,7 @@ https://docs.gitlab.com/ce/ci/variables/#9-0-renaming
 | sonar.gitlab.disable_global_comment | Disable global comment, report only inline (default false) | Administration, Variable | >= 2.0.0 |
 | sonar.gitlab.failure_notification_mode | Notification is in current build (exit-code) or in commit status (commit-status) (default commit-status) | Administration, Variable | >= 2.0.0 |
 | sonar.gitlab.global_template | Template for global comment in commit | Administration, Variable | >= 2.0.0 |
-| sonar.gitlab.ping_user | Ping the user who made an issue by @ mentioning (default false) | Administration, Variable | >= 2.0.0 |
+| sonar.gitlab.ping_user | Ping the user who made an issue by @ mentioning. Only for default comment (default false) | Administration, Variable | >= 2.0.0 |
 | sonar.gitlab.unique_issue_per_inline | Unique issue per inline comment (default false) | Administration, Variable | >= 2.0.0 |
 | sonar.gitlab.prefix_directory | Add prefix when create link for GitLab | Variable | >= 2.1.0 |
 | sonar.gitlab.api_version | GitLab API version (default v3) | Administration, Variable | >= 2.1.0 |
