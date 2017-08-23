@@ -167,6 +167,10 @@ public class GitLabPluginConfiguration {
         return settings.getString(GitLabPlugin.GITLAB_API_VERSION);
     }
 
+    public boolean allIssues() {
+        return settings.getBoolean(GitLabPlugin.GITLAB_ALL_ISSUES);
+    }
+
     /**
      * Checks if a proxy was passed with command line parameters or configured in the system.
      * If only an HTTP proxy was configured then it's properties are copied to the HTTPS proxy (like SonarQube configuration)

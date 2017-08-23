@@ -115,7 +115,7 @@ public class CommitIssuePostJob implements PostJob {
     }
 
     private Stream<PostJobIssue> getStreamPostJobIssue(Iterable<PostJobIssue> issues) {
-        return StreamSupport.stream(issues.spliterator(), false).filter(PostJobIssue::isNew).filter(i -> {
+        return StreamSupport.stream(issues.spliterator(), false).filter(p -> gitLabPluginConfiguration.allIssues() || p.isNew()).filter(i -> {
             InputComponent inputComponent = i.inputComponent();
             if (gitLabPluginConfiguration.onlyIssueFromCommitLine()) {
                 return onlyIssueFromCommitLine(i);

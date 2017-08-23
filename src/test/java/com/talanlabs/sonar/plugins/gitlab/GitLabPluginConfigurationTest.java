@@ -121,6 +121,10 @@ public class GitLabPluginConfigurationTest {
         Assertions.assertThat(config.uniqueIssuePerInline()).isFalse();
         settings.setProperty(GitLabPlugin.GITLAB_UNIQUE_ISSUE_PER_INLINE, "true");
         Assertions.assertThat(config.uniqueIssuePerInline()).isTrue();
+
+        Assertions.assertThat(config.allIssues()).isFalse();
+        settings.setProperty(GitLabPlugin.GITLAB_ALL_ISSUES, "true");
+        Assertions.assertThat(config.allIssues()).isTrue();
     }
 
     @Test

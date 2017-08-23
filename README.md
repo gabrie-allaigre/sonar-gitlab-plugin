@@ -7,13 +7,14 @@ Inspired by https://github.com/SonarCommunity/sonar-github
 
 **The version 2.0.1 is directly in the SonarQube update center**
 
-**Version 2.1.0-beta1**
+**Version 2.1.0-beta2**
 
 - Add commit only line
 - Add prefix workspace (not found .git folder)
 - Support v3 & v4 api for GitLab
+- Add all issues options
 
-**Download 2.1.0-beta1 version** https://github.com/gabrie-allaigre/sonar-gitlab-plugin/releases/download/2.1.0-beta1/sonar-gitlab-plugin-2.1.0-beta1.jar
+**Download 2.1.0-beta1 version** https://github.com/gabrie-allaigre/sonar-gitlab-plugin/releases/download/2.1.0-beta2/sonar-gitlab-plugin-2.1.0-beta2.jar
 
 **Version 2.0.1**
 
@@ -158,6 +159,7 @@ https://docs.gitlab.com/ce/ci/variables/#9-0-renaming
 | sonar.gitlab.unique_issue_per_inline | Unique issue per inline comment (default false) | Administration, Variable | >= 2.0.0 |
 | sonar.gitlab.prefix_directory | Add prefix when create link for GitLab | Variable | >= 2.1.0 |
 | sonar.gitlab.api_version | GitLab API version (default v3) | Administration, Variable | >= 2.1.0 |
+| sonar.gitlab.all_issues | All issues new and old (default false, only new) | Administration, Variable | >= 2.1.0 |
 
 - Administration : **Settings** globals in SonarQube
 - Project : **Settings** of project in SonarQube
