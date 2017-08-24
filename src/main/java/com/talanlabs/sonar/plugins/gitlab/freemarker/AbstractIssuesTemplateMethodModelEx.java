@@ -55,7 +55,7 @@ public abstract class AbstractIssuesTemplateMethodModelEx implements TemplateMet
 
     protected abstract Object exec(Stream<Reporter.ReportIssue> stream);
 
-    private Object execEmptyArg() throws TemplateModelException {
+    private Object execEmptyArg() {
         return exec(reportIssues.stream());
     }
 
