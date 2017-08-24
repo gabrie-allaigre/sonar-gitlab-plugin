@@ -38,7 +38,7 @@ import java.util.Collections;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-public class GetProjectTest {
+public class GetProjectV3Test {
 
     @Rule
     public MockWebServer gitlab = new MockWebServer();
