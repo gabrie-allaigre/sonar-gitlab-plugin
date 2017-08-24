@@ -7,14 +7,14 @@ Inspired by https://github.com/SonarCommunity/sonar-github
 
 **The version 2.0.1 is directly in the SonarQube update center**
 
-**Version 2.1.0-beta2**
+**Version 2.1.0-rc1**
 
 - Add commit only line
 - Add prefix workspace (not found .git folder)
 - Support v3 & v4 api for GitLab
 - Add all issues options
 
-**Download 2.1.0-beta1 version** https://github.com/gabrie-allaigre/sonar-gitlab-plugin/releases/download/2.1.0-beta2/sonar-gitlab-plugin-2.1.0-beta2.jar
+**Download 2.1.0-rc1 version** https://github.com/gabrie-allaigre/sonar-gitlab-plugin/releases/download/2.1.0-rc1/sonar-gitlab-plugin-2.1.0-rc1.jar
 
 **Version 2.0.1**
 
