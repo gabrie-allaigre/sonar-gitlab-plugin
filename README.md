@@ -5,7 +5,7 @@ Sonar GitLab Plugin
 
 Inspired by https://github.com/SonarCommunity/sonar-github
 
-**The version 2.0.1 is directly in the SonarQube update center**
+**The version 2.1.0 is directly in the SonarQube update center**
 
 **Version 2.1.0**
 
