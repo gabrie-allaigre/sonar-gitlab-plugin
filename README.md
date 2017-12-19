@@ -7,6 +7,10 @@ Inspired by https://github.com/SonarCommunity/sonar-github
 
 **The version 2.1.0 is directly in the SonarQube update center**
 
+**Version 2.2.0-SNAPSHOT**
+
+-  Api v4 is now default value
+
 **Version 2.1.0**
 
 - Add commit only line
