@@ -324,7 +324,7 @@ Note: The following issues were found on lines that were not modified in the com
 <@p issue=issue/>
 </#list>
 <#macro p issue>
-${emojiSeverity(issue.severity)} ${issue.message} [:blue_book:](${ruleLink(issue.ruleKey)})
+${emojiSeverity(issue.severity)} ${issue.message} [why?](${ruleLink(issue.ruleKey)}) | [Resolve in SonarQube](https://sonar.yourDomain.com/project/issues?id=${issue.componentKey}&issues=${issue.key}&open=${issue.key})
 </#macro>
 ```
 
