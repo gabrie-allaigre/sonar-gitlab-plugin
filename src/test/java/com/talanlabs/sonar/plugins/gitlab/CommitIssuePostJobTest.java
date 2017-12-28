@@ -440,7 +440,7 @@ public class CommitIssuePostJobTest {
                 "</#if>\n" +
                 "</#list>\n" +
                 "<#macro p issue>\n" +
-                "${emojiSeverity(issue.severity)} ${issue.message} [:blue_book:](${ruleLink(issue.ruleKey)})\n" +
+                "${emojiSeverity(issue.severity)} ${issue.message} [why?](${ruleLink(issue.ruleKey)}) | [View in SonarQube](https://sonar.yourDomain.com/project/issues?id=${issue.componentKey}&issues=${issue.key}&open=${issue.key})\n" +
                 "</#macro>");
 
         DefaultInputFile inputFile1 = new DefaultInputFile("foo", "src/Foo.php");
