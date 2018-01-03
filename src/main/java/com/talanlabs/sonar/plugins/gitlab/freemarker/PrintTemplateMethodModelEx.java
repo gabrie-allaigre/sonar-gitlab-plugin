@@ -49,7 +49,7 @@ public class PrintTemplateMethodModelEx implements TemplateMethodModelEx {
     private Object execOneArg(Object arg) throws TemplateModelException {
         if (arg instanceof WrapperTemplateModel && ((WrapperTemplateModel) arg).getWrappedObject() instanceof Map) {
             Map<String, Object> map = (Map<String, Object>) ((WrapperTemplateModel) arg).getWrappedObject();
-            return markDownUtils.printIssue((Severity) (map.get("severity")), (String) map.get("message"), (String) map.get("ruleKey"), (String) map.get("url"), (String) map.get("componentKey"));
+            return markDownUtils.printIssue((Severity) (map.get("severity")), (String) map.get("message"), (String) map.get("ruleLink"), (String) map.get("url"), (String) map.get("componentKey"));
         }
         throw new TemplateModelException("Failed call accept 1 issue arg");
     }

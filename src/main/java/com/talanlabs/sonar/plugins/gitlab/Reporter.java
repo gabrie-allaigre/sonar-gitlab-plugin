@@ -38,6 +38,7 @@ public class Reporter {
     private Map<Severity, List<ReportIssue>> notReportedOnDiffMap = new EnumMap<>(Severity.class);
     private Map<String, Map<InputFile, Map<Integer, List<ReportIssue>>>> revisionFileLineMap = new HashMap<>();
     private int notReportedIssueCount = 0;
+    private List<ReportIssue> sastIssues = new ArrayList<>();
 
     public Reporter(GitLabPluginConfiguration gitLabPluginConfiguration) {
         super();
@@ -45,11 +46,15 @@ public class Reporter {
         this.gitLabPluginConfiguration = gitLabPluginConfiguration;
     }
 
-    public void process(PostJobIssue postJobIssue, @Nullable String revision, @Nullable String gitLabUrl, boolean reportedOnDiff) {
+    public void process(PostJobIssue postJobIssue, @Nullable String revision, @Nullable String gitLabUrl, @Nullable String src, String ruleLink, boolean reportedOnDiff, boolean sast) {
         String r = revision != null ? revision : gitLabPluginConfiguration.commitSHA().get(0);
-        ReportIssue reportIssue = new ReportIssue(postJobIssue, r, gitLabUrl, reportedOnDiff);
+        ReportIssue reportIssue = new ReportIssue(postJobIssue, r, gitLabUrl, src, ruleLink, reportedOnDiff);
         List<ReportIssue> reportIssues = reportIssuesMap.computeIfAbsent(postJobIssue.severity(), k -> new ArrayList<>());
         reportIssues.add(reportIssue);
+
+        if (sast) {
+            sastIssues.add(reportIssue);
+        }
 
         increment(postJobIssue.severity());
         if (!reportedOnDiff) {
@@ -158,17 +163,39 @@ public class Reporter {
         }
     }
 
+    public String buildSastJson() {
+        return sastIssues.stream().map(this::buildIssueSastJson).collect(Collectors.joining(",", "[", "]"));
+    }
+
+    private String buildIssueSastJson(ReportIssue reportIssue) {
+        PostJobIssue postJobIssue = reportIssue.getPostJobIssue();
+
+        StringJoiner sj = new StringJoiner(",", "{", "}");
+        sj.add("\"tool\":\"sonarqube\"");
+        sj.add("\"fingerprint\":\"" + postJobIssue.key() + "\"");
+        sj.add("\"message\":\"" + postJobIssue.message() + "\"");
+        sj.add("\"file\":\"" + reportIssue.getFile() + "\"");
+        sj.add("\"line\":\"" + (postJobIssue.line() != null ? postJobIssue.line() : 0) + "\"");
+        sj.add("\"priority\":\"" + postJobIssue.severity().name() + "\"");
+        sj.add("\"solution\":\"" + reportIssue.getRuleLink() + "\"");
+        return sj.toString();
+    }
+
     public static class ReportIssue {
 
         private final PostJobIssue postJobIssue;
         private final String revision;
         private final String url;
+        private final String file;
+        private final String ruleLink;
         private final boolean reportedOnDiff;
 
-        public ReportIssue(PostJobIssue postJobIssue, String revision, String url, boolean reportedOnDiff) {
+        public ReportIssue(PostJobIssue postJobIssue, String revision, String url, String file, String ruleLink, boolean reportedOnDiff) {
             this.postJobIssue = postJobIssue;
             this.revision = revision;
             this.url = url;
+            this.file = file;
+            this.ruleLink = ruleLink;
             this.reportedOnDiff = reportedOnDiff;
         }
 
@@ -182,6 +209,14 @@ public class Reporter {
 
         public String getUrl() {
             return url;
+        }
+
+        public String getFile() {
+            return file;
+        }
+
+        public String getRuleLink() {
+            return ruleLink;
         }
 
         public boolean isReportedOnDiff() {

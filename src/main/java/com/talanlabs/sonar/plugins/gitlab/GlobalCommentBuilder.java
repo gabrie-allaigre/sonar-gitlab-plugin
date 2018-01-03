@@ -126,7 +126,7 @@ public class GlobalCommentBuilder extends AbstractCommentBuilder {
     private int appendIssue(StringBuilder builder, Reporter.ReportIssue reportIssue, int reportedIssueCount) {
         PostJobIssue postJobIssue = reportIssue.getPostJobIssue();
         if (reportedIssueCount < gitLabPluginConfiguration.maxGlobalIssues()) {
-            builder.append("1. ").append(markDownUtils.printIssue(postJobIssue.severity(), postJobIssue.message(), postJobIssue.ruleKey().toString(), reportIssue.getUrl(), postJobIssue.componentKey())).append("\n");
+            builder.append("1. ").append(markDownUtils.printIssue(postJobIssue.severity(), postJobIssue.message(), reportIssue.getRuleLink(), reportIssue.getUrl(), postJobIssue.componentKey())).append("\n");
             return 0;
         } else {
             return 1;

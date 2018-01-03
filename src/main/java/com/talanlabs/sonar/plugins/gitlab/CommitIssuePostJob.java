@@ -75,23 +75,12 @@ public class CommitIssuePostJob implements PostJob {
                 updateGlobalComments(report);
             }
 
-            String status = report.getStatus();
-            String statusDescription = report.getStatusDescription();
-
-            String message = String.format("Report status=%s, desc=%s", report.getStatus(), report.getStatusDescription());
-
-            StatusNotificationsMode i = gitLabPluginConfiguration.statusNotificationsMode();
-            if (i == StatusNotificationsMode.COMMIT_STATUS) {
-                LOG.info(message);
-
-                commitFacade.createOrUpdateSonarQubeStatus(status, statusDescription);
-            } else if (i == StatusNotificationsMode.EXIT_CODE) {
-                if ("failed".equals(status)) {
-                    throw MessageException.of(message);
-                } else {
-                    LOG.info(message);
-                }
+            if (gitLabPluginConfiguration.sastReport()) {
+                String sastJson = report.buildSastJson();
+                commitFacade.writeSastFile(sastJson);
             }
+
+            notification(report);
         } catch (MessageException e) {
             throw e;
         } catch (Exception e) {
@@ -102,6 +91,37 @@ public class CommitIssuePostJob implements PostJob {
             if (i == StatusNotificationsMode.COMMIT_STATUS) {
                 commitFacade.createOrUpdateSonarQubeStatus("failed", msg + ": " + e.getMessage());
             }
+        }
+    }
+
+    private void notification(Reporter report) {
+        String status = report.getStatus();
+        String statusDescription = report.getStatusDescription();
+        String message = String.format("Report status=%s, desc=%s", report.getStatus(), report.getStatusDescription());
+
+        switch (gitLabPluginConfiguration.statusNotificationsMode()) {
+            case COMMIT_STATUS:
+                notificationCommitStatus(status, statusDescription, message);
+                break;
+            case EXIT_CODE:
+                notificationCommitStatus(status, message);
+                break;
+            case NOTHING:
+                LOG.info(message);
+                break;
+        }
+    }
+
+    private void notificationCommitStatus(String status, String statusDescription, String message) {
+        LOG.info(message);
+        commitFacade.createOrUpdateSonarQubeStatus(status, statusDescription);
+    }
+
+    private void notificationCommitStatus(String status, String message) {
+        if ("failed".equals(status)) {
+            throw MessageException.of(message);
+        } else {
+            LOG.info(message);
         }
     }
 
@@ -141,7 +161,12 @@ public class CommitIssuePostJob implements PostJob {
         }
         LOG.debug("Revision for issue {} {} {}", issue, revision, reportedInline);
         LOG.debug("inputComponent {} {}", inputComponent, issue.line());
-        report.process(issue, revision, commitFacade.getGitLabUrl(revision, inputComponent, issue.line()), reportedInline);
+
+        String url = commitFacade.getGitLabUrl(revision, inputComponent, issue.line());
+        String src = commitFacade.getSrc(inputComponent);
+        String ruleLink = commitFacade.getRuleLink(issue.ruleKey().toString());
+
+        report.process(issue, revision, url, src, ruleLink, reportedInline, true);
     }
 
     private void updateReviewComments(Reporter report) {

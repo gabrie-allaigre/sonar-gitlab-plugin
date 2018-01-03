@@ -19,7 +19,8 @@
  */
 package com.talanlabs.sonar.plugins.gitlab.freemarker;
 
-import com.talanlabs.sonar.plugins.gitlab.MarkDownUtils;
+import com.talanlabs.sonar.plugins.gitlab.CommitFacade;
+import com.talanlabs.sonar.plugins.gitlab.GitLabPluginConfiguration;
 import freemarker.template.TemplateMethodModelEx;
 import freemarker.template.TemplateModelException;
 import freemarker.template.TemplateScalarModel;
@@ -28,12 +29,12 @@ import java.util.List;
 
 public class RuleLinkTemplateMethodModelEx implements TemplateMethodModelEx {
 
-    private final MarkDownUtils markDownUtils;
+    private final String ruleUrlPrefix;
 
-    public RuleLinkTemplateMethodModelEx(MarkDownUtils markDownUtils) {
+    public RuleLinkTemplateMethodModelEx(GitLabPluginConfiguration gitLabPluginConfiguration) {
         super();
 
-        this.markDownUtils = markDownUtils;
+        this.ruleUrlPrefix = gitLabPluginConfiguration.baseUrl();
     }
 
     @Override
@@ -47,7 +48,7 @@ public class RuleLinkTemplateMethodModelEx implements TemplateMethodModelEx {
     private Object execOneArg(Object arg) throws TemplateModelException {
         if (arg instanceof TemplateScalarModel) {
             String name = ((TemplateScalarModel) arg).getAsString();
-            return markDownUtils.getRuleLink(name);
+            return ruleUrlPrefix + "coding_rules#rule_key=" + CommitFacade.encodeForUrl(name);
         }
         throw new TemplateModelException("Failed call accept 1 url arg");
     }

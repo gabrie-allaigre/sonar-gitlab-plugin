@@ -5,6 +5,6 @@
 <@p issue=issue/>
 </#list>
 <#macro p issue>
-${emojiSeverity(issue.severity)} ${issue.message} [:blue_book:](${ruleLink(issue.ruleKey)})
+${emojiSeverity(issue.severity)} ${issue.message} [:blue_book:](${issue.ruleLink})
 </#macro>
 ```

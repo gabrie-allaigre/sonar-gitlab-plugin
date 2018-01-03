@@ -25,6 +25,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.mockito.Mockito;
+import org.sonar.api.CoreProperties;
 import org.sonar.api.config.PropertyDefinitions;
 import org.sonar.api.config.Settings;
 import org.sonar.api.utils.System2;
@@ -42,6 +43,7 @@ public class GitLabPluginConfigurationTest {
     @Before
     public void before() {
         settings = new Settings(new PropertyDefinitions(GitLabPlugin.definitions()));
+        settings.setProperty(CoreProperties.SERVER_BASE_URL, "http://myserver");
         config = new GitLabPluginConfiguration(settings, new System2());
     }
 
@@ -57,6 +59,8 @@ public class GitLabPluginConfigurationTest {
 
         settings.setProperty(GitLabPlugin.GITLAB_USER_TOKEN, "123465");
         Assertions.assertThat(config.userToken()).isEqualTo("123465");
+
+        Assertions.assertThat(config.baseUrl()).isEqualTo("http://myserver/");
     }
 
     @Test
@@ -105,6 +109,8 @@ public class GitLabPluginConfigurationTest {
         Assertions.assertThat(config.statusNotificationsMode()).isEqualTo(StatusNotificationsMode.EXIT_CODE);
         settings.setProperty(GitLabPlugin.GITLAB_STATUS_NOTIFICATION_MODE, "toto");
         Assertions.assertThat(config.statusNotificationsMode()).isEqualTo(StatusNotificationsMode.COMMIT_STATUS);
+        settings.setProperty(GitLabPlugin.GITLAB_STATUS_NOTIFICATION_MODE, StatusNotificationsMode.NOTHING.getMeaning());
+        Assertions.assertThat(config.statusNotificationsMode()).isEqualTo(StatusNotificationsMode.NOTHING);
 
         Assertions.assertThat(config.globalTemplate()).isNull();
         settings.setProperty(GitLabPlugin.GITLAB_GLOBAL_TEMPLATE, "# Test");
@@ -125,6 +131,10 @@ public class GitLabPluginConfigurationTest {
         Assertions.assertThat(config.allIssues()).isFalse();
         settings.setProperty(GitLabPlugin.GITLAB_ALL_ISSUES, "true");
         Assertions.assertThat(config.allIssues()).isTrue();
+
+        Assertions.assertThat(config.sastReport()).isFalse();
+        settings.setProperty(GitLabPlugin.GITLAB_SAST_REPORT, "true");
+        Assertions.assertThat(config.sastReport()).isTrue();
     }
 
     @Test

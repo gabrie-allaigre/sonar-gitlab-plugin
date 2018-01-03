@@ -31,6 +31,12 @@ import org.sonar.api.utils.log.Loggers;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nullable;
 import java.io.File;
+import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
 
 /**
  * Facade for all WS interaction with GitLab.
@@ -41,18 +47,29 @@ public class CommitFacade {
 
     private static final Logger LOG = Loggers.get(CommitFacade.class);
 
-    private final GitLabPluginConfiguration config;
+    private final GitLabPluginConfiguration gitLabPluginConfiguration;
+    private final String ruleUrlPrefix;
     private File gitBaseDir;
 
     private IGitLabApiWrapper gitLabWrapper;
 
-    public CommitFacade(GitLabPluginConfiguration config) {
-        this.config = config;
+    public CommitFacade(GitLabPluginConfiguration gitLabPluginConfiguration) {
+        this.gitLabPluginConfiguration = gitLabPluginConfiguration;
 
-        if (GitLabPlugin.V3_API_VERSION.equals(config.apiVersion())) {
-            this.gitLabWrapper = new GitLabApiV3Wrapper(config);
-        } else if (GitLabPlugin.V4_API_VERSION.equals(config.apiVersion())) {
-            this.gitLabWrapper = new GitLabApiV4Wrapper(config);
+        this.ruleUrlPrefix = gitLabPluginConfiguration.baseUrl();
+
+        if (GitLabPlugin.V3_API_VERSION.equals(gitLabPluginConfiguration.apiVersion())) {
+            this.gitLabWrapper = new GitLabApiV3Wrapper(gitLabPluginConfiguration);
+        } else if (GitLabPlugin.V4_API_VERSION.equals(gitLabPluginConfiguration.apiVersion())) {
+            this.gitLabWrapper = new GitLabApiV4Wrapper(gitLabPluginConfiguration);
+        }
+    }
+
+    public static String encodeForUrl(String url) {
+        try {
+            return URLEncoder.encode(url, "UTF-8");
+        } catch (UnsupportedEncodingException e) {
+            throw new IllegalStateException("Encoding not supported", e);
         }
     }
 
@@ -122,17 +139,34 @@ public class CommitFacade {
         return null;
     }
 
+    @CheckForNull
+    public String getSrc(@Nullable InputComponent inputComponent) {
+        if (inputComponent instanceof InputPath) {
+            return getPath((InputPath) inputComponent);
+        }
+        return null;
+    }
+
     public void createOrUpdateReviewComment(String revision, InputFile inputFile, Integer line, String body) {
         String fullPath = getPath(inputFile);
         gitLabWrapper.createOrUpdateReviewComment(revision, fullPath, line, body);
     }
 
     String getPath(InputPath inputPath) {
-        String prefix = config.prefixDirectory() != null ? config.prefixDirectory() : "";
+        String prefix = gitLabPluginConfiguration.prefixDirectory() != null ? gitLabPluginConfiguration.prefixDirectory() : "";
         return prefix + new PathResolver().relativePath(gitBaseDir, inputPath.file());
     }
 
     public void addGlobalComment(String comment) {
         gitLabWrapper.addGlobalComment(comment);
+    }
+
+    public String getRuleLink(String ruleKey) {
+        return ruleUrlPrefix + "coding_rules#rule_key=" + encodeForUrl(ruleKey);
+    }
+
+    public void writeSastFile(String sastJson) throws IOException {
+        File file = new File(gitBaseDir, "gl-sast-report.json");
+        Files.write(Paths.get(file.getAbsolutePath()), sastJson.getBytes(), StandardOpenOption.CREATE_NEW);
     }
 }

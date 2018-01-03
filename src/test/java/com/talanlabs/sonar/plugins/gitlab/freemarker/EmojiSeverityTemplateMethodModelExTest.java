@@ -47,7 +47,7 @@ public class EmojiSeverityTemplateMethodModelExTest {
 
         settings.setProperty(CoreProperties.SERVER_BASE_URL, "http://myserver");
 
-        MarkDownUtils markDownUtils = new MarkDownUtils(settings);
+        MarkDownUtils markDownUtils = new MarkDownUtils();
 
         emojiSeverityTemplateMethodModelEx = new EmojiSeverityTemplateMethodModelEx(markDownUtils);
     }

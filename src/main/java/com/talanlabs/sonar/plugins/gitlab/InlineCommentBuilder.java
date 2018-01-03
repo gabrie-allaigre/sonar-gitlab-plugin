@@ -38,7 +38,7 @@ public class InlineCommentBuilder extends AbstractCommentBuilder {
     @Override
     protected String buildDefaultComment() {
         String msg = reportIssues.stream().map(reportIssue -> markDownUtils
-                .printIssue(reportIssue.getPostJobIssue().severity(), reportIssue.getPostJobIssue().message(), reportIssue.getPostJobIssue().ruleKey().toString(), null, null))
+                .printIssue(reportIssue.getPostJobIssue().severity(), reportIssue.getPostJobIssue().message(), reportIssue.getRuleLink(), null, null))
                 .collect(Collectors.joining("\n"));
         if (gitLabPluginConfiguration.pingUser() && author != null) {
             msg += " @" + author;

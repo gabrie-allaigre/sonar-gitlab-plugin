@@ -59,7 +59,7 @@ public class CommitFacadeTest {
     }
 
     @Test
-    public void tesGetPath() throws IOException {
+    public void testGetPath() throws IOException {
         GitLabPluginConfiguration gitLabPluginConfiguration = mock(GitLabPluginConfiguration.class);
         when(gitLabPluginConfiguration.commitSHA()).thenReturn(Collections.singletonList("1"));
         when(gitLabPluginConfiguration.refName()).thenReturn("master");
@@ -76,5 +76,17 @@ public class CommitFacadeTest {
         when(gitLabPluginConfiguration.prefixDirectory()).thenReturn("toto/");
 
         Assertions.assertThat(facade.getPath(inputFile)).isEqualTo("toto/src/main/Foo.java");
+    }
+
+    @Test
+    public void testWriteSast() throws IOException {
+        CommitFacade facade = new CommitFacade(mock(GitLabPluginConfiguration.class));
+        File projectBaseDir = temp.newFolder();
+        facade.initGitBaseDir(projectBaseDir);
+
+        facade.writeSastFile("[{\"tool\":\"sonarqube\",\"fingerprint\":\"null\",\"message\":\"Issue\",\"file\":\"file\",\"line\":\"0\",\"priority\":\"INFO\",\"solution\":\"http://myserver\"}]");
+
+        File file = new File(projectBaseDir, "gl-sast-report.json");
+        Assertions.assertThat(file).exists().hasContent("[{\"tool\":\"sonarqube\",\"fingerprint\":\"null\",\"message\":\"Issue\",\"file\":\"file\",\"line\":\"0\",\"priority\":\"INFO\",\"solution\":\"http://myserver\"}]");
     }
 }

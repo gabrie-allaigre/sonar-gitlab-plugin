@@ -55,6 +55,7 @@ public class GitLabPlugin implements Plugin {
     public static final String GITLAB_PREFIX_DIRECTORY = "sonar.gitlab.prefix_directory";
     public static final String GITLAB_API_VERSION = "sonar.gitlab.api_version";
     public static final String GITLAB_ALL_ISSUES = "sonar.gitlab.all_issues";
+    public static final String GITLAB_SAST_REPORT = "sonar.gitlab.sast_report";
 
     public static final String CATEGORY = "gitlab";
     public static final String SUBCATEGORY = "reporting";
@@ -105,7 +106,7 @@ public class GitLabPlugin implements Plugin {
                                 .category(CATEGORY).subCategory(SUBCATEGORY).type(PropertyType.BOOLEAN).defaultValue(String.valueOf(false)).index(18).build(),
                         PropertyDefinition.builder(GITLAB_STATUS_NOTIFICATION_MODE).name("Status notification mode").description("Status notification mode: commit-status or exit-code")
                                 .category(CATEGORY).subCategory(SUBCATEGORY).type(PropertyType.SINGLE_SELECT_LIST)
-                                .options(StatusNotificationsMode.COMMIT_STATUS.getMeaning(), StatusNotificationsMode.EXIT_CODE.getMeaning()).defaultValue(StatusNotificationsMode.COMMIT_STATUS.getMeaning())
+                                .options(StatusNotificationsMode.COMMIT_STATUS.getMeaning(), StatusNotificationsMode.EXIT_CODE.getMeaning(), StatusNotificationsMode.NOTHING.getMeaning()).defaultValue(StatusNotificationsMode.COMMIT_STATUS.getMeaning())
                                 .index(19).build(),
                         PropertyDefinition.builder(GITLAB_GLOBAL_TEMPLATE).name("Global template").description("Template for global comment in commit.").category(CATEGORY).subCategory(SUBCATEGORY)
                                 .type(PropertyType.TEXT).index(20).build(),
@@ -122,7 +123,9 @@ public class GitLabPlugin implements Plugin {
                         PropertyDefinition.builder(GITLAB_API_VERSION).name("Set GitLab API version").description("GitLab API version").category(CATEGORY).subCategory(SUBCATEGORY)
                                 .type(PropertyType.SINGLE_SELECT_LIST).options(V3_API_VERSION, V4_API_VERSION).defaultValue(V4_API_VERSION).index(25).build(),
                         PropertyDefinition.builder(GITLAB_ALL_ISSUES).name("All issues").description("Show all issues. (Default false, only new)").category(CATEGORY).subCategory(SUBCATEGORY)
-                                .type(PropertyType.BOOLEAN).defaultValue(String.valueOf(false)).index(26).build()
+                                .type(PropertyType.BOOLEAN).defaultValue(String.valueOf(false)).index(26).build(),
+                        PropertyDefinition.builder(GITLAB_SAST_REPORT).name("Generate SAST report").description("Create a SAST report in root (gl-sast-report.json)").category(CATEGORY).subCategory(SUBCATEGORY)
+                                .type(PropertyType.BOOLEAN).defaultValue(String.valueOf(false)).index(27).build()
                 );
     }
 

@@ -56,16 +56,16 @@ public class InlineCommentBuilderTest {
 
     @Test
     public void testNoIssues() {
-        Assertions.assertThat(new InlineCommentBuilder(config, "123", null, 1, Collections.emptyList(), new MarkDownUtils(settings)).buildForMarkdown()).isEqualTo("");
+        Assertions.assertThat(new InlineCommentBuilder(config, "123", null, 1, Collections.emptyList(), new MarkDownUtils()).buildForMarkdown()).isEqualTo("");
     }
 
     @Test
     public void testOneIssue() {
         settings.setProperty(GitLabPlugin.GITLAB_DISABLE_INLINE_COMMENTS, false);
 
-        Reporter.ReportIssue r1 = new Reporter.ReportIssue(Utils.newMockedIssue("component", null, 1, Severity.INFO, true, "Issue", "rule"), null, "lalal", true);
+        Reporter.ReportIssue r1 = new Reporter.ReportIssue(Utils.newMockedIssue("component", null, 1, Severity.INFO, true, "Issue", "rule"), null, "lalal", "file", "http://myserver/coding_rules#rule_key=repo%3Arule", true);
 
-        Assertions.assertThat(new InlineCommentBuilder(config, "123", null, 1, Collections.singletonList(r1), new MarkDownUtils(settings)).buildForMarkdown())
+        Assertions.assertThat(new InlineCommentBuilder(config, "123", null, 1, Collections.singletonList(r1), new MarkDownUtils()).buildForMarkdown())
                 .isEqualTo(":information_source: Issue [:blue_book:](http://myserver/coding_rules#rule_key=repo%3Arule)");
     }
 
@@ -74,9 +74,9 @@ public class InlineCommentBuilderTest {
         settings.setProperty(GitLabPlugin.GITLAB_DISABLE_INLINE_COMMENTS, false);
         settings.setProperty(GitLabPlugin.GITLAB_PING_USER, true);
 
-        Reporter.ReportIssue r1 = new Reporter.ReportIssue(Utils.newMockedIssue("component", null, 1, Severity.INFO, true, "Issue", "rule"), null, "lalal", true);
+        Reporter.ReportIssue r1 = new Reporter.ReportIssue(Utils.newMockedIssue("component", null, 1, Severity.INFO, true, "Issue", "rule"), null, "lalal", "file", "http://myserver/coding_rules#rule_key=repo%3Arule", true);
 
-        Assertions.assertThat(new InlineCommentBuilder(config, "123", "john", 1, Collections.singletonList(r1), new MarkDownUtils(settings)).buildForMarkdown())
+        Assertions.assertThat(new InlineCommentBuilder(config, "123", "john", 1, Collections.singletonList(r1), new MarkDownUtils()).buildForMarkdown())
                 .isEqualTo(":information_source: Issue [:blue_book:](http://myserver/coding_rules#rule_key=repo%3Arule) @john");
     }
 
@@ -85,9 +85,9 @@ public class InlineCommentBuilderTest {
         settings.setProperty(GitLabPlugin.GITLAB_DISABLE_INLINE_COMMENTS, false);
 
         List<Reporter.ReportIssue> ris = Stream.iterate(0, i -> i++).limit(10)
-                .map(i -> new Reporter.ReportIssue(Utils.newMockedIssue("component", null, 1, Severity.INFO, true, "Issue", "rule"), null, "lalal", true)).collect(Collectors.toList());
+                .map(i -> new Reporter.ReportIssue(Utils.newMockedIssue("component", null, 1, Severity.INFO, true, "Issue", "rule"), null, "lalal", "file", "http://myserver/coding_rules#rule_key=repo%3Arule", true)).collect(Collectors.toList());
 
-        Assertions.assertThat(new InlineCommentBuilder(config, "123", null, 1, ris, new MarkDownUtils(settings)).buildForMarkdown()).isEqualTo(
+        Assertions.assertThat(new InlineCommentBuilder(config, "123", null, 1, ris, new MarkDownUtils()).buildForMarkdown()).isEqualTo(
                 ":information_source: Issue [:blue_book:](http://myserver/coding_rules#rule_key=repo%3Arule)\n"
                         + ":information_source: Issue [:blue_book:](http://myserver/coding_rules#rule_key=repo%3Arule)\n"
                         + ":information_source: Issue [:blue_book:](http://myserver/coding_rules#rule_key=repo%3Arule)\n"
@@ -110,7 +110,7 @@ public class InlineCommentBuilderTest {
                 + "${maxGlobalIssues}\n${maxBlockerIssuesGate}\n${maxCriticalIssuesGate}\n${maxMajorIssuesGate}\n${maxMinorIssuesGate}\n${maxInfoIssuesGate}\n"
                 + "${disableIssuesInline?c}\n${onlyIssueFromCommitFile?c}\n${commentNoIssue?c}\n${revision}\n${lineNumber}");
 
-        Assertions.assertThat(new InlineCommentBuilder(config, "123", null, 1, Collections.emptyList(), new MarkDownUtils(settings)).buildForMarkdown())
+        Assertions.assertThat(new InlineCommentBuilder(config, "123", null, 1, Collections.emptyList(), new MarkDownUtils()).buildForMarkdown())
                 .isEqualTo("123\n" + "123456789\n" + "master\n" + "https://gitlab.com\n" + "10\n" + "0\n" + "0\n" + "-1\n" + "-1\n" + "-1\n" + "false\n" + "false\n" + "false\n" + "123\n" +
                         "1");
     }
@@ -120,9 +120,9 @@ public class InlineCommentBuilderTest {
         settings.setProperty(GitLabPlugin.GITLAB_INLINE_TEMPLATE, "${issueCount()}\n<#list issues() as issue>\n${issue.componentKey}\n</#list>");
 
         List<Reporter.ReportIssue> ris = Stream.iterate(0, i -> i++).limit(17)
-                .map(i -> new Reporter.ReportIssue(Utils.newMockedIssue("component", null, null, Severity.MAJOR, true, "Issue number:" + i, "rule" + i), null, "lalal", true)).collect(Collectors.toList());
+                .map(i -> new Reporter.ReportIssue(Utils.newMockedIssue("component", null, null, Severity.MAJOR, true, "Issue number:" + i, "rule" + i), null, "lalal", "file", "http://myserver/coding_rules#rule_key=repo%3Arule", true)).collect(Collectors.toList());
 
-        Assertions.assertThat(new InlineCommentBuilder(config, "123", null, 1, ris, new MarkDownUtils(settings)).buildForMarkdown()).isEqualTo(
+        Assertions.assertThat(new InlineCommentBuilder(config, "123", null, 1, ris, new MarkDownUtils()).buildForMarkdown()).isEqualTo(
                 "17\n" + "component\n" + "component\n" + "component\n" + "component\n" + "component\n" + "component\n" + "component\n" + "component\n" + "component\n" + "component\n" + "component\n"
                         + "component\n" + "component\n" + "component\n" + "component\n" + "component\n" + "component\n");
     }
@@ -133,9 +133,9 @@ public class InlineCommentBuilderTest {
                 + "${issueCount(\"MAJOR\")}\n<#list issues(\"MAJOR\") as issue>\n${issue.componentKey}\n</#list>");
 
         List<Reporter.ReportIssue> ris = Stream.iterate(0, i -> i++).limit(9)
-                .map(i -> new Reporter.ReportIssue(Utils.newMockedIssue("component", null, null, i % 2 == 0 ? Severity.MAJOR : Severity.BLOCKER, true, "Issue number:" + i, "rule" + i), null, "lalal", true)).collect(Collectors.toList());
+                .map(i -> new Reporter.ReportIssue(Utils.newMockedIssue("component", null, null, i % 2 == 0 ? Severity.MAJOR : Severity.BLOCKER, true, "Issue number:" + i, "rule" + i), null, "lalal", "file", "http://myserver/coding_rules#rule_key=repo%3Arule", true)).collect(Collectors.toList());
 
-        Assertions.assertThat(new InlineCommentBuilder(config, "123", null, 1, ris, new MarkDownUtils(settings)).buildForMarkdown()).isEqualTo(
+        Assertions.assertThat(new InlineCommentBuilder(config, "123", null, 1, ris, new MarkDownUtils()).buildForMarkdown()).isEqualTo(
                 "9\n" + "component\n" + "component\n" + "component\n" + "component\n" + "component\n" + "component\n" + "component\n" + "component\n" + "component\n" + "9\n" + "component\n"
                         + "component\n" + "component\n" + "component\n" + "component\n" + "component\n" + "component\n" + "component\n" + "component\n");
     }
@@ -146,9 +146,9 @@ public class InlineCommentBuilderTest {
                 "${issueCount(true)}\n<#list issues(true) as issue>\n${issue.componentKey}\n</#list>\n${issueCount(false)}\n<#list issues(false) as issue>\n${issue.componentKey}\n</#list>");
 
         List<Reporter.ReportIssue> ris = Stream.iterate(0, i -> i++).limit(17)
-                .map(i -> new Reporter.ReportIssue(Utils.newMockedIssue("component", null, null, Severity.MAJOR, true, "Issue number:" + i, "rule" + i), null, GITLAB_URL + "/File.java#L" + i, false)).collect(Collectors.toList());
+                .map(i -> new Reporter.ReportIssue(Utils.newMockedIssue("component", null, null, Severity.MAJOR, true, "Issue number:" + i, "rule" + i), null, GITLAB_URL + "/File.java#L" + i, "file", "http://myserver/coding_rules#rule_key=repo%3Arule", false)).collect(Collectors.toList());
 
-        Assertions.assertThat(new InlineCommentBuilder(config, "123", null, 1, ris, new MarkDownUtils(settings)).buildForMarkdown()).isEqualTo(
+        Assertions.assertThat(new InlineCommentBuilder(config, "123", null, 1, ris, new MarkDownUtils()).buildForMarkdown()).isEqualTo(
                 "0\n" + "17\n" + "component\n" + "component\n" + "component\n" + "component\n" + "component\n" + "component\n" + "component\n" + "component\n" + "component\n" + "component\n"
                         + "component\n" + "component\n" + "component\n" + "component\n" + "component\n" + "component\n" + "component\n");
     }
@@ -159,9 +159,9 @@ public class InlineCommentBuilderTest {
                 + "${issueCount(\"MAJOR\",false)}\n<#list issues(\"MAJOR\",false) as issue>\n${issue.componentKey}\n</#list>");
 
         List<Reporter.ReportIssue> ris = Stream.iterate(0, i -> i++).limit(10)
-                .map(i -> new Reporter.ReportIssue(Utils.newMockedIssue("component", null, null, i % 2 == 0 ? Severity.MAJOR : Severity.BLOCKER, true, "Issue number:" + i, "rule" + i), null, GITLAB_URL + "/File.java#L" + i, false)).collect(Collectors.toList());
+                .map(i -> new Reporter.ReportIssue(Utils.newMockedIssue("component", null, null, i % 2 == 0 ? Severity.MAJOR : Severity.BLOCKER, true, "Issue number:" + i, "rule" + i), null, GITLAB_URL + "/File.java#L" + i, "file", "http://myserver/coding_rules#rule_key=repo%3Arule", false)).collect(Collectors.toList());
 
-        Assertions.assertThat(new InlineCommentBuilder(config, "123", null, 1, ris, new MarkDownUtils(settings)).buildForMarkdown())
+        Assertions.assertThat(new InlineCommentBuilder(config, "123", null, 1, ris, new MarkDownUtils()).buildForMarkdown())
                 .isEqualTo("0\n" + "10\n" + "component\n" + "component\n" + "component\n" + "component\n" + "component\n" + "component\n" + "component\n" + "component\n" + "component\n" + "component\n");
     }
 
@@ -171,9 +171,9 @@ public class InlineCommentBuilderTest {
                 "${emojiSeverity(BLOCKER)}\n${imageSeverity(BLOCKER)}\n${ruleLink(\"repo%3Arule0\")}\n<#list issues() as issue>${print(issue)}\n</#list>");
 
         List<Reporter.ReportIssue> ris = Stream.iterate(0, i -> i++).limit(10)
-                .map(i -> new Reporter.ReportIssue(Utils.newMockedIssue("component", null, null, Severity.MAJOR, true, "Issue number:" + i, "rule" + i), null, GITLAB_URL + "/File.java#L" + i, false)).collect(Collectors.toList());
+                .map(i -> new Reporter.ReportIssue(Utils.newMockedIssue("component", null, null, Severity.MAJOR, true, "Issue number:" + i, "rule" + i), null, GITLAB_URL + "/File.java#L" + i, "file", "http://myserver/coding_rules#rule_key=repo%3Arule" + i, false)).collect(Collectors.toList());
 
-        Assertions.assertThat(new InlineCommentBuilder(config, "123", null, 1, ris, new MarkDownUtils(settings)).buildForMarkdown()).isEqualTo(":no_entry:\n" +
+        Assertions.assertThat(new InlineCommentBuilder(config, "123", null, 1, ris, new MarkDownUtils()).buildForMarkdown()).isEqualTo(":no_entry:\n" +
                 "![BLOCKER](https://github.com/gabrie-allaigre/sonar-gitlab-plugin/raw/master/images/severity-blocker.png)\n" +
                 "http://myserver/coding_rules#rule_key=repo%253Arule0\n" +
                 ":warning: [Issue number:0](https://gitlab.com/test/test/File.java#L0) [:blue_book:](http://myserver/coding_rules#rule_key=repo%3Arule0)\n" +
@@ -192,6 +192,6 @@ public class InlineCommentBuilderTest {
     public void testTemplateIssueFail() {
         settings.setProperty(GitLabPlugin.GITLAB_INLINE_TEMPLATE, "<#toto>");
 
-        Assertions.assertThatThrownBy(() -> new InlineCommentBuilder(config, "123", null, 1, Collections.emptyList(), new MarkDownUtils(settings)).buildForMarkdown()).isInstanceOf(MessageException.class);
+        Assertions.assertThatThrownBy(() -> new InlineCommentBuilder(config, "123", null, 1, Collections.emptyList(), new MarkDownUtils()).buildForMarkdown()).isInstanceOf(MessageException.class);
     }
 }

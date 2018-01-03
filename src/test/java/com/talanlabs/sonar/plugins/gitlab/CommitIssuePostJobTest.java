@@ -38,6 +38,7 @@ import org.sonar.api.config.Settings;
 import org.sonar.api.utils.MessageException;
 import org.sonar.api.utils.System2;
 
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collections;
 
@@ -53,7 +54,7 @@ public class CommitIssuePostJobTest {
     private PostJobContext context;
 
     @Before
-    public void prepare() throws Exception {
+    public void prepare() {
         commitFacade = Mockito.mock(CommitFacade.class);
         settings = new Settings(new PropertyDefinitions(PropertyDefinition.builder(CoreProperties.SERVER_BASE_URL).name("Server base URL").description("HTTP URL of this SonarQube server, such as <i>http://yourhost.yourdomain/sonar</i>. This value is used i.e. to create links in emails.")
                 .category(CoreProperties.CATEGORY_GENERAL).defaultValue(CoreProperties.SERVER_BASE_URL_DEFAULT_VALUE).build()).addComponents(GitLabPlugin.definitions()));
@@ -63,7 +64,7 @@ public class CommitIssuePostJobTest {
         GitLabPluginConfiguration config = new GitLabPluginConfiguration(settings, new System2());
         context = Mockito.mock(PostJobContext.class);
 
-        commitIssuePostJob = new CommitIssuePostJob(config, commitFacade, new MarkDownUtils(settings));
+        commitIssuePostJob = new CommitIssuePostJob(config, commitFacade, new MarkDownUtils());
     }
 
     @Test
@@ -80,7 +81,7 @@ public class CommitIssuePostJobTest {
     public void testCommitAnalysisNoIssue2() {
         settings.setProperty(GitLabPlugin.GITLAB_COMMENT_NO_ISSUE, true);
 
-        Mockito.when(context.issues()).thenReturn(Arrays.asList());
+        Mockito.when(context.issues()).thenReturn(Collections.emptyList());
         commitIssuePostJob.execute(context);
         Mockito.verify(commitFacade).addGlobalComment("SonarQube analysis reported no issues.");
         Mockito.verify(commitFacade).createOrUpdateSonarQubeStatus("success", "SonarQube reported no issues");
@@ -93,6 +94,7 @@ public class CommitIssuePostJobTest {
         DefaultInputFile inputFile1 = new DefaultInputFile("foo", "src/Foo.php");
         PostJobIssue newIssue = Utils.newMockedIssue("foo:src/Foo.php", inputFile1, 1, Severity.BLOCKER, true, "msg1");
         Mockito.when(commitFacade.getGitLabUrl(null, inputFile1, 1)).thenReturn("http://gitlab/blob/abc123/src/Foo.php#L1");
+        Mockito.when(commitFacade.getRuleLink("repo:rule")).thenReturn("http://myserver/coding_rules#rule_key=repo%3Arule");
 
         PostJobIssue lineNotVisible = Utils.newMockedIssue("foo:src/Foo.php", inputFile1, 2, Severity.BLOCKER, true, "msg2");
         Mockito.when(commitFacade.getGitLabUrl(null, inputFile1, 2)).thenReturn("http://gitlab/blob/abc123/src/Foo.php#L2");
@@ -128,6 +130,7 @@ public class CommitIssuePostJobTest {
         DefaultInputFile inputFile1 = new DefaultInputFile("foo", "src/Foo.php");
         PostJobIssue newIssue = Utils.newMockedIssue("foo:src/Foo.php", inputFile1, 1, Severity.BLOCKER, true, "msg1");
         Mockito.when(commitFacade.getGitLabUrl(null, inputFile1, 1)).thenReturn("http://gitlab/blob/abc123/src/Foo.php#L1");
+        Mockito.when(commitFacade.getRuleLink("repo:rule")).thenReturn("http://myserver/coding_rules#rule_key=repo%3Arule");
 
         PostJobIssue lineNotVisible = Utils.newMockedIssue("foo:src/Foo.php", inputFile1, 2, Severity.BLOCKER, true, "msg2");
         Mockito.when(commitFacade.getGitLabUrl(null, inputFile1, 2)).thenReturn("http://gitlab/blob/abc123/src/Foo.php#L2");
@@ -166,6 +169,7 @@ public class CommitIssuePostJobTest {
         DefaultInputFile inputFile1 = new DefaultInputFile("foo", "src/Foo.php");
         PostJobIssue newIssue = Utils.newMockedIssue("foo:src/Foo.php", inputFile1, 1, Severity.BLOCKER, true, "msg1");
         Mockito.when(commitFacade.getGitLabUrl(null, inputFile1, 1)).thenReturn("http://gitlab/blob/abc123/src/Foo.php#L1");
+        Mockito.when(commitFacade.getRuleLink("repo:rule")).thenReturn("http://myserver/coding_rules#rule_key=repo%3Arule");
 
         PostJobIssue lineNotVisible = Utils.newMockedIssue("foo:src/Foo.php", inputFile1, 2, Severity.BLOCKER, true, "msg2");
         Mockito.when(commitFacade.getGitLabUrl(null, inputFile1, 2)).thenReturn("http://gitlab/blob/abc123/src/Foo.php#L2");
@@ -205,6 +209,7 @@ public class CommitIssuePostJobTest {
         PostJobIssue newIssue1 = Utils.newMockedIssue("foo:src/Foo.php", inputFile1, 1, Severity.BLOCKER, true, "msg1");
         PostJobIssue newIssue2 = Utils.newMockedIssue("foo:src/Foo.php", inputFile1, 1, Severity.BLOCKER, true, "msg2");
         Mockito.when(commitFacade.getGitLabUrl(null, inputFile1, 1)).thenReturn("http://gitlab/blob/abc123/src/Foo.php#L1");
+        Mockito.when(commitFacade.getRuleLink("repo:rule")).thenReturn("http://myserver/coding_rules#rule_key=repo%3Arule");
 
         PostJobIssue newIssue3 = Utils.newMockedIssue("foo:src/Foo.php", inputFile1, 2, Severity.BLOCKER, true, "msg3");
         Mockito.when(commitFacade.getGitLabUrl("def456", inputFile1, 2)).thenReturn("http://gitlab/blob/abc123/src/Foo.php#L2");
@@ -367,6 +372,40 @@ public class CommitIssuePostJobTest {
     }
 
     @Test
+    public void testCommitAnalysisWithNewIssues2Nothing() {
+        settings.setProperty(GitLabPlugin.GITLAB_ONLY_ISSUE_FROM_COMMIT_FILE, false);
+        settings.setProperty(GitLabPlugin.GITLAB_STATUS_NOTIFICATION_MODE, StatusNotificationsMode.NOTHING.getMeaning());
+        settings.setProperty(GitLabPlugin.GITLAB_DISABLE_GLOBAL_COMMENT, true);
+
+        DefaultInputFile inputFile1 = new DefaultInputFile("foo", "src/Foo.php");
+        PostJobIssue newIssue = Utils.newMockedIssue("foo:src/Foo.php", inputFile1, 1, Severity.BLOCKER, true, "msg1");
+        Mockito.when(commitFacade.getGitLabUrl(null, inputFile1, 1)).thenReturn("http://gitlab/blob/abc123/src/Foo.php#L1");
+
+        PostJobIssue lineNotVisible = Utils.newMockedIssue("foo:src/Foo.php", inputFile1, 2, Severity.BLOCKER, true, "msg2");
+        Mockito.when(commitFacade.getGitLabUrl(null, inputFile1, 2)).thenReturn("http://gitlab/blob/abc123/src/Foo.php#L2");
+
+        DefaultInputFile inputFile2 = new DefaultInputFile("foo", "src/Foo2.php");
+        PostJobIssue fileNotInPR = Utils.newMockedIssue("foo:src/Foo2.php", inputFile2, 1, Severity.BLOCKER, true, "msg3");
+
+        PostJobIssue notNewIssue = Utils.newMockedIssue("foo:src/Foo.php", inputFile1, 1, Severity.BLOCKER, false, "msg");
+
+        PostJobIssue issueOnDir = Utils.newMockedIssue("foo:src", Severity.BLOCKER, true, "msg4");
+
+        PostJobIssue issueOnProject = Utils.newMockedIssue("foo", Severity.BLOCKER, true, "msg");
+
+        PostJobIssue globalIssue = Utils.newMockedIssue("foo:src/Foo.php", inputFile1, null, Severity.BLOCKER, true, "msg5");
+
+        Mockito.when(context.issues()).thenReturn(Arrays.asList(newIssue, globalIssue, issueOnProject, issueOnDir, fileNotInPR, lineNotVisible, notNewIssue));
+        Mockito.when(commitFacade.hasFile(inputFile1)).thenReturn(true);
+        Mockito.when(commitFacade.getRevisionForLine(inputFile1, 1)).thenReturn(null);
+
+        commitIssuePostJob.execute(context);
+
+        Mockito.verify(commitFacade, Mockito.never()).addGlobalComment(Mockito.contains("SonarQube analysis reported 6 issues"));
+        Mockito.verify(commitFacade, Mockito.never()).createOrUpdateSonarQubeStatus("failed", "SonarQube reported 6 issues, with 6 blocker");
+    }
+
+    @Test
     public void testCommitAnalysisWithNewIssuesNoBlockerNorCritical2() {
         settings.setProperty(GitLabPlugin.GITLAB_STATUS_NOTIFICATION_MODE, StatusNotificationsMode.EXIT_CODE.getMeaning());
 
@@ -400,6 +439,7 @@ public class CommitIssuePostJobTest {
         PostJobIssue newIssue1 = Utils.newMockedIssue("foo:src/Foo.php", inputFile1, 1, Severity.BLOCKER, true, "msg1");
         PostJobIssue newIssue2 = Utils.newMockedIssue("foo:src/Foo.php", inputFile1, 1, Severity.BLOCKER, true, "msg2");
         Mockito.when(commitFacade.getGitLabUrl(null, inputFile1, 1)).thenReturn("http://gitlab/blob/abc123/src/Foo.php#L1");
+        Mockito.when(commitFacade.getRuleLink("repo:rule")).thenReturn("http://myserver/coding_rules#rule_key=repo%3Arule");
 
         Mockito.when(context.issues()).thenReturn(Arrays.asList(newIssue1, newIssue2));
         Mockito.when(commitFacade.hasFile(inputFile1)).thenReturn(true);
@@ -419,6 +459,7 @@ public class CommitIssuePostJobTest {
         PostJobIssue newIssue1 = Utils.newMockedIssue("foo:src/Foo.php", inputFile1, 1, Severity.BLOCKER, true, "msg1");
         PostJobIssue newIssue2 = Utils.newMockedIssue("foo:src/Foo.php", inputFile1, 1, Severity.BLOCKER, true, "msg2");
         Mockito.when(commitFacade.getGitLabUrl(null, inputFile1, 1)).thenReturn("http://gitlab/blob/abc123/src/Foo.php#L1");
+        Mockito.when(commitFacade.getRuleLink("repo:rule")).thenReturn("http://myserver/coding_rules#rule_key=repo%3Arule");
 
         Mockito.when(context.issues()).thenReturn(Arrays.asList(newIssue1, newIssue2));
         Mockito.when(commitFacade.hasFile(inputFile1)).thenReturn(true);
@@ -480,6 +521,7 @@ public class CommitIssuePostJobTest {
         DefaultInputFile inputFile1 = new DefaultInputFile("foo", "src/Foo.php");
         PostJobIssue newIssue = Utils.newMockedIssue("foo:src/Foo.php", inputFile1, 1, Severity.BLOCKER, true, "msg1");
         Mockito.when(commitFacade.getGitLabUrl(null, inputFile1, 1)).thenReturn("http://gitlab/blob/abc123/src/Foo.php#L1");
+        Mockito.when(commitFacade.getRuleLink("repo:rule")).thenReturn("http://myserver/coding_rules#rule_key=repo%3Arule");
 
         PostJobIssue lineNotVisible = Utils.newMockedIssue("foo:src/Foo.php", inputFile1, 2, Severity.BLOCKER, true, "msg2");
         Mockito.when(commitFacade.getGitLabUrl(null, inputFile1, 2)).thenReturn("http://gitlab/blob/abc123/src/Foo.php#L2");
@@ -506,5 +548,39 @@ public class CommitIssuePostJobTest {
         Mockito.verify(commitFacade).addGlobalComment(Mockito.contains("1. :no_entry: [msg2](http://gitlab/blob/abc123/src/Foo.php#L2) [:blue_book:](http://myserver/coding_rules#rule_key=repo%3Arule)"));
 
         Mockito.verify(commitFacade).createOrUpdateSonarQubeStatus("failed", "SonarQube reported 7 issues, with 7 blocker (fail)");
+    }
+
+    @Test
+    public void testCommitAnalysisWithNewIssuesSast() throws IOException {
+        settings.setProperty(GitLabPlugin.GITLAB_ONLY_ISSUE_FROM_COMMIT_FILE, false);
+        settings.setProperty(GitLabPlugin.GITLAB_STATUS_NOTIFICATION_MODE, StatusNotificationsMode.NOTHING.getMeaning());
+        settings.setProperty(GitLabPlugin.GITLAB_SAST_REPORT, true);
+
+        DefaultInputFile inputFile1 = new DefaultInputFile("foo", "src/Foo.php");
+        PostJobIssue newIssue = Utils.newMockedIssue("foo:src/Foo.php", inputFile1, 1, Severity.BLOCKER, true, "msg1");
+        Mockito.when(commitFacade.getGitLabUrl(null, inputFile1, 1)).thenReturn("http://gitlab/blob/abc123/src/Foo.php#L1");
+        Mockito.when(commitFacade.getRuleLink("repo:rule")).thenReturn("http://myserver/coding_rules#rule_key=repo%3Arule");
+
+        PostJobIssue lineNotVisible = Utils.newMockedIssue("foo:src/Foo.php", inputFile1, 2, Severity.BLOCKER, true, "msg2");
+        Mockito.when(commitFacade.getGitLabUrl(null, inputFile1, 2)).thenReturn("http://gitlab/blob/abc123/src/Foo.php#L2");
+
+        DefaultInputFile inputFile2 = new DefaultInputFile("foo", "src/Foo2.php");
+        PostJobIssue fileNotInPR = Utils.newMockedIssue("foo:src/Foo2.php", inputFile2, 1, Severity.BLOCKER, true, "msg3");
+
+        PostJobIssue notNewIssue = Utils.newMockedIssue("foo:src/Foo.php", inputFile1, 1, Severity.BLOCKER, false, "msg");
+
+        PostJobIssue issueOnDir = Utils.newMockedIssue("foo:src", Severity.BLOCKER, true, "msg4");
+
+        PostJobIssue issueOnProject = Utils.newMockedIssue("foo", Severity.BLOCKER, true, "msg");
+
+        PostJobIssue globalIssue = Utils.newMockedIssue("foo:src/Foo.php", inputFile1, null, Severity.BLOCKER, true, "msg5");
+
+        Mockito.when(context.issues()).thenReturn(Arrays.asList(newIssue, globalIssue, issueOnProject, issueOnDir, fileNotInPR, lineNotVisible, notNewIssue));
+        Mockito.when(commitFacade.hasFile(inputFile1)).thenReturn(true);
+        Mockito.when(commitFacade.getRevisionForLine(inputFile1, 1)).thenReturn("abc123");
+
+        commitIssuePostJob.execute(context);
+
+        Mockito.verify(commitFacade).writeSastFile(Mockito.contains("[{\"tool\":\"sonarqube\",\"fingerprint\":\"null\",\"message\":\"msg\",\"file\":\"null\",\"line\":\"0\",\"priority\":\"BLOCKER\",\"solution\":\"http://myserver/coding_rules#rule_key=repo%3Arule\"},{\"tool\":\"sonarqube\",\"fingerprint\":\"null\",\"message\":\"msg4\",\"file\":\"null\",\"line\":\"0\",\"priority\":\"BLOCKER\",\"solution\":\"http://myserver/coding_rules#rule_key=repo%3Arule\"},{\"tool\":\"sonarqube\",\"fingerprint\":\"null\",\"message\":\"msg5\",\"file\":\"null\",\"line\":\"0\",\"priority\":\"BLOCKER\",\"solution\":\"http://myserver/coding_rules#rule_key=repo%3Arule\"},{\"tool\":\"sonarqube\",\"fingerprint\":\"null\",\"message\":\"msg1\",\"file\":\"null\",\"line\":\"1\",\"priority\":\"BLOCKER\",\"solution\":\"http://myserver/coding_rules#rule_key=repo%3Arule\"},{\"tool\":\"sonarqube\",\"fingerprint\":\"null\",\"message\":\"msg2\",\"file\":\"null\",\"line\":\"2\",\"priority\":\"BLOCKER\",\"solution\":\"http://myserver/coding_rules#rule_key=repo%3Arule\"},{\"tool\":\"sonarqube\",\"fingerprint\":\"null\",\"message\":\"msg3\",\"file\":\"null\",\"line\":\"1\",\"priority\":\"BLOCKER\",\"solution\":\"http://myserver/coding_rules#rule_key=repo%3Arule\"}]"));
     }
 }
