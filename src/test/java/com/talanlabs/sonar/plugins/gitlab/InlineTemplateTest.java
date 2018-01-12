@@ -62,18 +62,18 @@ public class InlineTemplateTest {
 
     @Test
     public void testOneIssue() {
-        Reporter.ReportIssue r1 = new Reporter.ReportIssue(Utils.newMockedIssue("component", null, 1, Severity.INFO, true, "Issue", "rule"), null, "lalal", true);
+        Reporter.ReportIssue r1 = new Reporter.ReportIssue(Utils.newMockedIssue("component", null, 1, Severity.INFO, true, "Issue", "rule"), null, "lalal", "file", "http://myserver/coding_rules#rule_key=repo%3Arule", true);
 
-        Assertions.assertThat(new InlineCommentBuilder(config, "123", null, 1, Collections.singletonList(r1), new MarkDownUtils(settings)).buildForMarkdown())
+        Assertions.assertThat(new InlineCommentBuilder(config, "123", null, 1, Collections.singletonList(r1), new MarkDownUtils()).buildForMarkdown())
                 .isEqualTo(":information_source: Issue [:blue_book:](http://myserver/coding_rules#rule_key=repo%3Arule)\n");
     }
 
     @Test
     public void testTwoIssue() {
         List<Reporter.ReportIssue> ris = Stream.iterate(0, i -> i++).limit(2)
-                .map(i -> new Reporter.ReportIssue(Utils.newMockedIssue("component", null, 1, Severity.INFO, true, "Issue", "rule"), null, "lalal", true)).collect(Collectors.toList());
+                .map(i -> new Reporter.ReportIssue(Utils.newMockedIssue("component", null, 1, Severity.INFO, true, "Issue", "rule"), null, "lalal", "file", "http://myserver/coding_rules#rule_key=repo%3Arule", true)).collect(Collectors.toList());
 
-        Assertions.assertThat(new InlineCommentBuilder(config, "123", null, 1, ris, new MarkDownUtils(settings)).buildForMarkdown())
+        Assertions.assertThat(new InlineCommentBuilder(config, "123", null, 1, ris, new MarkDownUtils()).buildForMarkdown())
                 .isEqualTo(":information_source: Issue [:blue_book:](http://myserver/coding_rules#rule_key=repo%3Arule)\n" +
                         ":information_source: Issue [:blue_book:](http://myserver/coding_rules#rule_key=repo%3Arule)\n");
     }
@@ -82,9 +82,9 @@ public class InlineTemplateTest {
     public void testUnescapeHTML() {
         settings.setProperty(GitLabPlugin.GITLAB_INLINE_TEMPLATE, TEMPLATE + "&agrave;&acirc;&eacute;&ccedil;");
 
-        Reporter.ReportIssue r1 = new Reporter.ReportIssue(Utils.newMockedIssue("component", null, 1, Severity.INFO, true, "Issue", "rule"), null, "lalal", true);
+        Reporter.ReportIssue r1 = new Reporter.ReportIssue(Utils.newMockedIssue("component", null, 1, Severity.INFO, true, "Issue", "rule"), null, "lalal", "file", "http://myserver/coding_rules#rule_key=repo%3Arule", true);
 
-        Assertions.assertThat(new InlineCommentBuilder(config, "123", null, 1, Collections.singletonList(r1), new MarkDownUtils(settings)).buildForMarkdown())
+        Assertions.assertThat(new InlineCommentBuilder(config, "123", null, 1, Collections.singletonList(r1), new MarkDownUtils()).buildForMarkdown())
                 .isEqualTo(":information_source: Issue [:blue_book:](http://myserver/coding_rules#rule_key=repo%3Arule)\nàâéç");
     }
 }

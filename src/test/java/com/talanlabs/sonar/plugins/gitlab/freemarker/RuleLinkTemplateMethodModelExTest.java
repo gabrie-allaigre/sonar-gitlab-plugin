@@ -20,7 +20,7 @@
 package com.talanlabs.sonar.plugins.gitlab.freemarker;
 
 import com.talanlabs.sonar.plugins.gitlab.GitLabPlugin;
-import com.talanlabs.sonar.plugins.gitlab.MarkDownUtils;
+import com.talanlabs.sonar.plugins.gitlab.GitLabPluginConfiguration;
 import freemarker.template.SimpleScalar;
 import freemarker.template.TemplateModelException;
 import org.assertj.core.api.Assertions;
@@ -30,6 +30,7 @@ import org.sonar.api.CoreProperties;
 import org.sonar.api.config.PropertyDefinition;
 import org.sonar.api.config.PropertyDefinitions;
 import org.sonar.api.config.Settings;
+import org.sonar.api.utils.System2;
 
 import java.util.Collections;
 import java.util.List;
@@ -46,9 +47,9 @@ public class RuleLinkTemplateMethodModelExTest {
 
         settings.setProperty(CoreProperties.SERVER_BASE_URL, "http://myserver");
 
-        MarkDownUtils markDownUtils = new MarkDownUtils(settings);
+        GitLabPluginConfiguration gitLabPluginConfiguration = new GitLabPluginConfiguration(settings,new System2());
 
-        ruleLinkTemplateMethodModelEx = new RuleLinkTemplateMethodModelEx(markDownUtils);
+        ruleLinkTemplateMethodModelEx = new RuleLinkTemplateMethodModelEx(gitLabPluginConfiguration);
     }
 
     private String ruleLink(List<Object> arguments) {

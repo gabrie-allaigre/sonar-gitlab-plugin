@@ -46,12 +46,22 @@ public class GitLabPluginConfiguration {
     private static final Logger LOG = Loggers.get(GitLabPluginConfiguration.class);
     private final Settings settings;
     private final System2 system2;
+    private final String baseUrl;
 
     public GitLabPluginConfiguration(Settings settings, System2 system2) {
         super();
 
         this.settings = settings;
         this.system2 = system2;
+
+        String tempBaseUrl = settings.hasKey(CoreProperties.SERVER_BASE_URL) ? settings.getString(CoreProperties.SERVER_BASE_URL) : settings.getString("sonar.host.url");
+        if (tempBaseUrl == null) {
+            tempBaseUrl = "http://localhost:9090";
+        }
+        if (!tempBaseUrl.endsWith("/")) {
+            tempBaseUrl += "/";
+        }
+        this.baseUrl = tempBaseUrl;
 
         LOG.info("GlobalWorkingDir {}", settings.getString(CoreProperties.GLOBAL_WORKING_DIRECTORY));
     }
@@ -171,6 +181,10 @@ public class GitLabPluginConfiguration {
         return settings.getBoolean(GitLabPlugin.GITLAB_ALL_ISSUES);
     }
 
+    public boolean sastReport() {
+        return settings.getBoolean(GitLabPlugin.GITLAB_SAST_REPORT);
+    }
+
     /**
      * Checks if a proxy was passed with command line parameters or configured in the system.
      * If only an HTTP proxy was configured then it's properties are copied to the HTTPS proxy (like SonarQube configuration)
@@ -211,5 +225,9 @@ public class GitLabPluginConfiguration {
         } catch (URISyntaxException e) {
             throw new IllegalArgumentException("Unable to perform GitLab WS operation - url in wrong format: " + url(), e);
         }
+    }
+
+    public String baseUrl() {
+        return baseUrl;
     }
 }

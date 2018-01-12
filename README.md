@@ -9,7 +9,8 @@ Inspired by https://github.com/SonarCommunity/sonar-github
 
 **Version 2.2.0-SNAPSHOT**
 
--  Api v4 is now default value
+- Api v4 is now default value
+- Add Sast report for GitLab EE
 
 **Version 2.1.0**
 
@@ -164,6 +165,7 @@ https://docs.gitlab.com/ce/ci/variables/#9-0-renaming
 | sonar.gitlab.prefix_directory | Add prefix when create link for GitLab | Variable | >= 2.1.0 |
 | sonar.gitlab.api_version | GitLab API version (default v3) | Administration, Variable | >= 2.1.0 |
 | sonar.gitlab.all_issues | All issues new and old (default false, only new) | Administration, Variable | >= 2.1.0 |
+| sonar.gitlab.sast_report | Create a SAST report in root directory for GitLab EE (gl-sast-report.json) | Administration, Variable | >= 2.2.0 |
 
 - Administration : **Settings** globals in SonarQube
 - Project : **Settings** of project in SonarQube
@@ -248,6 +250,8 @@ Usage : `${Issue.name}`
 | message | String | Message (maybe null) |
 | ruleKey | String | Rule key on SonarQube |
 | new | Boolean | New issue |
+| ruleLink | String | URL of rule in SonarQube |
+| src | String | File source |
 
 ## Examples
 
@@ -324,7 +328,7 @@ Note: The following issues were found on lines that were not modified in the com
 <@p issue=issue/>
 </#list>
 <#macro p issue>
-${emojiSeverity(issue.severity)} ${issue.message} [:blue_book:](${ruleLink(issue.ruleKey)})
+${emojiSeverity(issue.severity)} ${issue.message} [:blue_book:](${issue.ruleLink})
 </#macro>
 ```
 

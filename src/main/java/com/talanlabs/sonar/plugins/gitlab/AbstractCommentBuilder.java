@@ -106,7 +106,7 @@ public abstract class AbstractCommentBuilder {
         root.put("print", new PrintTemplateMethodModelEx(markDownUtils));
         root.put("emojiSeverity", new EmojiSeverityTemplateMethodModelEx(markDownUtils));
         root.put("imageSeverity", new ImageSeverityTemplateMethodModelEx(markDownUtils));
-        root.put("ruleLink", new RuleLinkTemplateMethodModelEx(markDownUtils));
+        root.put("ruleLink", new RuleLinkTemplateMethodModelEx(gitLabPluginConfiguration));
         return root;
     }
 

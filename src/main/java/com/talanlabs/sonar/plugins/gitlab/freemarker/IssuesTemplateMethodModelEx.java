@@ -49,6 +49,8 @@ public class IssuesTemplateMethodModelEx extends AbstractIssuesTemplateMethodMod
         root.put("message", reportIssue.getPostJobIssue().message());
         root.put("ruleKey", reportIssue.getPostJobIssue().ruleKey().toString());
         root.put("new", reportIssue.getPostJobIssue().isNew());
+        root.put("ruleLink", reportIssue.getRuleLink());
+        root.put("src", reportIssue.getFile());
         return root;
     }
 }

@@ -19,43 +19,17 @@
  */
 package com.talanlabs.sonar.plugins.gitlab;
 
-import org.sonar.api.CoreProperties;
 import org.sonar.api.batch.BatchSide;
 import org.sonar.api.batch.InstantiationStrategy;
 import org.sonar.api.batch.rule.Severity;
-import org.sonar.api.config.Settings;
 
 import javax.annotation.Nullable;
-import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
 
 @InstantiationStrategy(InstantiationStrategy.PER_BATCH)
 @BatchSide
 public class MarkDownUtils {
 
     private static final String IMAGES_ROOT_URL = "https://github.com/gabrie-allaigre/sonar-gitlab-plugin/raw/master/images/";
-
-    private final String ruleUrlPrefix;
-
-    public MarkDownUtils(Settings settings) {
-        // If server base URL was not configured in SQ server then is is better to take URL configured on batch side
-        String baseUrl = settings.hasKey(CoreProperties.SERVER_BASE_URL) ? settings.getString(CoreProperties.SERVER_BASE_URL) : settings.getString("sonar.host.url");
-        if (baseUrl == null) {
-            baseUrl = "http://localhost:9090";
-        }
-        if (!baseUrl.endsWith("/")) {
-            baseUrl += "/";
-        }
-        this.ruleUrlPrefix = baseUrl;
-    }
-
-    private String encodeForUrl(String url) {
-        try {
-            return URLEncoder.encode(url, "UTF-8");
-        } catch (UnsupportedEncodingException e) {
-            throw new IllegalStateException("Encoding not supported", e);
-        }
-    }
 
     public String getEmojiForSeverity(Severity severity) {
         switch (severity) {
@@ -78,7 +52,7 @@ public class MarkDownUtils {
         return "![" + severity + "](" + IMAGES_ROOT_URL + "severity-" + severity.name().toLowerCase() + ".png)";
     }
 
-    public String printIssue(Severity severity, String message, String ruleKey, @Nullable String url, @Nullable String componentKey) {
+    public String printIssue(Severity severity, String message, String ruleLink, @Nullable String url, @Nullable String componentKey) {
         StringBuilder sb = new StringBuilder();
         sb.append(getEmojiForSeverity(severity)).append(" ");
         if (url != null) {
@@ -89,11 +63,7 @@ public class MarkDownUtils {
                 sb.append(" ").append("(").append(componentKey).append(")");
             }
         }
-        sb.append(" ").append("[:blue_book:](").append(getRuleLink(ruleKey)).append(")");
+        sb.append(" ").append("[:blue_book:](").append(ruleLink).append(")");
         return sb.toString();
-    }
-
-    public String getRuleLink(String ruleKey) {
-        return ruleUrlPrefix + "coding_rules#rule_key=" + encodeForUrl(ruleKey);
     }
 }

@@ -24,10 +24,6 @@ import org.sonar.api.batch.AnalysisMode;
 import org.sonar.api.batch.bootstrap.ProjectBuilder;
 import org.sonar.api.utils.MessageException;
 
-/**
- * Trigger load of pull request metadata at the very beginning of SQ analysis. Also
- * set "in progress" status on the pull request.
- */
 public class CommitProjectBuilder extends ProjectBuilder {
 
     private final GitLabPluginConfiguration gitLabPluginConfiguration;

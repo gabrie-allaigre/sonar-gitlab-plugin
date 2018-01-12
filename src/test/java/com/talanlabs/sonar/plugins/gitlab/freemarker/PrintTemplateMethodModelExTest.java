@@ -49,7 +49,7 @@ public class PrintTemplateMethodModelExTest {
 
         settings.setProperty(CoreProperties.SERVER_BASE_URL, "http://myserver");
 
-        MarkDownUtils markDownUtils = new MarkDownUtils(settings);
+        MarkDownUtils markDownUtils = new MarkDownUtils();
 
         printTemplateMethodModelEx = new PrintTemplateMethodModelEx(markDownUtils);
     }
@@ -70,6 +70,7 @@ public class PrintTemplateMethodModelExTest {
         root.put("severity", Severity.BLOCKER);
         root.put("message", "titi");
         root.put("ruleKey", "ici");
+        root.put("ruleLink", "http://myserver/coding_rules#rule_key=ici");
         Assertions.assertThat(print(Collections.singletonList(DefaultMapAdapter.adapt(root, null)))).isEqualTo(":no_entry: [titi](toto) [:blue_book:](http://myserver/coding_rules#rule_key=ici)");
     }
 

@@ -47,7 +47,7 @@ public class ImageSeverityTemplateMethodModelExTest {
 
         settings.setProperty(CoreProperties.SERVER_BASE_URL, "http://myserver");
 
-        MarkDownUtils markDownUtils = new MarkDownUtils(settings);
+        MarkDownUtils markDownUtils = new MarkDownUtils();
 
         imageSeverityTemplateMethodModelEx = new ImageSeverityTemplateMethodModelEx(markDownUtils);
     }

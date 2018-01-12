@@ -21,16 +21,12 @@ package com.talanlabs.sonar.plugins.gitlab;
 
 public enum StatusNotificationsMode {
 
-    COMMIT_STATUS("commit-status"), EXIT_CODE("exit-code");
+    COMMIT_STATUS("commit-status"), EXIT_CODE("exit-code"), NOTHING("nothing");
 
     private final String meaning;
 
     StatusNotificationsMode(String meaning) {
         this.meaning = meaning;
-    }
-
-    public String getMeaning() {
-        return meaning;
     }
 
     public static StatusNotificationsMode of(String meaning) {
@@ -40,5 +36,9 @@ public enum StatusNotificationsMode {
             }
         }
         return null;
+    }
+
+    public String getMeaning() {
+        return meaning;
     }
 }

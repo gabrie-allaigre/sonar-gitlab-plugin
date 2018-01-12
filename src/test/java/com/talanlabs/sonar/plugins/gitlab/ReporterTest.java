@@ -56,7 +56,7 @@ public class ReporterTest {
 
     @Test
     public void oneIssue() {
-        reporter.process(Utils.newMockedIssue("component", null, null, Severity.INFO, true, "Issue", "rule"), null, GITLAB_URL, true);
+        reporter.process(Utils.newMockedIssue("component", null, null, Severity.INFO, true, "Issue", "rule"), null, GITLAB_URL, "file", "http://myserver", true, false);
 
         Assertions.assertThat(reporter.getIssueCount()).isEqualTo(1);
         Assertions.assertThat(reporter.getNotReportedIssueCount()).isEqualTo(0);
@@ -70,11 +70,11 @@ public class ReporterTest {
 
     @Test
     public void shouldFormatIssuesForMarkdownNoInline() {
-        reporter.process(Utils.newMockedIssue("component", null, null, Severity.INFO, true, "Issue", "rule"), null, GITLAB_URL, true);
-        reporter.process(Utils.newMockedIssue("component", null, null, Severity.MINOR, true, "Issue", "rule"), null, GITLAB_URL, true);
-        reporter.process(Utils.newMockedIssue("component", null, null, Severity.MAJOR, true, "Issue", "rule"), null, GITLAB_URL, true);
-        reporter.process(Utils.newMockedIssue("component", null, null, Severity.CRITICAL, true, "Issue", "rule"), null, GITLAB_URL, true);
-        reporter.process(Utils.newMockedIssue("component", null, null, Severity.BLOCKER, true, "Issue", "rule"), null, GITLAB_URL, true);
+        reporter.process(Utils.newMockedIssue("component", null, null, Severity.INFO, true, "Issue", "rule"), null, GITLAB_URL, "file", "http://myserver", true, false);
+        reporter.process(Utils.newMockedIssue("component", null, null, Severity.MINOR, true, "Issue", "rule"), null, GITLAB_URL, "file", "http://myserver", true, false);
+        reporter.process(Utils.newMockedIssue("component", null, null, Severity.MAJOR, true, "Issue", "rule"), null, GITLAB_URL, "file", "http://myserver", true, false);
+        reporter.process(Utils.newMockedIssue("component", null, null, Severity.CRITICAL, true, "Issue", "rule"), null, GITLAB_URL, "file", "http://myserver", true, false);
+        reporter.process(Utils.newMockedIssue("component", null, null, Severity.BLOCKER, true, "Issue", "rule"), null, GITLAB_URL, "file", "http://myserver", true, false);
 
         Assertions.assertThat(reporter.getIssueCount()).isEqualTo(5);
         Assertions.assertThat(reporter.getNotReportedIssueCount()).isEqualTo(0);
@@ -88,11 +88,11 @@ public class ReporterTest {
 
     @Test
     public void shouldFormatIssuesForMarkdownMixInlineGlobal() {
-        reporter.process(Utils.newMockedIssue("component", null, null, Severity.INFO, true, "Issue 0", "rule0"), null, GITLAB_URL, true);
-        reporter.process(Utils.newMockedIssue("component", null, null, Severity.MINOR, true, "Issue 1", "rule1"), null, GITLAB_URL, false);
-        reporter.process(Utils.newMockedIssue("component", null, null, Severity.MAJOR, true, "Issue 2", "rule2"), null, GITLAB_URL, true);
-        reporter.process(Utils.newMockedIssue("component", null, null, Severity.CRITICAL, true, "Issue 3", "rule3"), null, GITLAB_URL, false);
-        reporter.process(Utils.newMockedIssue("component", null, null, Severity.BLOCKER, true, "Issue 4", "rule4"), null, GITLAB_URL, true);
+        reporter.process(Utils.newMockedIssue("component", null, null, Severity.INFO, true, "Issue 0", "rule0"), null, GITLAB_URL, "file", "http://myserver", true, false);
+        reporter.process(Utils.newMockedIssue("component", null, null, Severity.MINOR, true, "Issue 1", "rule1"), null, GITLAB_URL, "file", "http://myserver", false, false);
+        reporter.process(Utils.newMockedIssue("component", null, null, Severity.MAJOR, true, "Issue 2", "rule2"), null, GITLAB_URL, "file", "http://myserver", true, false);
+        reporter.process(Utils.newMockedIssue("component", null, null, Severity.CRITICAL, true, "Issue 3", "rule3"), null, GITLAB_URL, "file", "http://myserver", false, false);
+        reporter.process(Utils.newMockedIssue("component", null, null, Severity.BLOCKER, true, "Issue 4", "rule4"), null, GITLAB_URL, "file", "http://myserver", true, false);
 
         Assertions.assertThat(reporter.getIssueCount()).isEqualTo(5);
         Assertions.assertThat(reporter.getNotReportedIssueCount()).isEqualTo(2);
@@ -104,5 +104,28 @@ public class ReporterTest {
         Assertions.assertThat(reporter.getReportIssues()).hasSize(5);
         Assertions.assertThat(reporter.getNotReportedOnDiffReportIssueForSeverity(Severity.MINOR)).hasSize(1);
         Assertions.assertThat(reporter.getNotReportedOnDiffReportIssueForSeverity(Severity.CRITICAL)).hasSize(1);
+    }
+
+    @Test
+    public void oneIssueNoSast() {
+        reporter.process(Utils.newMockedIssue("component", null, null, Severity.INFO, true, "Issue", "rule"), null, GITLAB_URL, "file", "http://myserver", true, false);
+
+        Assertions.assertThat(reporter.buildSastJson()).isEqualTo("[]");
+    }
+
+    @Test
+    public void oneIssueSast() {
+        reporter.process(Utils.newMockedIssue("component", null, null, Severity.INFO, true, "Issue", "rule"), null, GITLAB_URL, "file", "http://myserver", true, true);
+
+        Assertions.assertThat(reporter.buildSastJson()).isEqualTo("[{\"tool\":\"sonarqube\",\"fingerprint\":\"null\",\"message\":\"Issue\",\"file\":\"file\",\"line\":\"0\",\"priority\":\"INFO\",\"solution\":\"http://myserver\"}]");
+    }
+
+    @Test
+    public void issuesSast() {
+        for (int i = 0; i < 5; i++) {
+            reporter.process(Utils.newMockedIssue("component", null, null, Severity.INFO, true, "Issue", "rule" + i), null, GITLAB_URL, "file", "http://myserver/rule" + i, true, i % 2 == 0);
+        }
+
+        Assertions.assertThat(reporter.buildSastJson()).isEqualTo("[{\"tool\":\"sonarqube\",\"fingerprint\":\"null\",\"message\":\"Issue\",\"file\":\"file\",\"line\":\"0\",\"priority\":\"INFO\",\"solution\":\"http://myserver/rule0\"},{\"tool\":\"sonarqube\",\"fingerprint\":\"null\",\"message\":\"Issue\",\"file\":\"file\",\"line\":\"0\",\"priority\":\"INFO\",\"solution\":\"http://myserver/rule2\"},{\"tool\":\"sonarqube\",\"fingerprint\":\"null\",\"message\":\"Issue\",\"file\":\"file\",\"line\":\"0\",\"priority\":\"INFO\",\"solution\":\"http://myserver/rule4\"}]");
     }
 }
