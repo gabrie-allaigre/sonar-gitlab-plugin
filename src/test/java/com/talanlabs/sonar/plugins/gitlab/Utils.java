@@ -19,13 +19,12 @@
  */
 package com.talanlabs.sonar.plugins.gitlab;
 
+import com.talanlabs.sonar.plugins.gitlab.models.Issue;
 import org.mockito.Mockito;
-import org.sonar.api.batch.fs.internal.DefaultInputFile;
 import org.sonar.api.batch.postjob.issue.PostJobIssue;
 import org.sonar.api.batch.rule.Severity;
 import org.sonar.api.rule.RuleKey;
 
-import javax.annotation.CheckForNull;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
@@ -38,27 +37,32 @@ public class Utils {
         super();
     }
 
-    public static PostJobIssue newMockedIssue(String componentKey, Severity severity, boolean isNew, String message) {
-        return newMockedIssue(componentKey, null, null, severity, isNew, message);
-    }
-
-    public static PostJobIssue newMockedIssue(String componentKey, @CheckForNull DefaultInputFile inputFile, @CheckForNull Integer line, Severity severity, boolean isNew, String message) {
-        return newMockedIssue(componentKey, inputFile, line, severity, isNew, message, "rule");
-    }
-
-    public static PostJobIssue newMockedIssue(String componentKey, @CheckForNull DefaultInputFile inputFile, @CheckForNull Integer line, Severity severity, boolean isNew, String message, String rule) {
+    public static PostJobIssue newMockedPostJobIssue(String componentKey, Severity severity, boolean isNew, String message) {
         PostJobIssue issue = Mockito.mock(PostJobIssue.class);
-        Mockito.when(issue.inputComponent()).thenReturn(inputFile);
+        Mockito.when(issue.inputComponent()).thenReturn(null);
         Mockito.when(issue.componentKey()).thenReturn(componentKey);
-        if (line != null) {
-            Mockito.when(issue.line()).thenReturn(line);
-        }
-        Mockito.when(issue.ruleKey()).thenReturn(RuleKey.of("repo", rule));
+        Mockito.when(issue.line()).thenReturn(null);
+        Mockito.when(issue.ruleKey()).thenReturn(RuleKey.of("repo", "rule"));
         Mockito.when(issue.severity()).thenReturn(severity);
         Mockito.when(issue.isNew()).thenReturn(isNew);
         Mockito.when(issue.message()).thenReturn(message);
-
         return issue;
+    }
+
+    public static Issue newIssue(String componentKey, Severity severity, boolean isNew, String message) {
+        return newIssue(componentKey, null, null, severity, isNew, message, "rule");
+    }
+
+    public static Issue newIssue(String componentKey, File file, Integer line, Severity severity, boolean isNew, String message) {
+        return newIssue(componentKey, file, line, severity, isNew, message, "rule");
+    }
+
+    public static Issue newIssue(String componentKey, File file, Integer line, Severity severity, boolean isNew, String message, String rule) {
+        return newIssue(null, componentKey, file, line, severity, isNew, message, rule);
+    }
+
+    public static Issue newIssue(String key, String componentKey, File file, Integer line, Severity severity, boolean isNew, String message, String rule) {
+        return Issue.newBuilder().key(key).componentKey(componentKey).file(file).line(line).severity(severity).newIssue(isNew).message(message).ruleKey("repo:" + rule).build();
     }
 
     public static void createFile(File root, String path, String filename, String value) throws IOException {

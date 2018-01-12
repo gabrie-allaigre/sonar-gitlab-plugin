@@ -10,7 +10,7 @@
   </parent>
   <groupId>com.talanlabs</groupId>
   <artifactId>sonar-gitlab-plugin</artifactId>
-  <version>2.2.0-SNAPSHOT</version>
+  <version>3.0.0-SNAPSHOT</version>
   <name>SonarQube :: GitLab Plugin</name>
   <description>GitLab Plugin for Reporting</description>
   <packaging>sonar-plugin</packaging>
@@ -126,6 +126,11 @@
       <scope>provided</scope>
     </dependency>
     <dependency>
+      <groupId>org.sonarsource.sonarqube</groupId>
+      <artifactId>sonar-ws</artifactId>
+      <version>${sonar.version}</version>
+    </dependency>
+    <dependency>
       <groupId>com.google.code.findbugs</groupId>
       <artifactId>jsr305</artifactId>
       <version>2.0.3</version>
@@ -163,7 +168,7 @@
     <dependency>
       <groupId>org.assertj</groupId>
       <artifactId>assertj-core</artifactId>
-      <version>2.2.0</version>
+      <version>3.9.0</version>
       <scope>test</scope>
     </dependency>
     <dependency>

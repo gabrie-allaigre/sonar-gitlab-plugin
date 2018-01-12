@@ -19,23 +19,21 @@
  */
 package com.talanlabs.sonar.plugins.gitlab;
 
-import org.sonar.api.CoreProperties;
-import org.sonar.api.batch.AnalysisMode;
+import com.talanlabs.sonar.plugins.gitlab.models.StatusNotificationsMode;
 import org.sonar.api.batch.bootstrap.ProjectBuilder;
-import org.sonar.api.utils.MessageException;
 
 public class CommitProjectBuilder extends ProjectBuilder {
 
     private final GitLabPluginConfiguration gitLabPluginConfiguration;
+    private final SonarFacade sonarFacade;
     private final CommitFacade commitFacade;
-    private final AnalysisMode mode;
 
-    public CommitProjectBuilder(GitLabPluginConfiguration gitLabPluginConfiguration, CommitFacade commitFacade, AnalysisMode mode) {
+    public CommitProjectBuilder(GitLabPluginConfiguration gitLabPluginConfiguration, SonarFacade sonarFacade, CommitFacade commitFacade) {
         super();
 
         this.gitLabPluginConfiguration = gitLabPluginConfiguration;
+        this.sonarFacade = sonarFacade;
         this.commitFacade = commitFacade;
-        this.mode = mode;
     }
 
     @Override
@@ -44,18 +42,11 @@ public class CommitProjectBuilder extends ProjectBuilder {
             return;
         }
 
-        checkMode();
-
+        sonarFacade.init(context.projectReactor().getRoot().getBaseDir(), context.projectReactor().getRoot().getWorkDir());
         commitFacade.init(context.projectReactor().getRoot().getBaseDir());
 
         if (StatusNotificationsMode.COMMIT_STATUS.equals(gitLabPluginConfiguration.statusNotificationsMode())) {
             commitFacade.createOrUpdateSonarQubeStatus(gitLabPluginConfiguration.buildInitState().getMeaning(), "SonarQube analysis in progress");
-        }
-    }
-
-    private void checkMode() {
-        if (!mode.isIssues()) {
-            throw MessageException.of("The GitLab plugin is only intended to be used in preview or issues mode. Please set '" + CoreProperties.ANALYSIS_MODE + "'.");
         }
     }
 }

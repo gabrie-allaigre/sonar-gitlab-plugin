@@ -29,7 +29,6 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.mockito.Mockito;
-import org.sonar.api.batch.fs.internal.DefaultInputFile;
 
 import java.io.File;
 import java.util.Arrays;
@@ -429,12 +428,9 @@ public class GetProjectV4Test {
                 "  }\n" +
                 "]"));
 
-        DefaultInputFile inputFile1 = new DefaultInputFile("foo", "src/Foo2.php");
-        inputFile1.setModuleBaseDir(gitBasedir.toPath());
-        DefaultInputFile inputFile2 = new DefaultInputFile("foo", "src/main/java/com/talanlabs/sonar/plugins/gitlab/Fake.java");
-        inputFile2.setModuleBaseDir(gitBasedir.toPath());
-        DefaultInputFile inputFile3 = new DefaultInputFile("foo", "src/main/java/com/talanlabs/sonar/plugins/gitlab/Fake2.java");
-        inputFile3.setModuleBaseDir(gitBasedir.toPath());
+        File inputFile1 = new File(gitBasedir, "src/Foo2.php");
+        File inputFile2 = new File(gitBasedir, "src/main/java/com/talanlabs/sonar/plugins/gitlab/Fake.java");
+        File inputFile3 = new File(gitBasedir, "src/main/java/com/talanlabs/sonar/plugins/gitlab/Fake2.java");
 
         CommitFacade facade = new CommitFacade(gitLabPluginConfiguration);
         facade.init(gitBasedir);

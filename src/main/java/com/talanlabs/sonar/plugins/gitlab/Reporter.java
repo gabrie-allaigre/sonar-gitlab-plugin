@@ -19,12 +19,13 @@
  */
 package com.talanlabs.sonar.plugins.gitlab;
 
-import org.sonar.api.batch.fs.InputFile;
-import org.sonar.api.batch.postjob.issue.PostJobIssue;
+import com.talanlabs.sonar.plugins.gitlab.models.*;
 import org.sonar.api.batch.rule.Severity;
 
 import javax.annotation.Nullable;
+import java.io.File;
 import java.util.*;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 public class Reporter {
@@ -36,9 +37,10 @@ public class Reporter {
     private int[] newIssuesBySeverity = new int[SEVERITIES.size()];
     private Map<Severity, List<ReportIssue>> reportIssuesMap = new EnumMap<>(Severity.class);
     private Map<Severity, List<ReportIssue>> notReportedOnDiffMap = new EnumMap<>(Severity.class);
-    private Map<String, Map<InputFile, Map<Integer, List<ReportIssue>>>> revisionFileLineMap = new HashMap<>();
+    private Map<String, Map<File, Map<Integer, List<ReportIssue>>>> revisionFileLineMap = new HashMap<>();
     private int notReportedIssueCount = 0;
-    private List<ReportIssue> sastIssues = new ArrayList<>();
+    private List<ReportIssue> jsonIssues = new ArrayList<>();
+    private QualityGate qualityGate;
 
     public Reporter(GitLabPluginConfiguration gitLabPluginConfiguration) {
         super();
@@ -46,26 +48,30 @@ public class Reporter {
         this.gitLabPluginConfiguration = gitLabPluginConfiguration;
     }
 
-    public void process(PostJobIssue postJobIssue, @Nullable String revision, @Nullable String gitLabUrl, @Nullable String src, String ruleLink, boolean reportedOnDiff, boolean sast) {
+    public void setQualityGate(QualityGate qualityGate) {
+        this.qualityGate = qualityGate;
+    }
+
+    public void process(Issue issue, @Nullable Rule rule, @Nullable String revision, @Nullable String gitLabUrl, @Nullable String src, String ruleLink, boolean reportedOnDiff) {
         String r = revision != null ? revision : gitLabPluginConfiguration.commitSHA().get(0);
-        ReportIssue reportIssue = new ReportIssue(postJobIssue, r, gitLabUrl, src, ruleLink, reportedOnDiff);
-        List<ReportIssue> reportIssues = reportIssuesMap.computeIfAbsent(postJobIssue.severity(), k -> new ArrayList<>());
+        ReportIssue reportIssue = ReportIssue.newBuilder().issue(issue).rule(rule).revision(r).url(gitLabUrl).file(src).ruleLink(ruleLink).reportedOnDiff(reportedOnDiff).build();
+        List<ReportIssue> reportIssues = reportIssuesMap.computeIfAbsent(issue.getSeverity(), k -> new ArrayList<>());
         reportIssues.add(reportIssue);
 
-        if (sast) {
-            sastIssues.add(reportIssue);
+        if (!gitLabPluginConfiguration.jsonMode().equals(JsonMode.NONE)) {
+            jsonIssues.add(reportIssue);
         }
 
-        increment(postJobIssue.severity());
+        increment(issue.getSeverity());
         if (!reportedOnDiff) {
             notReportedIssueCount++;
 
-            List<ReportIssue> notReportedOnDiffs = notReportedOnDiffMap.computeIfAbsent(postJobIssue.severity(), k -> new ArrayList<>());
+            List<ReportIssue> notReportedOnDiffs = notReportedOnDiffMap.computeIfAbsent(issue.getSeverity(), k -> new ArrayList<>());
             notReportedOnDiffs.add(reportIssue);
         } else {
-            Map<InputFile, Map<Integer, List<ReportIssue>>> fileLineMap = revisionFileLineMap.computeIfAbsent(r, k -> new HashMap<>());
-            Map<Integer, List<ReportIssue>> issuesByLine = fileLineMap.computeIfAbsent((InputFile) postJobIssue.inputComponent(), k -> new HashMap<>());
-            issuesByLine.computeIfAbsent(postJobIssue.line(), k -> new ArrayList<>()).add(reportIssue);
+            Map<File, Map<Integer, List<ReportIssue>>> fileLineMap = revisionFileLineMap.computeIfAbsent(r, k -> new HashMap<>());
+            Map<Integer, List<ReportIssue>> issuesByLine = fileLineMap.computeIfAbsent(issue.getFile(), k -> new HashMap<>());
+            issuesByLine.computeIfAbsent(issue.getLine(), k -> new ArrayList<>()).add(reportIssue);
         }
     }
 
@@ -78,11 +84,16 @@ public class Reporter {
     }
 
     public String getStatus() {
-        return isAboveGates() ? "failed" : "success";
+        return isAboveGates() ? MessageHelper.FAILED_GITLAB_STATUS : MessageHelper.SUCCESS_GITLAB_STATUS;
     }
 
     public boolean isAboveGates() {
-        return aboveImportantGates() || aboveOtherGates();
+        return aboveQualityGate() || aboveImportantGates() || aboveOtherGates();
+    }
+
+    private boolean aboveQualityGate() {
+        return qualityGate != null && (QualityGate.Status.ERROR.equals(qualityGate.getStatus()) || (QualityGateFailMode.WARN.equals(gitLabPluginConfiguration.qualityGateFailMode())
+                && QualityGate.Status.WARN.equals(qualityGate.getStatus())));
     }
 
     private boolean aboveImportantGates() {
@@ -119,7 +130,7 @@ public class Reporter {
         return Collections.unmodifiableList(notReportedOnDiffMap.getOrDefault(severity, Collections.emptyList()));
     }
 
-    public Map<String, Map<InputFile, Map<Integer, List<ReportIssue>>>> getFileLineMap() {
+    public Map<String, Map<File, Map<Integer, List<ReportIssue>>>> getFileLineMap() {
         return Collections.unmodifiableMap(revisionFileLineMap);
     }
 
@@ -129,12 +140,48 @@ public class Reporter {
 
     public String getStatusDescription() {
         StringBuilder sb = new StringBuilder();
+        sb.append("SonarQube reported ");
+        printQualityGate(sb);
         printNewIssuesInline(sb);
         return sb.toString();
     }
 
+    private void printQualityGate(StringBuilder sb) {
+        if (qualityGate == null) {
+            return;
+        }
+
+        sb.append("QualityGate is ").append(qualityGate.getStatus().name().toLowerCase()).append(",");
+
+        List<QualityGate.Condition> conditions = qualityGate.getConditions();
+        if (conditions == null || conditions.isEmpty()) {
+            sb.append(" with no conditions,");
+        } else {
+            printCondition(sb, QualityGate.Status.ERROR, conditions);
+            printCondition(sb, QualityGate.Status.WARN, conditions);
+            printCondition(sb, QualityGate.Status.OK, conditions);
+            if (sb.charAt(sb.length() - 1) != ',') {
+                sb.append(",");
+            }
+        }
+    }
+
+    private void printCondition(StringBuilder sb, QualityGate.Status status, List<QualityGate.Condition> conditions) {
+        int count = (int) conditions.stream().filter(c -> status.equals(c.getStatus())).count();
+        if (count > 0) {
+            if (sb.charAt(sb.length() - 1) == ',') {
+                sb.append(" with ");
+            } else {
+                sb.append(" and ");
+            }
+            sb.append(count).append(" ").append(status.name().toLowerCase());
+        }
+    }
+
     private void printNewIssuesInline(StringBuilder sb) {
-        sb.append("SonarQube reported ");
+        if (sb.charAt(sb.length() - 1) == ',') {
+            sb.append(" ");
+        }
         int newIssues = getIssueCount();
         if (newIssues > 0) {
             sb.append(newIssues).append(" issue").append(newIssues > 1 ? "s" : "").append(",");
@@ -163,64 +210,55 @@ public class Reporter {
         }
     }
 
-    public String buildSastJson() {
-        return sastIssues.stream().map(this::buildIssueSastJson).collect(Collectors.joining(",", "[", "]"));
+    public String buildJson() {
+        Function<ReportIssue, String> f;
+        if (gitLabPluginConfiguration.jsonMode().equals(JsonMode.CODECLIMATE)) {
+            f = this::buildIssueCodeQualityJson;
+        } else if (gitLabPluginConfiguration.jsonMode().equals(JsonMode.SAST)) {
+            f = this::buildIssueSastJson;
+        } else {
+            f = r -> "";
+        }
+        return jsonIssues.stream().map(f).collect(Collectors.joining(",", "[", "]"));
+    }
+
+    private String buildIssueCodeQualityJson(ReportIssue reportIssue) {
+        Issue issue = reportIssue.getIssue();
+
+        StringJoiner sj = new StringJoiner(",", "{", "}");
+        sj.add("\"fingerprint\":\"" + issue.getKey() + "\"");
+        sj.add("\"check_name\":\"" + prepareMessageJson(issue.getMessage()) + "\"");
+        sj.add("\"location\":" + buildLocationCodeQualityJson(reportIssue));
+        return sj.toString();
+    }
+
+    private String buildLocationCodeQualityJson(ReportIssue reportIssue) {
+        Issue issue = reportIssue.getIssue();
+
+        StringJoiner sj = new StringJoiner(",", "{", "}");
+        sj.add("\"path\":\"" + reportIssue.getFile() + "\"");
+
+        int line = issue.getLine() != null ? issue.getLine() : 0;
+
+        sj.add("\"lines\": { \"begin\":" + line + ",\"end\":" + line + "}");
+        return sj.toString();
     }
 
     private String buildIssueSastJson(ReportIssue reportIssue) {
-        PostJobIssue postJobIssue = reportIssue.getPostJobIssue();
+        Issue issue = reportIssue.getIssue();
 
         StringJoiner sj = new StringJoiner(",", "{", "}");
         sj.add("\"tool\":\"sonarqube\"");
-        sj.add("\"fingerprint\":\"" + postJobIssue.key() + "\"");
-        sj.add("\"message\":\"" + postJobIssue.message() + "\"");
+        sj.add("\"fingerprint\":\"" + issue.getKey() + "\"");
+        sj.add("\"message\":\"" + prepareMessageJson(issue.getMessage()) + "\"");
         sj.add("\"file\":\"" + reportIssue.getFile() + "\"");
-        sj.add("\"line\":\"" + (postJobIssue.line() != null ? postJobIssue.line() : 0) + "\"");
-        sj.add("\"priority\":\"" + postJobIssue.severity().name() + "\"");
+        sj.add("\"line\":\"" + (issue.getLine() != null ? issue.getLine() : 0) + "\"");
+        sj.add("\"priority\":\"" + issue.getSeverity().name() + "\"");
         sj.add("\"solution\":\"" + reportIssue.getRuleLink() + "\"");
         return sj.toString();
     }
 
-    public static class ReportIssue {
-
-        private final PostJobIssue postJobIssue;
-        private final String revision;
-        private final String url;
-        private final String file;
-        private final String ruleLink;
-        private final boolean reportedOnDiff;
-
-        public ReportIssue(PostJobIssue postJobIssue, String revision, String url, String file, String ruleLink, boolean reportedOnDiff) {
-            this.postJobIssue = postJobIssue;
-            this.revision = revision;
-            this.url = url;
-            this.file = file;
-            this.ruleLink = ruleLink;
-            this.reportedOnDiff = reportedOnDiff;
-        }
-
-        public PostJobIssue getPostJobIssue() {
-            return postJobIssue;
-        }
-
-        public String getRevision() {
-            return revision;
-        }
-
-        public String getUrl() {
-            return url;
-        }
-
-        public String getFile() {
-            return file;
-        }
-
-        public String getRuleLink() {
-            return ruleLink;
-        }
-
-        public boolean isReportedOnDiff() {
-            return reportedOnDiff;
-        }
+    private String prepareMessageJson(String message) {
+        return message.replaceAll("\"", "\\\\\"");
     }
 }

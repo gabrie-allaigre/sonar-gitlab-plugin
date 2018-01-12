@@ -19,7 +19,8 @@
  */
 package com.talanlabs.sonar.plugins.gitlab.freemarker;
 
-import com.talanlabs.sonar.plugins.gitlab.Reporter;
+import com.talanlabs.sonar.plugins.gitlab.models.ReportIssue;
+import com.talanlabs.sonar.plugins.gitlab.models.Rule;
 
 import java.util.HashMap;
 import java.util.List;
@@ -29,28 +30,41 @@ import java.util.stream.Stream;
 
 public class IssuesTemplateMethodModelEx extends AbstractIssuesTemplateMethodModelEx {
 
-    public IssuesTemplateMethodModelEx(List<Reporter.ReportIssue> reportIssues) {
+    public IssuesTemplateMethodModelEx(List<ReportIssue> reportIssues) {
         super(reportIssues);
     }
 
     @Override
-    protected Object exec(Stream<Reporter.ReportIssue> stream) {
+    protected Object exec(Stream<ReportIssue> stream) {
         return stream.map(this::convertReportIssue).collect(Collectors.toList());
     }
 
-    private Map<String, Object> convertReportIssue(Reporter.ReportIssue reportIssue) {
+    private Map<String, Object> convertReportIssue(ReportIssue reportIssue) {
         Map<String, Object> root = new HashMap<>();
         root.put("reportedOnDiff", reportIssue.isReportedOnDiff());
         root.put("url", reportIssue.getUrl());
-        root.put("componentKey", reportIssue.getPostJobIssue().componentKey());
-        root.put("severity", reportIssue.getPostJobIssue().severity());
-        root.put("line", reportIssue.getPostJobIssue().line());
-        root.put("key", reportIssue.getPostJobIssue().key());
-        root.put("message", reportIssue.getPostJobIssue().message());
-        root.put("ruleKey", reportIssue.getPostJobIssue().ruleKey().toString());
-        root.put("new", reportIssue.getPostJobIssue().isNew());
+        root.put("componentKey", reportIssue.getIssue().getComponentKey());
+        root.put("severity", reportIssue.getIssue().getSeverity());
+        root.put("line", reportIssue.getIssue().getLine());
+        root.put("key", reportIssue.getIssue().getKey());
+        root.put("message", reportIssue.getIssue().getMessage());
+        root.put("ruleKey", reportIssue.getIssue().getRuleKey());
+        root.put("new", reportIssue.getIssue().isNewIssue());
         root.put("ruleLink", reportIssue.getRuleLink());
         root.put("src", reportIssue.getFile());
+        root.put("rule", reportIssue.getRule() != null ? convertRule(reportIssue.getRule()) : null);
+        return root;
+    }
+
+    private Map<String, Object> convertRule(Rule rule) {
+        Map<String, Object> root = new HashMap<>();
+        root.put("key", rule.getKey());
+        root.put("repo", rule.getRepo());
+        root.put("name", rule.getName());
+        root.put("description", rule.getDescription());
+        root.put("type", rule.getType());
+        root.put("debtRemFnType", rule.getDebtRemFnType());
+        root.put("debtRemFnBaseEffort", rule.getDebtRemFnBaseEffort());
         return root;
     }
 }

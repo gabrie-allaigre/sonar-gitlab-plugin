@@ -17,21 +17,21 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
-package com.talanlabs.sonar.plugins.gitlab;
+package com.talanlabs.sonar.plugins.gitlab.freemarker;
 
-import org.junit.Test;
-import org.sonar.api.Plugin;
-import org.sonar.api.utils.Version;
+import com.talanlabs.sonar.plugins.gitlab.models.QualityGate;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import java.util.List;
+import java.util.stream.Stream;
 
-public class GitLabPluginTest {
+public class QualityGateConditionCountTemplateMethodModelEx extends AbstractQualityGateConditionsTemplateMethodModelEx {
 
-    @Test
-    public void uselessTest() {
-        Plugin.Context context = new Plugin.Context(Version.parse("5.6"));
-        new GitLabPlugin().define(context);
-        assertThat(context.getExtensions().size()).isGreaterThan(7);
+    public QualityGateConditionCountTemplateMethodModelEx(List<QualityGate.Condition> conditions) {
+        super(conditions);
     }
 
+    @Override
+    protected Object exec(Stream<QualityGate.Condition> stream) {
+        return (int)stream.count();
+    }
 }

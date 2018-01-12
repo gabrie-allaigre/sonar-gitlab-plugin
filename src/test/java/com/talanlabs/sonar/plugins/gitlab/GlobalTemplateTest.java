@@ -19,79 +19,94 @@
  */
 package com.talanlabs.sonar.plugins.gitlab;
 
+import com.talanlabs.sonar.plugins.gitlab.models.QualityGate;
 import org.assertj.core.api.Assertions;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.Mockito;
 import org.sonar.api.CoreProperties;
+import org.sonar.api.batch.AnalysisMode;
 import org.sonar.api.batch.rule.Severity;
 import org.sonar.api.config.PropertyDefinition;
 import org.sonar.api.config.PropertyDefinitions;
 import org.sonar.api.config.Settings;
 import org.sonar.api.utils.System2;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
+import static org.mockito.Mockito.when;
+
 public class GlobalTemplateTest {
 
     private static final String GITLAB_URL = "https://gitlab.com/test/test";
 
-    private static final String TEMPLATE = "<#assign newIssueCount = issueCount() notReportedIssueCount = issueCount(false)>\n" +
-            "<#assign hasInlineIssues = newIssueCount gt notReportedIssueCount extraIssuesTruncated = notReportedIssueCount gt maxGlobalIssues>\n" +
-            "<#if newIssueCount == 0>\n" +
-            "SonarQube analysis reported no issues.\n" +
-            "<#else>\n" +
-            "SonarQube analysis reported ${newIssueCount} issue<#if newIssueCount gt 1>s</#if>\n" +
-            "    <#assign newIssuesBlocker = issueCount(BLOCKER) newIssuesCritical = issueCount(CRITICAL) newIssuesMajor = issueCount(MAJOR) newIssuesMinor = issueCount(MINOR) newIssuesInfo = issueCount(INFO)>\n" +
-            "    <#if newIssuesBlocker gt 0>\n" +
-            "* ${emojiSeverity(BLOCKER)} ${newIssuesBlocker} blocker\n" +
-            "    </#if>\n" +
-            "    <#if newIssuesCritical gt 0>\n" +
-            "* ${emojiSeverity(CRITICAL)} ${newIssuesCritical} critical\n" +
-            "    </#if>\n" +
-            "    <#if newIssuesMajor gt 0>\n" +
-            "* ${emojiSeverity(MAJOR)} ${newIssuesMajor} major\n" +
-            "    </#if>\n" +
-            "    <#if newIssuesMinor gt 0>\n" +
-            "* ${emojiSeverity(MINOR)} ${newIssuesMinor} minor\n" +
-            "    </#if>\n" +
-            "    <#if newIssuesInfo gt 0>\n" +
-            "* ${emojiSeverity(INFO)} ${newIssuesInfo} info\n" +
-            "    </#if>\n" +
-            "    <#if !disableIssuesInline && hasInlineIssues>\n" +
-            "\n" +
-            "Watch the comments in this conversation to review them.\n" +
-            "    </#if>\n" +
-            "    <#if notReportedIssueCount gt 0>\n" +
-            "        <#if !disableIssuesInline>\n" +
-            "            <#if hasInlineIssues || extraIssuesTruncated>\n" +
-            "                <#if notReportedIssueCount <= maxGlobalIssues>\n" +
-            "\n" +
-            "#### ${notReportedIssueCount} extra issue<#if notReportedIssueCount gt 1>s</#if>\n" +
-            "                <#else>\n" +
-            "\n" +
-            "#### Top ${maxGlobalIssues} extra issue<#if maxGlobalIssues gt 1>s</#if>\n" +
-            "                </#if>\n" +
-            "            </#if>\n" +
-            "\n" +
-            "Note: The following issues were found on lines that were not modified in the commit. Because these issues can't be reported as line comments, they are summarized here:\n" +
-            "        <#elseif extraIssuesTruncated>\n" +
-            "\n" +
-            "#### Top ${maxGlobalIssues} issue<#if maxGlobalIssues gt 1>s</#if>\n" +
-            "        </#if>\n" +
-            "\n" +
-            "        <#assign reportedIssueCount = 0>\n" +
-            "        <#list issues(false) as issue>\n" +
-            "            <#if reportedIssueCount < maxGlobalIssues>\n" +
-            "1. ${print(issue)}\n" +
-            "            </#if>\n" +
-            "            <#assign reportedIssueCount++>\n" +
-            "        </#list>\n" +
-            "        <#if notReportedIssueCount gt maxGlobalIssues>\n" +
-            "* ... ${notReportedIssueCount-maxGlobalIssues} more\n" +
-            "        </#if>\n" +
-            "    </#if>\n" +
-            "</#if>";
+    private static final String TEMPLATE =
+            "<#if qualityGate??>\n" + "SonarQube analysis indicates that quality gate is <@s status=qualityGate.status/>.\n" +
+                    "<#list qualityGate.conditions() as condition>\n" + "<@c condition=condition/>\n\n" + "</#list>\n" + "\n" + "</#if>\n" +
+                    "<#macro c condition>* ${condition.metricName} is <@s status=condition.status/>: Actual value ${condition.actual}<#if condition.status == WARN> is ${condition.symbol} ${condition.warning}</#if><#if condition.status == ERROR> is ${condition.symbol} ${condition.error}</#if></#macro>" +
+                    "<#macro s status><#if status == OK>passed<#elseif status == WARN>warning<#elseif status == ERROR>failed<#else>unknown</#if></#macro>\n" +
+                    "<#assign newIssueCount = issueCount() notReportedIssueCount = issueCount(false)>\n" +
+                    "<#assign hasInlineIssues = newIssueCount gt notReportedIssueCount extraIssuesTruncated = notReportedIssueCount gt maxGlobalIssues>\n" +
+                    "<#if newIssueCount == 0>\n" +
+                    "SonarQube analysis reported no issues.\n" +
+                    "<#else>\n" +
+                    "SonarQube analysis reported ${newIssueCount} issue<#if newIssueCount gt 1>s</#if>\n" +
+                    "    <#assign newIssuesBlocker = issueCount(BLOCKER) newIssuesCritical = issueCount(CRITICAL) newIssuesMajor = issueCount(MAJOR) newIssuesMinor = issueCount(MINOR) newIssuesInfo = issueCount(INFO)>\n" +
+                    "    <#if newIssuesBlocker gt 0>\n" +
+                    "* ${emojiSeverity(BLOCKER)} ${newIssuesBlocker} blocker\n" +
+                    "    </#if>\n" +
+                    "    <#if newIssuesCritical gt 0>\n" +
+                    "* ${emojiSeverity(CRITICAL)} ${newIssuesCritical} critical\n" +
+                    "    </#if>\n" +
+                    "    <#if newIssuesMajor gt 0>\n" +
+                    "* ${emojiSeverity(MAJOR)} ${newIssuesMajor} major\n" +
+                    "    </#if>\n" +
+                    "    <#if newIssuesMinor gt 0>\n" +
+                    "* ${emojiSeverity(MINOR)} ${newIssuesMinor} minor\n" +
+                    "    </#if>\n" +
+                    "    <#if newIssuesInfo gt 0>\n" +
+                    "* ${emojiSeverity(INFO)} ${newIssuesInfo} info\n" +
+                    "    </#if>\n" +
+                    "    <#if !disableIssuesInline && hasInlineIssues>\n" +
+                    "\n" +
+                    "Watch the comments in this conversation to review them.\n" +
+                    "    </#if>\n" +
+                    "    <#if notReportedIssueCount gt 0>\n" +
+                    "        <#if !disableIssuesInline>\n" +
+                    "            <#if hasInlineIssues || extraIssuesTruncated>\n" +
+                    "                <#if notReportedIssueCount <= maxGlobalIssues>\n" +
+                    "\n" +
+                    "#### ${notReportedIssueCount} extra issue<#if notReportedIssueCount gt 1>s</#if>\n" +
+                    "                <#else>\n" +
+                    "\n" +
+                    "#### Top ${maxGlobalIssues} extra issue<#if maxGlobalIssues gt 1>s</#if>\n" +
+                    "                </#if>\n" +
+                    "            </#if>\n" +
+                    "\n" +
+                    "Note: The following issues were found on lines that were not modified in the commit. Because these issues can't be reported as line comments, they are summarized here:\n" +
+                    "        <#elseif extraIssuesTruncated>\n" +
+                    "\n" +
+                    "#### Top ${maxGlobalIssues} issue<#if maxGlobalIssues gt 1>s</#if>\n" +
+                    "        </#if>\n" +
+                    "\n" +
+                    "        <#assign reportedIssueCount = 0>\n" +
+                    "        <#list issues(false) as issue>\n" +
+                    "            <#if reportedIssueCount < maxGlobalIssues>\n" +
+                    "1. ${print(issue)}\n" +
+                    "            </#if>\n" +
+                    "            <#assign reportedIssueCount++>\n" +
+                    "        </#list>\n" +
+                    "        <#if notReportedIssueCount gt maxGlobalIssues>\n" +
+                    "* ... ${notReportedIssueCount-maxGlobalIssues} more\n" +
+                    "        </#if>\n" +
+                    "    </#if>\n" +
+                    "</#if>";
 
     private Settings settings;
     private GitLabPluginConfiguration config;
+    private AnalysisMode analysisMode;
 
     @Before
     public void setUp() {
@@ -102,6 +117,11 @@ public class GlobalTemplateTest {
         settings.setProperty(CoreProperties.SERVER_BASE_URL, "http://myserver");
         settings.setProperty(GitLabPlugin.GITLAB_COMMIT_SHA, "abc123");
 
+        analysisMode = Mockito.mock(AnalysisMode.class);
+        when(analysisMode.isIssues()).thenReturn(false);
+        when(analysisMode.isPreview()).thenReturn(true);
+        when(analysisMode.isPublish()).thenReturn(false);
+
         config = new GitLabPluginConfiguration(settings, new System2());
 
         settings.setProperty(GitLabPlugin.GITLAB_GLOBAL_TEMPLATE, TEMPLATE);
@@ -109,15 +129,15 @@ public class GlobalTemplateTest {
 
     @Test
     public void testNoIssues() {
-        Assertions.assertThat(new GlobalCommentBuilder(config, null, new Reporter(config), new MarkDownUtils()).buildForMarkdown()).isEqualTo("SonarQube analysis reported no issues.\n");
+        Assertions.assertThat(new GlobalCommentBuilder(config, null, null, new Reporter(config), new MarkDownUtils(), analysisMode).buildForMarkdown()).isEqualTo("SonarQube analysis reported no issues.\n");
     }
 
     @Test
     public void testOneIssue() {
         Reporter reporter = new Reporter(config);
-        reporter.process(Utils.newMockedIssue("component", null, null, Severity.INFO, true, "Issue", "rule"), null, GITLAB_URL, "file", "http://myserver/coding_rules#rule_key=repo%3Arule", true, false);
+        reporter.process(Utils.newIssue("component", null, null, Severity.INFO, true, "Issue", "rule"), null, null, GITLAB_URL, "file", "http://myserver/coding_rules#rule_key=repo%3Arule", true);
 
-        Assertions.assertThat(new GlobalCommentBuilder(config, null, reporter, new MarkDownUtils()).buildForMarkdown())
+        Assertions.assertThat(new GlobalCommentBuilder(config, null, null, reporter, new MarkDownUtils(), analysisMode).buildForMarkdown())
                 .isEqualTo("SonarQube analysis reported 1 issue\n" + "* :information_source: 1 info\n" + "\nWatch the comments in this conversation to review them.\n");
     }
 
@@ -126,9 +146,9 @@ public class GlobalTemplateTest {
         settings.setProperty(GitLabPlugin.GITLAB_DISABLE_INLINE_COMMENTS, false);
 
         Reporter reporter = new Reporter(config);
-        reporter.process(Utils.newMockedIssue("component0", null, null, Severity.INFO, true, "Issue0", "rule0"), null, null, "file", "http://myserver/coding_rules#rule_key=repo%3Arule0", false, false);
+        reporter.process(Utils.newIssue("component0", null, null, Severity.INFO, true, "Issue0", "rule0"), null, null, null, "file", "http://myserver/coding_rules#rule_key=repo%3Arule0", false);
 
-        Assertions.assertThat(new GlobalCommentBuilder(config, null, reporter, new MarkDownUtils()).buildForMarkdown()).isEqualTo(
+        Assertions.assertThat(new GlobalCommentBuilder(config, null, null, reporter, new MarkDownUtils(), analysisMode).buildForMarkdown()).isEqualTo(
                 "SonarQube analysis reported 1 issue\n" + "* :information_source: 1 info\n" + "\n"
                         + "Note: The following issues were found on lines that were not modified in the commit. Because these issues can't be reported as line comments, they are summarized here:\n\n"
                         + "1. :information_source: Issue0 (component0) [:blue_book:](http://myserver/coding_rules#rule_key=repo%3Arule0)\n");
@@ -139,13 +159,13 @@ public class GlobalTemplateTest {
         settings.setProperty(GitLabPlugin.GITLAB_DISABLE_INLINE_COMMENTS, false);
 
         Reporter reporter = new Reporter(config);
-        reporter.process(Utils.newMockedIssue("component", null, null, Severity.INFO, true, "Issue", "rule"), null, GITLAB_URL, "file", "http://myserver/coding_rules#rule_key=repo%3Arule", true, false);
-        reporter.process(Utils.newMockedIssue("component", null, null, Severity.MINOR, true, "Issue", "rule"), null, GITLAB_URL, "file", "http://myserver/coding_rules#rule_key=repo%3Arule", true, false);
-        reporter.process(Utils.newMockedIssue("component", null, null, Severity.MAJOR, true, "Issue", "rule"), null, GITLAB_URL, "file", "http://myserver/coding_rules#rule_key=repo%3Arule", true, false);
-        reporter.process(Utils.newMockedIssue("component", null, null, Severity.CRITICAL, true, "Issue", "rule"), null, GITLAB_URL, "file", "http://myserver/coding_rules#rule_key=repo%3Arule", true, false);
-        reporter.process(Utils.newMockedIssue("component", null, null, Severity.BLOCKER, true, "Issue", "rule"), null, GITLAB_URL, "file", "http://myserver/coding_rules#rule_key=repo%3Arule", true, false);
+        reporter.process(Utils.newIssue("component", null, null, Severity.INFO, true, "Issue", "rule"), null, null, GITLAB_URL, "file", "http://myserver/coding_rules#rule_key=repo%3Arule", true);
+        reporter.process(Utils.newIssue("component", null, null, Severity.MINOR, true, "Issue", "rule"), null, null, GITLAB_URL, "file", "http://myserver/coding_rules#rule_key=repo%3Arule", true);
+        reporter.process(Utils.newIssue("component", null, null, Severity.MAJOR, true, "Issue", "rule"), null, null, GITLAB_URL, "file", "http://myserver/coding_rules#rule_key=repo%3Arule", true);
+        reporter.process(Utils.newIssue("component", null, null, Severity.CRITICAL, true, "Issue", "rule"), null, null, GITLAB_URL, "file", "http://myserver/coding_rules#rule_key=repo%3Arule", true);
+        reporter.process(Utils.newIssue("component", null, null, Severity.BLOCKER, true, "Issue", "rule"), null, null, GITLAB_URL, "file", "http://myserver/coding_rules#rule_key=repo%3Arule", true);
 
-        Assertions.assertThat(new GlobalCommentBuilder(config, null, reporter, new MarkDownUtils()).buildForMarkdown()).isEqualTo(
+        Assertions.assertThat(new GlobalCommentBuilder(config, null, null, reporter, new MarkDownUtils(), analysisMode).buildForMarkdown()).isEqualTo(
                 "SonarQube analysis reported 5 issues\n" + "* :no_entry: 1 blocker\n" + "* :no_entry_sign: 1 critical\n" + "* :warning: 1 major\n" + "* :arrow_down_small: 1 minor\n"
                         + "* :information_source: 1 info\n" + "\n" + "Watch the comments in this conversation to review them.\n");
     }
@@ -155,13 +175,13 @@ public class GlobalTemplateTest {
         settings.setProperty(GitLabPlugin.GITLAB_DISABLE_INLINE_COMMENTS, false);
 
         Reporter reporter = new Reporter(config);
-        reporter.process(Utils.newMockedIssue("component", null, null, Severity.INFO, true, "Issue 0", "rule0"), null, GITLAB_URL, "file", "http://myserver/coding_rules#rule_key=repo%3Arule0", true, false);
-        reporter.process(Utils.newMockedIssue("component", null, null, Severity.MINOR, true, "Issue 1", "rule1"), null, GITLAB_URL, "file", "http://myserver/coding_rules#rule_key=repo%3Arule1", false, false);
-        reporter.process(Utils.newMockedIssue("component", null, null, Severity.MAJOR, true, "Issue 2", "rule2"), null, GITLAB_URL, "file", "http://myserver/coding_rules#rule_key=repo%3Arule2", true, false);
-        reporter.process(Utils.newMockedIssue("component", null, null, Severity.CRITICAL, true, "Issue 3", "rule3"), null, GITLAB_URL, "file", "http://myserver/coding_rules#rule_key=repo%3Arule3", false, false);
-        reporter.process(Utils.newMockedIssue("component", null, null, Severity.BLOCKER, true, "Issue 4", "rule4"), null, GITLAB_URL, "file", "http://myserver/coding_rules#rule_key=repo%3Arule4", true, false);
+        reporter.process(Utils.newIssue("component", null, null, Severity.INFO, true, "Issue 0", "rule0"), null, null, GITLAB_URL, "file", "http://myserver/coding_rules#rule_key=repo%3Arule0", true);
+        reporter.process(Utils.newIssue("component", null, null, Severity.MINOR, true, "Issue 1", "rule1"), null, null, GITLAB_URL, "file", "http://myserver/coding_rules#rule_key=repo%3Arule1", false);
+        reporter.process(Utils.newIssue("component", null, null, Severity.MAJOR, true, "Issue 2", "rule2"), null, null, GITLAB_URL, "file", "http://myserver/coding_rules#rule_key=repo%3Arule2", true);
+        reporter.process(Utils.newIssue("component", null, null, Severity.CRITICAL, true, "Issue 3", "rule3"), null, null, GITLAB_URL, "file", "http://myserver/coding_rules#rule_key=repo%3Arule3", false);
+        reporter.process(Utils.newIssue("component", null, null, Severity.BLOCKER, true, "Issue 4", "rule4"), null, null, GITLAB_URL, "file", "http://myserver/coding_rules#rule_key=repo%3Arule4", true);
 
-        Assertions.assertThat(new GlobalCommentBuilder(config, null, reporter, new MarkDownUtils()).buildForMarkdown()).isEqualTo(
+        Assertions.assertThat(new GlobalCommentBuilder(config, null, null, reporter, new MarkDownUtils(), analysisMode).buildForMarkdown()).isEqualTo(
                 "SonarQube analysis reported 5 issues\n" + "* :no_entry: 1 blocker\n" + "* :no_entry_sign: 1 critical\n" + "* :warning: 1 major\n" + "* :arrow_down_small: 1 minor\n"
                         + "* :information_source: 1 info\n" + "\n" + "Watch the comments in this conversation to review them.\n" + "\n" + "#### 2 extra issues\n" + "\n"
                         + "Note: The following issues were found on lines that were not modified in the commit. Because these issues can't be reported as line comments, they are summarized here:\n\n"
@@ -174,13 +194,13 @@ public class GlobalTemplateTest {
         settings.setProperty(GitLabPlugin.GITLAB_DISABLE_INLINE_COMMENTS, true);
 
         Reporter reporter = new Reporter(config);
-        reporter.process(Utils.newMockedIssue("component", null, null, Severity.INFO, true, "Issue 0", "rule0"), null, GITLAB_URL, "file", "http://myserver/coding_rules#rule_key=repo%3Arule0", false, false);
-        reporter.process(Utils.newMockedIssue("component", null, null, Severity.MINOR, true, "Issue 1", "rule1"), null, GITLAB_URL, "file", "http://myserver/coding_rules#rule_key=repo%3Arule1", false, false);
-        reporter.process(Utils.newMockedIssue("component", null, null, Severity.MAJOR, true, "Issue 2", "rule2"), null, GITLAB_URL, "file", "http://myserver/coding_rules#rule_key=repo%3Arule2", false, false);
-        reporter.process(Utils.newMockedIssue("component", null, null, Severity.CRITICAL, true, "Issue 3", "rule3"), null, GITLAB_URL, "file", "http://myserver/coding_rules#rule_key=repo%3Arule3", false, false);
-        reporter.process(Utils.newMockedIssue("component", null, null, Severity.BLOCKER, true, "Issue 4", "rule4"), null, GITLAB_URL, "file", "http://myserver/coding_rules#rule_key=repo%3Arule4", false, false);
+        reporter.process(Utils.newIssue("component", null, null, Severity.INFO, true, "Issue 0", "rule0"), null, null, GITLAB_URL, "file", "http://myserver/coding_rules#rule_key=repo%3Arule0", false);
+        reporter.process(Utils.newIssue("component", null, null, Severity.MINOR, true, "Issue 1", "rule1"), null, null, GITLAB_URL, "file", "http://myserver/coding_rules#rule_key=repo%3Arule1", false);
+        reporter.process(Utils.newIssue("component", null, null, Severity.MAJOR, true, "Issue 2", "rule2"), null, null, GITLAB_URL, "file", "http://myserver/coding_rules#rule_key=repo%3Arule2", false);
+        reporter.process(Utils.newIssue("component", null, null, Severity.CRITICAL, true, "Issue 3", "rule3"), null, null, GITLAB_URL, "file", "http://myserver/coding_rules#rule_key=repo%3Arule3", false);
+        reporter.process(Utils.newIssue("component", null, null, Severity.BLOCKER, true, "Issue 4", "rule4"), null, null, GITLAB_URL, "file", "http://myserver/coding_rules#rule_key=repo%3Arule4", false);
 
-        Assertions.assertThat(new GlobalCommentBuilder(config, null, reporter, new MarkDownUtils()).buildForMarkdown()).isEqualTo(
+        Assertions.assertThat(new GlobalCommentBuilder(config, null, null, reporter, new MarkDownUtils(), analysisMode).buildForMarkdown()).isEqualTo(
                 "SonarQube analysis reported 5 issues\n" + "* :no_entry: 1 blocker\n" + "* :no_entry_sign: 1 critical\n" + "* :warning: 1 major\n" + "* :arrow_down_small: 1 minor\n"
                         + "* :information_source: 1 info\n" + "\n" + "1. :no_entry: [Issue 4](https://gitlab.com/test/test) [:blue_book:](http://myserver/coding_rules#rule_key=repo%3Arule4)\n"
                         + "1. :no_entry_sign: [Issue 3](https://gitlab.com/test/test) [:blue_book:](http://myserver/coding_rules#rule_key=repo%3Arule3)\n"
@@ -195,13 +215,13 @@ public class GlobalTemplateTest {
         settings.setProperty(GitLabPlugin.GITLAB_MAX_GLOBAL_ISSUES, "4");
 
         Reporter reporter = new Reporter(config);
-        reporter.process(Utils.newMockedIssue("component", null, null, Severity.INFO, true, "Issue 0", "rule0"), null, GITLAB_URL, "file", "http://myserver/coding_rules#rule_key=repo%3Arule0", false, false);
-        reporter.process(Utils.newMockedIssue("component", null, null, Severity.MINOR, true, "Issue 1", "rule1"), null, GITLAB_URL, "file", "http://myserver/coding_rules#rule_key=repo%3Arule1", false, false);
-        reporter.process(Utils.newMockedIssue("component", null, null, Severity.MAJOR, true, "Issue 2", "rule2"), null, GITLAB_URL, "file", "http://myserver/coding_rules#rule_key=repo%3Arule2", false, false);
-        reporter.process(Utils.newMockedIssue("component", null, null, Severity.CRITICAL, true, "Issue 3", "rule3"), null, GITLAB_URL, "file", "http://myserver/coding_rules#rule_key=repo%3Arule3", false, false);
-        reporter.process(Utils.newMockedIssue("component", null, null, Severity.BLOCKER, true, "Issue 4", "rule4"), null, GITLAB_URL, "file", "http://myserver/coding_rules#rule_key=repo%3Arule4", false, false);
+        reporter.process(Utils.newIssue("component", null, null, Severity.INFO, true, "Issue 0", "rule0"), null, null, GITLAB_URL, "file", "http://myserver/coding_rules#rule_key=repo%3Arule0", false);
+        reporter.process(Utils.newIssue("component", null, null, Severity.MINOR, true, "Issue 1", "rule1"), null, null, GITLAB_URL, "file", "http://myserver/coding_rules#rule_key=repo%3Arule1", false);
+        reporter.process(Utils.newIssue("component", null, null, Severity.MAJOR, true, "Issue 2", "rule2"), null, null, GITLAB_URL, "file", "http://myserver/coding_rules#rule_key=repo%3Arule2", false);
+        reporter.process(Utils.newIssue("component", null, null, Severity.CRITICAL, true, "Issue 3", "rule3"), null, null, GITLAB_URL, "file", "http://myserver/coding_rules#rule_key=repo%3Arule3", false);
+        reporter.process(Utils.newIssue("component", null, null, Severity.BLOCKER, true, "Issue 4", "rule4"), null, null, GITLAB_URL, "file", "http://myserver/coding_rules#rule_key=repo%3Arule4", false);
 
-        Assertions.assertThat(new GlobalCommentBuilder(config, null, reporter, new MarkDownUtils()).buildForMarkdown()).isEqualTo(
+        Assertions.assertThat(new GlobalCommentBuilder(config, null, null, reporter, new MarkDownUtils(), analysisMode).buildForMarkdown()).isEqualTo(
                 "SonarQube analysis reported 5 issues\n" + "* :no_entry: 1 blocker\n" + "* :no_entry_sign: 1 critical\n" + "* :warning: 1 major\n" + "* :arrow_down_small: 1 minor\n"
                         + "* :information_source: 1 info\n" + "\n" + "#### Top 4 issues\n" + "\n"
                         + "1. :no_entry: [Issue 4](https://gitlab.com/test/test) [:blue_book:](http://myserver/coding_rules#rule_key=repo%3Arule4)\n"
@@ -216,10 +236,10 @@ public class GlobalTemplateTest {
 
         Reporter reporter = new Reporter(config);
         for (int i = 0; i < 17; i++) {
-            reporter.process(Utils.newMockedIssue("component", null, null, Severity.MAJOR, true, "Issue number:" + i, "rule" + i), null, GITLAB_URL + "/File.java#L" + i, "File" + i, "http://myserver/coding_rules#rule_key=repo%3Arule" + i, false, false);
+            reporter.process(Utils.newIssue("component", null, null, Severity.MAJOR, true, "Issue number:" + i, "rule" + i), null, null, GITLAB_URL + "/File.java#L" + i, "File" + i, "http://myserver/coding_rules#rule_key=repo%3Arule" + i, false);
         }
 
-        Assertions.assertThat(new GlobalCommentBuilder(config, null, reporter, new MarkDownUtils()).buildForMarkdown()).isEqualTo(
+        Assertions.assertThat(new GlobalCommentBuilder(config, null, null, reporter, new MarkDownUtils(), analysisMode).buildForMarkdown()).isEqualTo(
                 "SonarQube analysis reported 17 issues\n" + "* :warning: 17 major\n" + "\n" + "#### Top 10 extra issues\n" + "\n"
                         + "Note: The following issues were found on lines that were not modified in the commit. Because these issues can't be reported as line comments, they are summarized here:\n"
                         + "\n" + "1. :warning: [Issue number:0](https://gitlab.com/test/test/File.java#L0) [:blue_book:](http://myserver/coding_rules#rule_key=repo%3Arule0)\n"
@@ -240,10 +260,10 @@ public class GlobalTemplateTest {
 
         Reporter reporter = new Reporter(config);
         for (int i = 0; i < 17; i++) {
-            reporter.process(Utils.newMockedIssue("component", null, null, Severity.MAJOR, true, "Issue number:" + i, "rule" + i), null, GITLAB_URL + "/File.java#L" + i, "File" + i, "http://myserver/coding_rules#rule_key=repo%3Arule" + i, false, false);
+            reporter.process(Utils.newIssue("component", null, null, Severity.MAJOR, true, "Issue number:" + i, "rule" + i), null, null, GITLAB_URL + "/File.java#L" + i, "File" + i, "http://myserver/coding_rules#rule_key=repo%3Arule" + i, false);
         }
 
-        Assertions.assertThat(new GlobalCommentBuilder(config, null, reporter, new MarkDownUtils()).buildForMarkdown()).isEqualTo(
+        Assertions.assertThat(new GlobalCommentBuilder(config, null, null, reporter, new MarkDownUtils(), analysisMode).buildForMarkdown()).isEqualTo(
                 "SonarQube analysis reported 17 issues\n" + "* :warning: 17 major\n" + "\n" + "#### Top 10 issues\n" + "\n"
                         + "1. :warning: [Issue number:0](https://gitlab.com/test/test/File.java#L0) [:blue_book:](http://myserver/coding_rules#rule_key=repo%3Arule0)\n"
                         + "1. :warning: [Issue number:1](https://gitlab.com/test/test/File.java#L1) [:blue_book:](http://myserver/coding_rules#rule_key=repo%3Arule1)\n"
@@ -321,10 +341,10 @@ public class GlobalTemplateTest {
 
         Reporter reporter = new Reporter(config);
         for (int i = 0; i < 17; i++) {
-            reporter.process(Utils.newMockedIssue("component", null, null, i % 2 == 0 ? Severity.MAJOR : Severity.MINOR, true, "Issue number:" + i, "rule" + i), null, GITLAB_URL + "/File.java#L" + i, "File" + i, "http://myserver/coding_rules#rule_key=repo%3Arule" + i, i % 3 == 0, false);
+            reporter.process(Utils.newIssue("component", null, null, i % 2 == 0 ? Severity.MAJOR : Severity.MINOR, true, "Issue number:" + i, "rule" + i), null, null, GITLAB_URL + "/File.java#L" + i, "File" + i, "http://myserver/coding_rules#rule_key=repo%3Arule" + i, i % 3 == 0);
         }
 
-        Assertions.assertThat(new GlobalCommentBuilder(config, null, reporter, new MarkDownUtils()).buildForMarkdown()).isEqualTo("SonarQube analysis reported 17 issues\n" +
+        Assertions.assertThat(new GlobalCommentBuilder(config, null, null, reporter, new MarkDownUtils(), analysisMode).buildForMarkdown()).isEqualTo("SonarQube analysis reported 17 issues\n" +
                 "* ![MAJOR](https://github.com/gabrie-allaigre/sonar-gitlab-plugin/raw/master/images/severity-major.png) 9 major\n" +
                 "* ![MINOR](https://github.com/gabrie-allaigre/sonar-gitlab-plugin/raw/master/images/severity-minor.png) 8 minor\n" +
                 "\n" +
@@ -345,5 +365,39 @@ public class GlobalTemplateTest {
                 "1. ![MINOR](https://github.com/gabrie-allaigre/sonar-gitlab-plugin/raw/master/images/severity-minor.png) [Issue number:7](https://gitlab.com/test/test/File.java#L7) [![RULE](https://github.com/gabrie-allaigre/sonar-gitlab-plugin/raw/master/images/rule.png)](http://myserver/coding_rules#rule_key=repo%3Arule7)\n" +
                 "1. ![MINOR](https://github.com/gabrie-allaigre/sonar-gitlab-plugin/raw/master/images/severity-minor.png) [Issue number:11](https://gitlab.com/test/test/File.java#L11) [![RULE](https://github.com/gabrie-allaigre/sonar-gitlab-plugin/raw/master/images/rule.png)](http://myserver/coding_rules#rule_key=repo%3Arule11)\n" +
                 "* ... 1 more\n");
+    }
+
+    @Test
+    public void testQualityGateNoIssues() {
+        analysisMode = Mockito.mock(AnalysisMode.class);
+        when(analysisMode.isIssues()).thenReturn(false);
+        when(analysisMode.isPreview()).thenReturn(false);
+        when(analysisMode.isPublish()).thenReturn(true);
+
+        Assertions.assertThat(new GlobalCommentBuilder(config, null, QualityGate.newBuilder().status(QualityGate.Status.OK).conditions(Collections.emptyList()).build(), new Reporter(config), new MarkDownUtils(), analysisMode).buildForMarkdown()).isEqualTo("SonarQube analysis indicates that quality gate is passed.\n" + "\n" + "SonarQube analysis reported no issues.\n");
+    }
+
+    @Test
+    public void testQualityGateOneIssue() {
+        when(analysisMode.isIssues()).thenReturn(false);
+        when(analysisMode.isPreview()).thenReturn(false);
+        when(analysisMode.isPublish()).thenReturn(true);
+
+        Reporter reporter = new Reporter(config);
+        reporter.process(Utils.newIssue("component", null, null, Severity.INFO, true, "Issue", "rule"), null, null, GITLAB_URL, "file", "http://myserver/coding_rules#rule_key=repo%3Arule", true);
+
+        List<QualityGate.Condition> conditions = new ArrayList<>();
+        conditions.add(QualityGate.Condition.newBuilder().status(QualityGate.Status.OK).metricKey("toto").metricName("Toto1").actual("10").symbol("<").warning("").error("0").build());
+        conditions.add(QualityGate.Condition.newBuilder().status(QualityGate.Status.OK).metricKey("toto").metricName("Toto2").actual("11").symbol(">=").warning("").error("").build());
+        conditions.add(QualityGate.Condition.newBuilder().status(QualityGate.Status.OK).metricKey("toto").metricName("Toto3").actual("13").symbol("<=").warning("").error("").build());
+        conditions.add(QualityGate.Condition.newBuilder().status(QualityGate.Status.WARN).metricKey("toto").metricName("Toto4").actual("14").symbol(">").warning("20").error("30").build());
+        conditions.add(QualityGate.Condition.newBuilder().status(QualityGate.Status.WARN).metricKey("toto").metricName("Toto5").actual("15").symbol("=").warning("10").error("").build());
+        conditions.add(QualityGate.Condition.newBuilder().status(QualityGate.Status.ERROR).metricKey("toto").metricName("Toto6").actual("15").symbol("=").warning("10").error("50").build());
+
+        Assertions.assertThat(new GlobalCommentBuilder(config, null, QualityGate.newBuilder().status(QualityGate.Status.WARN).conditions(conditions).build(), reporter, new MarkDownUtils(), analysisMode).buildForMarkdown())
+                .isEqualTo("SonarQube analysis indicates that quality gate is warning.\n" + "* Toto1 is passed: Actual value 10\n" + "* Toto2 is passed: Actual value 11\n"
+                        + "* Toto3 is passed: Actual value 13\n" + "* Toto4 is warning: Actual value 14 is > 20\n" + "* Toto5 is warning: Actual value 15 is = 10\n"
+                        + "* Toto6 is failed: Actual value 15 is = 50\n" + "\n" + "SonarQube analysis reported 1 issue\n" + "* :information_source: 1 info\n" + "\n"
+                        + "Watch the comments in this conversation to review them.\n");
     }
 }

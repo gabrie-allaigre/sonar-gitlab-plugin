@@ -19,13 +19,11 @@
  */
 package com.talanlabs.sonar.plugins.gitlab;
 
+import com.talanlabs.sonar.plugins.gitlab.models.Issue;
 import org.assertj.core.api.Assertions;
 import org.junit.Before;
 import org.junit.Test;
-import org.sonar.api.batch.fs.InputComponent;
-import org.sonar.api.batch.postjob.issue.PostJobIssue;
 import org.sonar.api.batch.rule.Severity;
-import org.sonar.api.rule.RuleKey;
 
 public class IssueComparatorTest {
 
@@ -39,86 +37,29 @@ public class IssueComparatorTest {
     @Test
     public void testNull() {
         Assertions.assertThat(issueComparator.compare(null, null)).isEqualTo(0);
-        Assertions.assertThat(issueComparator.compare(new MyPostJobIssue(), null)).isEqualTo(-1);
-        Assertions.assertThat(issueComparator.compare(null, new MyPostJobIssue())).isEqualTo(1);
+        Assertions.assertThat(issueComparator.compare(Issue.newBuilder().build(), null)).isEqualTo(-1);
+        Assertions.assertThat(issueComparator.compare(null, Issue.newBuilder().build())).isEqualTo(1);
     }
 
     @Test
     public void testSeverity() {
-        Assertions.assertThat(issueComparator.compare(new MyPostJobIssue(Severity.BLOCKER, "toto", 1), new MyPostJobIssue(Severity.BLOCKER, "toto", 1))).isEqualTo(0);
-        Assertions.assertThat(issueComparator.compare(new MyPostJobIssue(Severity.MAJOR, "toto", 1), new MyPostJobIssue(Severity.BLOCKER, "toto", 1))).isEqualTo(1);
-        Assertions.assertThat(issueComparator.compare(new MyPostJobIssue(Severity.MAJOR, "toto", 1), new MyPostJobIssue(Severity.MINOR, "toto", 1))).isEqualTo(-1);
+        Assertions.assertThat(issueComparator.compare(Issue.newBuilder().severity(Severity.BLOCKER).componentKey("toto").line(1).build(), Issue.newBuilder().severity(Severity.BLOCKER).componentKey( "toto").line(1).build())).isEqualTo(0);
+        Assertions.assertThat(issueComparator.compare(Issue.newBuilder().severity(Severity.MAJOR).componentKey( "toto").line(1).build(), Issue.newBuilder().severity(Severity.BLOCKER).componentKey( "toto").line(1).build())).isEqualTo(1);
+        Assertions.assertThat(issueComparator.compare(Issue.newBuilder().severity(Severity.MAJOR).componentKey( "toto").line(1).build(), Issue.newBuilder().severity(Severity.MINOR).componentKey( "toto").line(1).build())).isEqualTo(-1);
     }
 
     @Test
     public void testComponentKey() {
-        Assertions.assertThat(issueComparator.compare(new MyPostJobIssue(Severity.BLOCKER, "a", 1), new MyPostJobIssue(Severity.BLOCKER, "b", 1))).isEqualTo(-1);
-        Assertions.assertThat(issueComparator.compare(new MyPostJobIssue(Severity.BLOCKER, "b", 1), new MyPostJobIssue(Severity.BLOCKER, "a", 1))).isEqualTo(1);
+        Assertions.assertThat(issueComparator.compare(Issue.newBuilder().severity(Severity.BLOCKER).componentKey( "a").line(1).build(), Issue.newBuilder().severity(Severity.BLOCKER).componentKey( "b").line( 1).build())).isEqualTo(-1);
+        Assertions.assertThat(issueComparator.compare(Issue.newBuilder().severity(Severity.BLOCKER).componentKey( "b").line(1).build(), Issue.newBuilder().severity(Severity.BLOCKER).componentKey( "a").line( 1).build())).isEqualTo(1);
     }
 
     @Test
     public void testSimple() {
-        Assertions.assertThat(issueComparator.compare(new MyPostJobIssue(Severity.BLOCKER, "a", null), new MyPostJobIssue(Severity.BLOCKER, "a", null))).isEqualTo(0);
-        Assertions.assertThat(issueComparator.compare(new MyPostJobIssue(Severity.BLOCKER, "a", 1), new MyPostJobIssue(Severity.BLOCKER, "a", 2))).isEqualTo(-1);
-        Assertions.assertThat(issueComparator.compare(new MyPostJobIssue(Severity.BLOCKER, "a", 1), new MyPostJobIssue(Severity.BLOCKER, "a", null))).isEqualTo(1);
-        Assertions.assertThat(issueComparator.compare(new MyPostJobIssue(Severity.BLOCKER, "a", 10), new MyPostJobIssue(Severity.BLOCKER, "a", 1))).isEqualTo(1);
-        Assertions.assertThat(issueComparator.compare(new MyPostJobIssue(Severity.BLOCKER, "a", null), new MyPostJobIssue(Severity.BLOCKER, "a", 1))).isEqualTo(-1);
+        Assertions.assertThat(issueComparator.compare(Issue.newBuilder().severity(Severity.BLOCKER).componentKey( "a").line(null).build(), Issue.newBuilder().severity(Severity.BLOCKER).componentKey( "a").line( null).build())).isEqualTo(0);
+        Assertions.assertThat(issueComparator.compare(Issue.newBuilder().severity(Severity.BLOCKER).componentKey( "a").line(1).build(), Issue.newBuilder().severity(Severity.BLOCKER).componentKey( "a").line( 2).build())).isEqualTo(-1);
+        Assertions.assertThat(issueComparator.compare(Issue.newBuilder().severity(Severity.BLOCKER).componentKey( "a").line(1).build(), Issue.newBuilder().severity(Severity.BLOCKER).componentKey( "a").line( null).build())).isEqualTo(1);
+        Assertions.assertThat(issueComparator.compare(Issue.newBuilder().severity(Severity.BLOCKER).componentKey( "a").line(10).build(), Issue.newBuilder().severity(Severity.BLOCKER).componentKey( "a").line( 1).build())).isEqualTo(1);
+        Assertions.assertThat(issueComparator.compare(Issue.newBuilder().severity(Severity.BLOCKER).componentKey( "a").line(null).build(), Issue.newBuilder().severity(Severity.BLOCKER).componentKey( "a").line( 1).build())).isEqualTo(-1);
     }
-
-    private static class MyPostJobIssue implements PostJobIssue {
-
-        private Severity severity;
-        private String componentKey;
-        private Integer line;
-
-        public MyPostJobIssue() {
-        }
-
-        public MyPostJobIssue(Severity severity, String componentKey, Integer line) {
-            this.severity = severity;
-            this.componentKey = componentKey;
-            this.line = line;
-        }
-
-        @Override
-        public String key() {
-            return null;
-        }
-
-        @Override
-        public RuleKey ruleKey() {
-            return null;
-        }
-
-        @Override
-        public String componentKey() {
-            return componentKey;
-        }
-
-        @Override
-        public InputComponent inputComponent() {
-            return null;
-        }
-
-        @Override
-        public Integer line() {
-            return line;
-        }
-
-        @Override
-        public String message() {
-            return null;
-        }
-
-        @Override
-        public Severity severity() {
-            return severity;
-        }
-
-        @Override
-        public boolean isNew() {
-            return false;
-        }
-    }
-
 }

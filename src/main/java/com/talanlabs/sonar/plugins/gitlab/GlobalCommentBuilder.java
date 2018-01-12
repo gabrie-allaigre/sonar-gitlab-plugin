@@ -19,56 +19,115 @@
  */
 package com.talanlabs.sonar.plugins.gitlab;
 
-import org.sonar.api.batch.postjob.issue.PostJobIssue;
+import com.talanlabs.sonar.plugins.gitlab.freemarker.QualityGateConditionCountTemplateMethodModelEx;
+import com.talanlabs.sonar.plugins.gitlab.freemarker.QualityGateConditionsTemplateMethodModelEx;
+import com.talanlabs.sonar.plugins.gitlab.models.Issue;
+import com.talanlabs.sonar.plugins.gitlab.models.QualityGate;
+import com.talanlabs.sonar.plugins.gitlab.models.ReportIssue;
+import org.sonar.api.batch.AnalysisMode;
 import org.sonar.api.batch.rule.Severity;
 
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
+import java.util.*;
 
 public class GlobalCommentBuilder extends AbstractCommentBuilder {
 
     private final String author;
+    private final QualityGate qualityGate;
     private final Reporter reporter;
 
-    public GlobalCommentBuilder(GitLabPluginConfiguration gitLabPluginConfiguration, String author, Reporter reporter, MarkDownUtils markDownUtils) {
-        super(gitLabPluginConfiguration, gitLabPluginConfiguration.commitSHA().get(0), reporter.getReportIssues(), markDownUtils, "global", gitLabPluginConfiguration.globalTemplate());
+    public GlobalCommentBuilder(GitLabPluginConfiguration gitLabPluginConfiguration, String author, QualityGate qualityGate, Reporter reporter, MarkDownUtils markDownUtils,
+                                AnalysisMode analysisMode) {
+        super(gitLabPluginConfiguration, gitLabPluginConfiguration.commitSHA().get(0), reporter.getReportIssues(), markDownUtils, analysisMode, "global", gitLabPluginConfiguration.globalTemplate());
 
-        this.reporter = reporter;
         this.author = author;
+        this.qualityGate = qualityGate;
+        this.reporter = reporter;
     }
 
     @Override
     protected Map<String, Object> createContext() {
         Map<String, Object> root = super.createContext();
         root.put("author", author);
+        Arrays.stream(QualityGate.Status.values()).forEach(status -> root.put(status.name(), status));
+        root.put("qualityGate", createQualityGateContext());
         return root;
+    }
+
+    private Map<String, Object> createQualityGateContext() {
+        if (qualityGate == null) {
+            return null;
+        }
+        Map<String, Object> context = new HashMap<>();
+        context.put("status", qualityGate.getStatus());
+        context.put("conditions", new QualityGateConditionsTemplateMethodModelEx(qualityGate.getConditions() != null ? qualityGate.getConditions() : Collections.emptyList()));
+        context.put("conditionCount", new QualityGateConditionCountTemplateMethodModelEx(qualityGate.getConditions() != null ? qualityGate.getConditions() : Collections.emptyList()));
+        return context;
     }
 
     @Override
     protected String buildDefaultComment() {
         StringBuilder sb = new StringBuilder();
 
-        int newIssues = reporter.getIssueCount();
-        if (newIssues == 0) {
-            return "SonarQube analysis reported no issues.";
-        }
+        appendQualityGate(sb);
 
-        boolean hasInlineIssues = newIssues > reporter.getNotReportedIssueCount();
-        boolean extraIssuesTruncated = reporter.getNotReportedIssueCount() > gitLabPluginConfiguration.maxGlobalIssues();
-        sb.append("SonarQube analysis reported ").append(newIssues).append(" issue").append(newIssues > 1 ? "s" : "").append("\n");
-
-        appendSummaryBySeverity(sb);
-
-        if (gitLabPluginConfiguration.tryReportIssuesInline() && hasInlineIssues) {
-            sb.append("\nWatch the comments in this conversation to review them.\n");
-        }
-
-        if (reporter.getNotReportedIssueCount() > 0) {
-            appendExtraIssues(sb, hasInlineIssues, extraIssuesTruncated);
-        }
+        appendIssues(sb);
 
         return sb.toString();
+    }
+
+    private void appendQualityGate(StringBuilder sb) {
+        if (qualityGate != null) {
+            sb.append("SonarQube analysis indicates that quality gate is ").append(toStatusText(qualityGate.getStatus())).append(".\n");
+
+            if (qualityGate.getConditions() != null) {
+                qualityGate.getConditions().forEach(c -> appendCondition(sb, c));
+            }
+
+            sb.append("\n");
+        }
+    }
+
+    private void appendCondition(StringBuilder sb, QualityGate.Condition condition) {
+        sb.append("* ").append(condition.getMetricName()).append(" is ").append(toStatusText(condition.getStatus())).append(": Actual value ").append(condition.getActual());
+        if (QualityGate.Status.WARN.equals(condition.getStatus())) {
+            sb.append(" ").append(condition.getSymbol()).append(" ").append(condition.getWarning());
+        } else if (QualityGate.Status.ERROR.equals(condition.getStatus())) {
+            sb.append(" ").append(condition.getSymbol()).append(" ").append(condition.getError());
+        }
+        sb.append("\n");
+    }
+
+    private String toStatusText(QualityGate.Status status) {
+        switch (status) {
+            case OK:
+                return "passed";
+            case WARN:
+                return "warning";
+            case ERROR:
+                return "failed";
+        }
+        return "unknown";
+    }
+
+    private void appendIssues(StringBuilder sb) {
+        int newIssues = reporter.getIssueCount();
+        if (newIssues == 0) {
+            sb.append("SonarQube analysis reported no issues.\n");
+        } else {
+            boolean hasInlineIssues = newIssues > reporter.getNotReportedIssueCount();
+            boolean extraIssuesTruncated = reporter.getNotReportedIssueCount() > gitLabPluginConfiguration.maxGlobalIssues();
+            sb.append("SonarQube analysis reported ").append(newIssues).append(" issue").append(newIssues > 1 ? "s" : "").append("\n");
+
+            appendSummaryBySeverity(sb);
+
+            if (gitLabPluginConfiguration.tryReportIssuesInline() && hasInlineIssues) {
+                sb.append("\nWatch the comments in this conversation to review them.\n");
+            }
+
+            if (reporter.getNotReportedIssueCount() > 0) {
+                appendExtraIssues(sb, hasInlineIssues, extraIssuesTruncated);
+            }
+        }
     }
 
     private void appendSummaryBySeverity(StringBuilder sb) {
@@ -111,9 +170,9 @@ public class GlobalCommentBuilder extends AbstractCommentBuilder {
         int reportedIssueCount = 0;
 
         for (Severity severity : Reporter.SEVERITIES) {
-            List<Reporter.ReportIssue> reportIssues = reporter.getNotReportedOnDiffReportIssueForSeverity(severity);
+            List<ReportIssue> reportIssues = reporter.getNotReportedOnDiffReportIssueForSeverity(severity);
             if (reportIssues != null && !reportIssues.isEmpty()) {
-                for (Reporter.ReportIssue reportIssue : reportIssues) {
+                for (ReportIssue reportIssue : reportIssues) {
                     notReportedDisplayedIssueCount += appendIssue(builder, reportIssue, reportedIssueCount);
                     reportedIssueCount++;
                 }
@@ -123,10 +182,11 @@ public class GlobalCommentBuilder extends AbstractCommentBuilder {
         appendMore(builder, notReportedDisplayedIssueCount);
     }
 
-    private int appendIssue(StringBuilder builder, Reporter.ReportIssue reportIssue, int reportedIssueCount) {
-        PostJobIssue postJobIssue = reportIssue.getPostJobIssue();
+    private int appendIssue(StringBuilder builder, ReportIssue reportIssue, int reportedIssueCount) {
+        Issue issue = reportIssue.getIssue();
         if (reportedIssueCount < gitLabPluginConfiguration.maxGlobalIssues()) {
-            builder.append("1. ").append(markDownUtils.printIssue(postJobIssue.severity(), postJobIssue.message(), reportIssue.getRuleLink(), reportIssue.getUrl(), postJobIssue.componentKey())).append("\n");
+            builder.append("1. ").append(markDownUtils.printIssue(issue.getSeverity(), issue.getMessage(), reportIssue.getRuleLink(), reportIssue.getUrl(), issue.getComponentKey()))
+                    .append("\n");
             return 0;
         } else {
             return 1;

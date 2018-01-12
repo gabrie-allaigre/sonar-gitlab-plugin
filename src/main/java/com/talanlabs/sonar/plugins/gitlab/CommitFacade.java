@@ -19,12 +19,11 @@
  */
 package com.talanlabs.sonar.plugins.gitlab;
 
+import com.talanlabs.sonar.plugins.gitlab.models.JsonMode;
 import org.sonar.api.batch.BatchSide;
 import org.sonar.api.batch.InstantiationStrategy;
-import org.sonar.api.batch.fs.InputComponent;
-import org.sonar.api.batch.fs.InputFile;
-import org.sonar.api.batch.fs.InputPath;
 import org.sonar.api.scan.filesystem.PathResolver;
+import org.sonar.api.utils.MessageException;
 import org.sonar.api.utils.log.Logger;
 import org.sonar.api.utils.log.Loggers;
 
@@ -46,6 +45,9 @@ import java.nio.file.StandardOpenOption;
 public class CommitFacade {
 
     private static final Logger LOG = Loggers.get(CommitFacade.class);
+
+    private static final String CODECLIMATE_JSON_NAME = "codeclimate.json";
+    private static final String SAST_JSON_NAME = "gl-sast-report.json";
 
     private final GitLabPluginConfiguration gitLabPluginConfiguration;
     private final String ruleUrlPrefix;
@@ -104,8 +106,8 @@ public class CommitFacade {
         this.gitBaseDir = gitBaseDir;
     }
 
-    public boolean hasSameCommitCommentsForFile(String revision, InputFile inputFile, Integer lineNumber, String body) {
-        String path = getPath(inputFile);
+    public boolean hasSameCommitCommentsForFile(String revision, File file, Integer lineNumber, String body) {
+        String path = getPath(file);
         return gitLabWrapper.hasSameCommitCommentsForFile(revision, path, lineNumber, body);
     }
 
@@ -120,41 +122,41 @@ public class CommitFacade {
         gitLabWrapper.createOrUpdateSonarQubeStatus(status, statusDescription);
     }
 
-    public boolean hasFile(InputFile inputFile) {
-        String path = getPath(inputFile);
+    public boolean hasFile(File file) {
+        String path = getPath(file);
         return gitLabWrapper.hasFile(path);
     }
 
-    public String getRevisionForLine(InputFile inputFile, int lineNumber) {
-        String path = getPath(inputFile);
-        return gitLabWrapper.getRevisionForLine(inputFile, path, lineNumber);
+    public String getRevisionForLine(File file, int lineNumber) {
+        String path = getPath(file);
+        return gitLabWrapper.getRevisionForLine(file, path, lineNumber);
     }
 
     @CheckForNull
-    public String getGitLabUrl(@Nullable String revision, @Nullable InputComponent inputComponent, @Nullable Integer issueLine) {
-        if (inputComponent instanceof InputPath) {
-            String path = getPath((InputPath) inputComponent);
+    public String getGitLabUrl(@Nullable String revision, @Nullable File file, @Nullable Integer issueLine) {
+        if (file != null) {
+            String path = getPath(file);
             return gitLabWrapper.getGitLabUrl(revision, path, issueLine);
         }
         return null;
     }
 
     @CheckForNull
-    public String getSrc(@Nullable InputComponent inputComponent) {
-        if (inputComponent instanceof InputPath) {
-            return getPath((InputPath) inputComponent);
+    public String getSrc(@Nullable File file) {
+        if (file != null) {
+            return getPath(file);
         }
         return null;
     }
 
-    public void createOrUpdateReviewComment(String revision, InputFile inputFile, Integer line, String body) {
-        String fullPath = getPath(inputFile);
+    public void createOrUpdateReviewComment(String revision, File file, Integer line, String body) {
+        String fullPath = getPath(file);
         gitLabWrapper.createOrUpdateReviewComment(revision, fullPath, line, body);
     }
 
-    String getPath(InputPath inputPath) {
+    String getPath(File file) {
         String prefix = gitLabPluginConfiguration.prefixDirectory() != null ? gitLabPluginConfiguration.prefixDirectory() : "";
-        return prefix + new PathResolver().relativePath(gitBaseDir, inputPath.file());
+        return prefix + new PathResolver().relativePath(gitBaseDir, file);
     }
 
     public void addGlobalComment(String comment) {
@@ -165,8 +167,20 @@ public class CommitFacade {
         return ruleUrlPrefix + "coding_rules#rule_key=" + encodeForUrl(ruleKey);
     }
 
-    public void writeSastFile(String sastJson) throws IOException {
-        File file = new File(gitBaseDir, "gl-sast-report.json");
-        Files.write(Paths.get(file.getAbsolutePath()), sastJson.getBytes(), StandardOpenOption.CREATE_NEW);
+    public void writeJsonFile(String json) {
+        String name = null;
+        if (gitLabPluginConfiguration.jsonMode().equals(JsonMode.CODECLIMATE)) {
+            name = CODECLIMATE_JSON_NAME;
+        } else if (gitLabPluginConfiguration.jsonMode().equals(JsonMode.SAST)) {
+            name = SAST_JSON_NAME;
+        }
+        if (name != null) {
+            File file = new File(gitBaseDir, name);
+            try {
+                Files.write(Paths.get(file.getAbsolutePath()), json.getBytes(), StandardOpenOption.CREATE);
+            } catch (IOException e) {
+                throw MessageException.of("Failed to write file " + file.toString(), e);
+            }
+        }
     }
 }
