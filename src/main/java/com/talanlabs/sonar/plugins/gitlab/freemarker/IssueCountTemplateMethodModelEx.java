@@ -19,19 +19,19 @@
  */
 package com.talanlabs.sonar.plugins.gitlab.freemarker;
 
-import com.talanlabs.sonar.plugins.gitlab.Reporter;
+import com.talanlabs.sonar.plugins.gitlab.models.ReportIssue;
 
 import java.util.List;
 import java.util.stream.Stream;
 
 public class IssueCountTemplateMethodModelEx extends AbstractIssuesTemplateMethodModelEx {
 
-    public IssueCountTemplateMethodModelEx(List<Reporter.ReportIssue> reportIssues) {
+    public IssueCountTemplateMethodModelEx(List<ReportIssue> reportIssues) {
         super(reportIssues);
     }
 
     @Override
-    protected Object exec(Stream<Reporter.ReportIssue> stream) {
+    protected Object exec(Stream<ReportIssue> stream) {
         return (int) stream.count();
     }
 }

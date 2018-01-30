@@ -19,19 +19,19 @@
  */
 package com.talanlabs.sonar.plugins.gitlab;
 
-import org.sonar.api.batch.postjob.issue.PostJobIssue;
+import com.talanlabs.sonar.plugins.gitlab.models.Issue;
 import org.sonar.api.batch.rule.Severity;
 
 import javax.annotation.Nullable;
 import java.util.Comparator;
 import java.util.Objects;
 
-public final class IssueComparator implements Comparator<PostJobIssue> {
-    private static int compareComponentKeyAndLine(PostJobIssue left, PostJobIssue right) {
-        if (!left.componentKey().equals(right.componentKey())) {
-            return left.componentKey().compareTo(right.componentKey());
+public final class IssueComparator implements Comparator<Issue> {
+    private static int compareComponentKeyAndLine(Issue left, Issue right) {
+        if (!left.getComponentKey().equals(right.getComponentKey())) {
+            return left.getComponentKey().compareTo(right.getComponentKey());
         }
-        return compareInt(left.line(), right.line());
+        return compareInt(left.getLine(), right.getLine());
     }
 
     private static int compareSeverity(Severity leftSeverity, Severity rightSeverity) {
@@ -56,7 +56,7 @@ public final class IssueComparator implements Comparator<PostJobIssue> {
     }
 
     @Override
-    public int compare(@Nullable PostJobIssue left, @Nullable PostJobIssue right) {
+    public int compare(@Nullable Issue left, @Nullable Issue right) {
         // Most severe issues should be displayed first.
         if (left == right) {
             return 0;
@@ -67,11 +67,11 @@ public final class IssueComparator implements Comparator<PostJobIssue> {
         if (right == null) {
             return -1;
         }
-        if (Objects.equals(left.severity(), right.severity())) {
+        if (Objects.equals(left.getSeverity(), right.getSeverity())) {
             // When severity is the same, sort by component key to at least group issues from
             // the same file together.
             return compareComponentKeyAndLine(left, right);
         }
-        return compareSeverity(left.severity(), right.severity());
+        return compareSeverity(left.getSeverity(), right.getSeverity());
     }
 }

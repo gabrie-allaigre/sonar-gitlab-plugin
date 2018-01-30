@@ -19,7 +19,7 @@
  */
 package com.talanlabs.sonar.plugins.gitlab.freemarker;
 
-import com.talanlabs.sonar.plugins.gitlab.Reporter;
+import com.talanlabs.sonar.plugins.gitlab.models.ReportIssue;
 import freemarker.template.TemplateBooleanModel;
 import freemarker.template.TemplateMethodModelEx;
 import freemarker.template.TemplateModelException;
@@ -33,9 +33,9 @@ import java.util.stream.Stream;
 
 public abstract class AbstractIssuesTemplateMethodModelEx implements TemplateMethodModelEx {
 
-    private final List<Reporter.ReportIssue> reportIssues;
+    private final List<ReportIssue> reportIssues;
 
-    AbstractIssuesTemplateMethodModelEx(List<Reporter.ReportIssue> reportIssues) {
+    AbstractIssuesTemplateMethodModelEx(List<ReportIssue> reportIssues) {
         super();
 
         this.reportIssues = Collections.unmodifiableList(new ArrayList<>(reportIssues));
@@ -53,7 +53,7 @@ public abstract class AbstractIssuesTemplateMethodModelEx implements TemplateMet
         throw new TemplateModelException("Failed call accept 0, 1 or 2 args");
     }
 
-    protected abstract Object exec(Stream<Reporter.ReportIssue> stream);
+    protected abstract Object exec(Stream<ReportIssue> stream);
 
     private Object execEmptyArg() {
         return exec(reportIssues.stream());
@@ -89,11 +89,11 @@ public abstract class AbstractIssuesTemplateMethodModelEx implements TemplateMet
         throw new TemplateModelException("Failed call accept 2 args boolean or Severity");
     }
 
-    private boolean isSeverityEquals(Reporter.ReportIssue reportIssue, Severity severity) {
-        return severity == reportIssue.getPostJobIssue().severity();
+    private boolean isSeverityEquals(ReportIssue reportIssue, Severity severity) {
+        return severity == reportIssue.getIssue().getSeverity();
     }
 
-    private boolean isSameReportedOnDiff(Reporter.ReportIssue reportIssue, boolean r) {
+    private boolean isSameReportedOnDiff(ReportIssue reportIssue, boolean r) {
         return (r && reportIssue.isReportedOnDiff()) || (!r && !reportIssue.isReportedOnDiff());
     }
 }

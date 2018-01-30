@@ -17,20 +17,20 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
-package com.talanlabs.sonar.plugins.gitlab;
+package com.talanlabs.sonar.plugins.gitlab.models;
 
-public enum StatusNotificationsMode {
+public enum QualityGateFailMode {
 
-    COMMIT_STATUS("commit-status"), EXIT_CODE("exit-code"), NOTHING("nothing");
+    ERROR("ERROR"), WARN("WARN");
 
     private final String meaning;
 
-    StatusNotificationsMode(String meaning) {
+    QualityGateFailMode(String meaning) {
         this.meaning = meaning;
     }
 
-    public static StatusNotificationsMode of(String meaning) {
-        for (StatusNotificationsMode m : values()) {
+    public static QualityGateFailMode of(String meaning) {
+        for (QualityGateFailMode m : values()) {
             if (m.meaning.equals(meaning)) {
                 return m;
             }

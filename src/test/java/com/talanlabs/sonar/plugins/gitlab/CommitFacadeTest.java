@@ -19,12 +19,11 @@
  */
 package com.talanlabs.sonar.plugins.gitlab;
 
+import com.talanlabs.sonar.plugins.gitlab.models.JsonMode;
 import org.assertj.core.api.Assertions;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
-import org.sonar.api.batch.fs.InputFile;
-import org.sonar.api.batch.fs.internal.DefaultInputFile;
 
 import java.io.File;
 import java.io.IOException;
@@ -45,7 +44,7 @@ public class CommitFacadeTest {
         CommitFacade facade = new CommitFacade(mock(GitLabPluginConfiguration.class));
         File projectBaseDir = temp.newFolder();
         facade.initGitBaseDir(projectBaseDir);
-        assertThat(facade.getPath(new DefaultInputFile("foo", "src/main/java/Foo.java").setModuleBaseDir(projectBaseDir.toPath()))).isEqualTo("src/main/java/Foo.java");
+        assertThat(facade.getPath(new File(projectBaseDir, "src/main/java/Foo.java"))).isEqualTo("src/main/java/Foo.java");
     }
 
     @Test
@@ -55,7 +54,7 @@ public class CommitFacadeTest {
         Files.createDirectory(gitBaseDir.toPath().resolve(".git"));
         File projectBaseDir = new File(gitBaseDir, "myProject");
         facade.initGitBaseDir(projectBaseDir);
-        assertThat(facade.getPath(new DefaultInputFile("foo", "src/main/java/Foo.java").setModuleBaseDir(projectBaseDir.toPath()))).isEqualTo("myProject/src/main/java/Foo.java");
+        assertThat(facade.getPath(new File(projectBaseDir, "src/main/java/Foo.java"))).isEqualTo("myProject/src/main/java/Foo.java");
     }
 
     @Test
@@ -69,24 +68,52 @@ public class CommitFacadeTest {
         File gitBasedir = temp.newFolder();
         facade.setGitBaseDir(gitBasedir);
 
-        InputFile inputFile = mock(InputFile.class);
-        when(inputFile.file()).thenReturn(new File(gitBasedir, "src/main/Foo.java"));
-        Assertions.assertThat(facade.getPath(inputFile)).isEqualTo("src/main/Foo.java");
+        Assertions.assertThat(facade.getPath(new File(gitBasedir, "src/main/Foo.java"))).isEqualTo("src/main/Foo.java");
 
         when(gitLabPluginConfiguration.prefixDirectory()).thenReturn("toto/");
 
-        Assertions.assertThat(facade.getPath(inputFile)).isEqualTo("toto/src/main/Foo.java");
+        Assertions.assertThat(facade.getPath(new File(gitBasedir, "src/main/Foo.java"))).isEqualTo("toto/src/main/Foo.java");
     }
 
     @Test
-    public void testWriteSast() throws IOException {
-        CommitFacade facade = new CommitFacade(mock(GitLabPluginConfiguration.class));
+    public void testWriteCodeClimateJson() throws IOException {
+        GitLabPluginConfiguration gitLabPluginConfiguration = mock(GitLabPluginConfiguration.class);
+        when(gitLabPluginConfiguration.jsonMode()).thenReturn(JsonMode.CODECLIMATE);
+        CommitFacade facade = new CommitFacade(gitLabPluginConfiguration);
         File projectBaseDir = temp.newFolder();
         facade.initGitBaseDir(projectBaseDir);
 
-        facade.writeSastFile("[{\"tool\":\"sonarqube\",\"fingerprint\":\"null\",\"message\":\"Issue\",\"file\":\"file\",\"line\":\"0\",\"priority\":\"INFO\",\"solution\":\"http://myserver\"}]");
+        facade.writeJsonFile("[{\"tool\":\"sonarqube\",\"fingerprint\":\"null\",\"message\":\"Issue\",\"file\":\"file\",\"line\":\"0\",\"priority\":\"INFO\",\"solution\":\"http://myserver\"}]");
+
+        File file = new File(projectBaseDir, "codeclimate.json");
+        Assertions.assertThat(file).exists().hasContent("[{\"tool\":\"sonarqube\",\"fingerprint\":\"null\",\"message\":\"Issue\",\"file\":\"file\",\"line\":\"0\",\"priority\":\"INFO\",\"solution\":\"http://myserver\"}]");
+    }
+
+    @Test
+    public void testWriteSastJson() throws IOException {
+        GitLabPluginConfiguration gitLabPluginConfiguration = mock(GitLabPluginConfiguration.class);
+        when(gitLabPluginConfiguration.jsonMode()).thenReturn(JsonMode.SAST);
+        CommitFacade facade = new CommitFacade(gitLabPluginConfiguration);
+        File projectBaseDir = temp.newFolder();
+        facade.initGitBaseDir(projectBaseDir);
+
+        facade.writeJsonFile("[{\"tool\":\"sonarqube\",\"fingerprint\":\"null\",\"message\":\"Issue\",\"file\":\"file\",\"line\":\"0\",\"priority\":\"INFO\",\"solution\":\"http://myserver\"}]");
 
         File file = new File(projectBaseDir, "gl-sast-report.json");
         Assertions.assertThat(file).exists().hasContent("[{\"tool\":\"sonarqube\",\"fingerprint\":\"null\",\"message\":\"Issue\",\"file\":\"file\",\"line\":\"0\",\"priority\":\"INFO\",\"solution\":\"http://myserver\"}]");
+    }
+
+    @Test
+    public void testWriteNoneJson() throws IOException {
+        GitLabPluginConfiguration gitLabPluginConfiguration = mock(GitLabPluginConfiguration.class);
+        when(gitLabPluginConfiguration.jsonMode()).thenReturn(JsonMode.NONE);
+        CommitFacade facade = new CommitFacade(gitLabPluginConfiguration);
+        File projectBaseDir = temp.newFolder();
+        facade.initGitBaseDir(projectBaseDir);
+
+        facade.writeJsonFile("[{\"tool\":\"sonarqube\",\"fingerprint\":\"null\",\"message\":\"Issue\",\"file\":\"file\",\"line\":\"0\",\"priority\":\"INFO\",\"solution\":\"http://myserver\"}]");
+
+        File file = new File(projectBaseDir, "codeclimate.json");
+        Assertions.assertThat(projectBaseDir.listFiles((p) -> p.getPath().endsWith(".json"))).isEmpty();
     }
 }

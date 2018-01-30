@@ -19,10 +19,9 @@
  */
 package com.talanlabs.sonar.plugins.gitlab;
 
-import org.sonar.api.batch.fs.InputFile;
-
 import javax.annotation.CheckForNull;
 import javax.annotation.Nullable;
+import java.io.File;
 import java.util.Objects;
 
 public interface IGitLabApiWrapper {
@@ -35,7 +34,7 @@ public interface IGitLabApiWrapper {
 
     boolean hasFile(String path);
 
-    String getRevisionForLine(InputFile inputFile, String path, int lineNumber);
+    String getRevisionForLine(File file, String path, int lineNumber);
 
     boolean hasSameCommitCommentsForFile(String revision, String path, Integer lineNumber, String body);
 

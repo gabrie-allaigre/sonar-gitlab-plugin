@@ -1,6 +1,15 @@
 # Default global template
 
 ```injectedfreemarker
+<#if qualityGate??>
+L'analyse de SonarQube indique que la qualitée est <@s status=qualityGate.status/>.
+<#list qualityGate.conditions() as condition>
+<@c condition=condition/>
+
+</#list>
+</#if>
+<#macro c condition>* ${condition.metricName} est <@s status=condition.status/>: Value actuelle ${condition.actual}<#if condition.status == WARN> est ${condition.symbol} ${condition.warning}</#if><#if condition.status == ERROR> est ${condition.symbol} ${condition.error}</#if></#macro>
+<#macro s status><#if status == OK>passée<#elseif status == WARN>attention<#elseif status == ERROR>échec<#else>inconnue</#if></#macro>
 <#assign newIssueCount = issueCount() notReportedIssueCount = issueCount(false)>
 <#assign hasInlineIssues = newIssueCount gt notReportedIssueCount extraIssuesTruncated = notReportedIssueCount gt maxGlobalIssues>
 <#if newIssueCount == 0>

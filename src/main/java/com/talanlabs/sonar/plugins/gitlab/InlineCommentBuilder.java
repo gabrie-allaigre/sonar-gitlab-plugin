@@ -19,6 +19,9 @@
  */
 package com.talanlabs.sonar.plugins.gitlab;
 
+import com.talanlabs.sonar.plugins.gitlab.models.ReportIssue;
+import org.sonar.api.batch.AnalysisMode;
+
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -28,8 +31,9 @@ public class InlineCommentBuilder extends AbstractCommentBuilder {
     private final Integer lineNumber;
     private final String author;
 
-    public InlineCommentBuilder(GitLabPluginConfiguration gitLabPluginConfiguration, String revision, String author, Integer lineNumber, List<Reporter.ReportIssue> reportIssues, MarkDownUtils markDownUtils) {
-        super(gitLabPluginConfiguration, revision, reportIssues, markDownUtils, "inline", gitLabPluginConfiguration.inlineTemplate());
+    public InlineCommentBuilder(GitLabPluginConfiguration gitLabPluginConfiguration, String revision, String author, Integer lineNumber, List<ReportIssue> reportIssues,
+                                MarkDownUtils markDownUtils, AnalysisMode analysisMode) {
+        super(gitLabPluginConfiguration, revision, reportIssues, markDownUtils, analysisMode, "inline", gitLabPluginConfiguration.inlineTemplate());
 
         this.lineNumber = lineNumber;
         this.author = author;
@@ -37,8 +41,8 @@ public class InlineCommentBuilder extends AbstractCommentBuilder {
 
     @Override
     protected String buildDefaultComment() {
-        String msg = reportIssues.stream().map(reportIssue -> markDownUtils
-                .printIssue(reportIssue.getPostJobIssue().severity(), reportIssue.getPostJobIssue().message(), reportIssue.getRuleLink(), null, null))
+        String msg = reportIssues.stream()
+                .map(reportIssue -> markDownUtils.printIssue(reportIssue.getIssue().getSeverity(), reportIssue.getIssue().getMessage(), reportIssue.getRuleLink(), null, null))
                 .collect(Collectors.joining("\n"));
         if (gitLabPluginConfiguration.pingUser() && author != null) {
             msg += " @" + author;

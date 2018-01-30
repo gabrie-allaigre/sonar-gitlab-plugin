@@ -17,21 +17,28 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
-package com.talanlabs.sonar.plugins.gitlab;
+package com.talanlabs.sonar.plugins.gitlab.models;
 
-import org.junit.Test;
-import org.sonar.api.Plugin;
-import org.sonar.api.utils.Version;
+public enum StatusNotificationsMode {
 
-import static org.assertj.core.api.Assertions.assertThat;
+    COMMIT_STATUS("commit-status"), EXIT_CODE("exit-code"), NOTHING("nothing");
 
-public class GitLabPluginTest {
+    private final String meaning;
 
-    @Test
-    public void uselessTest() {
-        Plugin.Context context = new Plugin.Context(Version.parse("5.6"));
-        new GitLabPlugin().define(context);
-        assertThat(context.getExtensions().size()).isGreaterThan(7);
+    StatusNotificationsMode(String meaning) {
+        this.meaning = meaning;
     }
 
+    public static StatusNotificationsMode of(String meaning) {
+        for (StatusNotificationsMode m : values()) {
+            if (m.meaning.equals(meaning)) {
+                return m;
+            }
+        }
+        return null;
+    }
+
+    public String getMeaning() {
+        return meaning;
+    }
 }

@@ -19,19 +19,17 @@
  */
 package com.talanlabs.sonar.plugins.gitlab;
 
-import org.junit.Test;
-import org.sonar.api.Plugin;
-import org.sonar.api.utils.Version;
+public class MessageHelper {
 
-import static org.assertj.core.api.Assertions.assertThat;
+    public static final String FAILED_GITLAB_STATUS = "failed";
+    public static final String SUCCESS_GITLAB_STATUS = "success";
 
-public class GitLabPluginTest {
+    private MessageHelper() {
+        // Nothing
+    }
 
-    @Test
-    public void uselessTest() {
-        Plugin.Context context = new Plugin.Context(Version.parse("5.6"));
-        new GitLabPlugin().define(context);
-        assertThat(context.getExtensions().size()).isGreaterThan(7);
+    public static String sonarQubeFailed(String message) {
+        return String.format("SonarQube failed to complete the review of this commit: %s", message);
     }
 
 }

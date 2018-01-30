@@ -19,6 +19,9 @@
  */
 package com.talanlabs.sonar.plugins.gitlab;
 
+import com.talanlabs.sonar.plugins.gitlab.models.JsonMode;
+import com.talanlabs.sonar.plugins.gitlab.models.QualityGateFailMode;
+import com.talanlabs.sonar.plugins.gitlab.models.StatusNotificationsMode;
 import org.assertj.core.api.Assertions;
 import org.junit.Before;
 import org.junit.Rule;
@@ -26,6 +29,7 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.mockito.Mockito;
 import org.sonar.api.CoreProperties;
+import org.sonar.api.batch.rule.Severity;
 import org.sonar.api.config.PropertyDefinitions;
 import org.sonar.api.config.Settings;
 import org.sonar.api.utils.System2;
@@ -112,6 +116,10 @@ public class GitLabPluginConfigurationTest {
         settings.setProperty(GitLabPlugin.GITLAB_STATUS_NOTIFICATION_MODE, StatusNotificationsMode.NOTHING.getMeaning());
         Assertions.assertThat(config.statusNotificationsMode()).isEqualTo(StatusNotificationsMode.NOTHING);
 
+        Assertions.assertThat(config.qualityGateFailMode()).isEqualTo(QualityGateFailMode.ERROR);
+        settings.setProperty(GitLabPlugin.GITLAB_QUALITY_GATE_FAIL_MODE, QualityGateFailMode.WARN.getMeaning());
+        Assertions.assertThat(config.qualityGateFailMode()).isEqualTo(QualityGateFailMode.WARN);
+
         Assertions.assertThat(config.globalTemplate()).isNull();
         settings.setProperty(GitLabPlugin.GITLAB_GLOBAL_TEMPLATE, "# Test");
         Assertions.assertThat(config.globalTemplate()).isEqualTo("# Test");
@@ -132,9 +140,31 @@ public class GitLabPluginConfigurationTest {
         settings.setProperty(GitLabPlugin.GITLAB_ALL_ISSUES, "true");
         Assertions.assertThat(config.allIssues()).isTrue();
 
-        Assertions.assertThat(config.sastReport()).isFalse();
-        settings.setProperty(GitLabPlugin.GITLAB_SAST_REPORT, "true");
-        Assertions.assertThat(config.sastReport()).isTrue();
+        Assertions.assertThat(config.jsonMode()).isEqualTo(JsonMode.NONE);
+        settings.setProperty(GitLabPlugin.GITLAB_JSON_MODE, "CODECLIMATE");
+        Assertions.assertThat(config.jsonMode()).isEqualTo(JsonMode.CODECLIMATE);
+        settings.setProperty(GitLabPlugin.GITLAB_JSON_MODE, "SAST");
+        Assertions.assertThat(config.jsonMode()).isEqualTo(JsonMode.SAST);
+        settings.setProperty(GitLabPlugin.GITLAB_JSON_MODE, "TOTO");
+        Assertions.assertThat(config.jsonMode()).isEqualTo(JsonMode.NONE);
+
+        Assertions.assertThat(config.queryMaxRetry()).isEqualTo(50);
+        settings.setProperty(GitLabPlugin.GITLAB_QUERY_MAX_RETRY, "10");
+        Assertions.assertThat(config.queryMaxRetry()).isEqualTo(10);
+
+        Assertions.assertThat(config.queryWait()).isEqualTo(1000L);
+        settings.setProperty(GitLabPlugin.GITLAB_QUERY_WAIT, "2000");
+        Assertions.assertThat(config.queryWait()).isEqualTo(2000L);
+
+        Assertions.assertThat(config.issueFilter()).isEqualTo(Severity.INFO);
+        settings.setProperty(GitLabPlugin.GITLAB_ISSUE_FILTER, Severity.MAJOR.name());
+        Assertions.assertThat(config.issueFilter()).isEqualTo(Severity.MAJOR);
+        settings.setProperty(GitLabPlugin.GITLAB_ISSUE_FILTER, "TOTO");
+        Assertions.assertThat(config.issueFilter()).isEqualTo(Severity.INFO);
+
+        Assertions.assertThat(config.loadRule()).isFalse();
+        settings.setProperty(GitLabPlugin.GITLAB_LOAD_RULES, "true");
+        Assertions.assertThat(config.loadRule()).isTrue();
     }
 
     @Test

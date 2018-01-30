@@ -19,6 +19,7 @@
  */
 package com.talanlabs.sonar.plugins.gitlab;
 
+import com.talanlabs.sonar.plugins.gitlab.models.JsonMode;
 import org.assertj.core.api.Assertions;
 import org.junit.Before;
 import org.junit.Test;
@@ -56,7 +57,7 @@ public class ReporterTest {
 
     @Test
     public void oneIssue() {
-        reporter.process(Utils.newMockedIssue("component", null, null, Severity.INFO, true, "Issue", "rule"), null, GITLAB_URL, "file", "http://myserver", true, false);
+        reporter.process(Utils.newIssue("component", null, null, Severity.INFO, true, "Issue", "rule"), null, null, GITLAB_URL, "file", "http://myserver", true);
 
         Assertions.assertThat(reporter.getIssueCount()).isEqualTo(1);
         Assertions.assertThat(reporter.getNotReportedIssueCount()).isEqualTo(0);
@@ -70,11 +71,11 @@ public class ReporterTest {
 
     @Test
     public void shouldFormatIssuesForMarkdownNoInline() {
-        reporter.process(Utils.newMockedIssue("component", null, null, Severity.INFO, true, "Issue", "rule"), null, GITLAB_URL, "file", "http://myserver", true, false);
-        reporter.process(Utils.newMockedIssue("component", null, null, Severity.MINOR, true, "Issue", "rule"), null, GITLAB_URL, "file", "http://myserver", true, false);
-        reporter.process(Utils.newMockedIssue("component", null, null, Severity.MAJOR, true, "Issue", "rule"), null, GITLAB_URL, "file", "http://myserver", true, false);
-        reporter.process(Utils.newMockedIssue("component", null, null, Severity.CRITICAL, true, "Issue", "rule"), null, GITLAB_URL, "file", "http://myserver", true, false);
-        reporter.process(Utils.newMockedIssue("component", null, null, Severity.BLOCKER, true, "Issue", "rule"), null, GITLAB_URL, "file", "http://myserver", true, false);
+        reporter.process(Utils.newIssue("component", null, null, Severity.INFO, true, "Issue", "rule"), null, null, GITLAB_URL, "file", "http://myserver", true);
+        reporter.process(Utils.newIssue("component", null, null, Severity.MINOR, true, "Issue", "rule"), null, null, GITLAB_URL, "file", "http://myserver", true);
+        reporter.process(Utils.newIssue("component", null, null, Severity.MAJOR, true, "Issue", "rule"), null, null, GITLAB_URL, "file", "http://myserver", true);
+        reporter.process(Utils.newIssue("component", null, null, Severity.CRITICAL, true, "Issue", "rule"), null, null, GITLAB_URL, "file", "http://myserver", true);
+        reporter.process(Utils.newIssue("component", null, null, Severity.BLOCKER, true, "Issue", "rule"), null, null, GITLAB_URL, "file", "http://myserver", true);
 
         Assertions.assertThat(reporter.getIssueCount()).isEqualTo(5);
         Assertions.assertThat(reporter.getNotReportedIssueCount()).isEqualTo(0);
@@ -88,11 +89,11 @@ public class ReporterTest {
 
     @Test
     public void shouldFormatIssuesForMarkdownMixInlineGlobal() {
-        reporter.process(Utils.newMockedIssue("component", null, null, Severity.INFO, true, "Issue 0", "rule0"), null, GITLAB_URL, "file", "http://myserver", true, false);
-        reporter.process(Utils.newMockedIssue("component", null, null, Severity.MINOR, true, "Issue 1", "rule1"), null, GITLAB_URL, "file", "http://myserver", false, false);
-        reporter.process(Utils.newMockedIssue("component", null, null, Severity.MAJOR, true, "Issue 2", "rule2"), null, GITLAB_URL, "file", "http://myserver", true, false);
-        reporter.process(Utils.newMockedIssue("component", null, null, Severity.CRITICAL, true, "Issue 3", "rule3"), null, GITLAB_URL, "file", "http://myserver", false, false);
-        reporter.process(Utils.newMockedIssue("component", null, null, Severity.BLOCKER, true, "Issue 4", "rule4"), null, GITLAB_URL, "file", "http://myserver", true, false);
+        reporter.process(Utils.newIssue("component", null, null, Severity.INFO, true, "Issue 0", "rule0"), null, null, GITLAB_URL, "file", "http://myserver", true);
+        reporter.process(Utils.newIssue("component", null, null, Severity.MINOR, true, "Issue 1", "rule1"), null, null, GITLAB_URL, "file", "http://myserver", false);
+        reporter.process(Utils.newIssue("component", null, null, Severity.MAJOR, true, "Issue 2", "rule2"), null, null, GITLAB_URL, "file", "http://myserver", true);
+        reporter.process(Utils.newIssue("component", null, null, Severity.CRITICAL, true, "Issue 3", "rule3"), null, null, GITLAB_URL, "file", "http://myserver", false);
+        reporter.process(Utils.newIssue("component", null, null, Severity.BLOCKER, true, "Issue 4", "rule4"), null, null, GITLAB_URL, "file", "http://myserver", true);
 
         Assertions.assertThat(reporter.getIssueCount()).isEqualTo(5);
         Assertions.assertThat(reporter.getNotReportedIssueCount()).isEqualTo(2);
@@ -108,24 +109,50 @@ public class ReporterTest {
 
     @Test
     public void oneIssueNoSast() {
-        reporter.process(Utils.newMockedIssue("component", null, null, Severity.INFO, true, "Issue", "rule"), null, GITLAB_URL, "file", "http://myserver", true, false);
+        settings.setProperty(GitLabPlugin.GITLAB_JSON_MODE, JsonMode.NONE.name());
 
-        Assertions.assertThat(reporter.buildSastJson()).isEqualTo("[]");
+        reporter.process(Utils.newIssue("component", null, null, Severity.INFO, true, "Issue", "rule"), null, null, GITLAB_URL, "file", "http://myserver", true);
+
+        Assertions.assertThat(reporter.buildJson()).isEqualTo("[]");
     }
 
     @Test
     public void oneIssueSast() {
-        reporter.process(Utils.newMockedIssue("component", null, null, Severity.INFO, true, "Issue", "rule"), null, GITLAB_URL, "file", "http://myserver", true, true);
+        settings.setProperty(GitLabPlugin.GITLAB_JSON_MODE, JsonMode.SAST.name());
 
-        Assertions.assertThat(reporter.buildSastJson()).isEqualTo("[{\"tool\":\"sonarqube\",\"fingerprint\":\"null\",\"message\":\"Issue\",\"file\":\"file\",\"line\":\"0\",\"priority\":\"INFO\",\"solution\":\"http://myserver\"}]");
+        reporter.process(Utils.newIssue("123", "component", null, 10, Severity.INFO, true, "Issue \"NULL\"", "rule"), null, null, GITLAB_URL, "file", "http://myserver", true);
+
+        Assertions.assertThat(reporter.buildJson()).isEqualTo("[{\"tool\":\"sonarqube\",\"fingerprint\":\"123\",\"message\":\"Issue \\\"NULL\\\"\",\"file\":\"file\",\"line\":\"10\",\"priority\":\"INFO\",\"solution\":\"http://myserver\"}]");
+    }
+
+    @Test
+    public void oneIssueCodeClimate() {
+        settings.setProperty(GitLabPlugin.GITLAB_JSON_MODE, JsonMode.CODECLIMATE.name());
+
+        reporter.process(Utils.newIssue("456", "component", null, 20, Severity.INFO, true, "Issue \"NULL\"", "rule"), null, null, GITLAB_URL, "file", "http://myserver", true);
+
+        Assertions.assertThat(reporter.buildJson()).isEqualTo("[{\"fingerprint\":\"456\",\"check_name\":\"Issue \\\"NULL\\\"\",\"location\":{\"path\":\"file\",\"lines\": { \"begin\":20,\"end\":20}}}]");
     }
 
     @Test
     public void issuesSast() {
+        settings.setProperty(GitLabPlugin.GITLAB_JSON_MODE, JsonMode.SAST.name());
+
         for (int i = 0; i < 5; i++) {
-            reporter.process(Utils.newMockedIssue("component", null, null, Severity.INFO, true, "Issue", "rule" + i), null, GITLAB_URL, "file", "http://myserver/rule" + i, true, i % 2 == 0);
+            reporter.process(Utils.newIssue("toto_" + i, "component", null, null, Severity.INFO, true, "Issue", "rule" + i), null, null, GITLAB_URL, "file", "http://myserver/rule" + i, true);
         }
 
-        Assertions.assertThat(reporter.buildSastJson()).isEqualTo("[{\"tool\":\"sonarqube\",\"fingerprint\":\"null\",\"message\":\"Issue\",\"file\":\"file\",\"line\":\"0\",\"priority\":\"INFO\",\"solution\":\"http://myserver/rule0\"},{\"tool\":\"sonarqube\",\"fingerprint\":\"null\",\"message\":\"Issue\",\"file\":\"file\",\"line\":\"0\",\"priority\":\"INFO\",\"solution\":\"http://myserver/rule2\"},{\"tool\":\"sonarqube\",\"fingerprint\":\"null\",\"message\":\"Issue\",\"file\":\"file\",\"line\":\"0\",\"priority\":\"INFO\",\"solution\":\"http://myserver/rule4\"}]");
+        Assertions.assertThat(reporter.buildJson()).isEqualTo("[{\"tool\":\"sonarqube\",\"fingerprint\":\"toto_0\",\"message\":\"Issue\",\"file\":\"file\",\"line\":\"0\",\"priority\":\"INFO\",\"solution\":\"http://myserver/rule0\"},{\"tool\":\"sonarqube\",\"fingerprint\":\"toto_1\",\"message\":\"Issue\",\"file\":\"file\",\"line\":\"0\",\"priority\":\"INFO\",\"solution\":\"http://myserver/rule1\"},{\"tool\":\"sonarqube\",\"fingerprint\":\"toto_2\",\"message\":\"Issue\",\"file\":\"file\",\"line\":\"0\",\"priority\":\"INFO\",\"solution\":\"http://myserver/rule2\"},{\"tool\":\"sonarqube\",\"fingerprint\":\"toto_3\",\"message\":\"Issue\",\"file\":\"file\",\"line\":\"0\",\"priority\":\"INFO\",\"solution\":\"http://myserver/rule3\"},{\"tool\":\"sonarqube\",\"fingerprint\":\"toto_4\",\"message\":\"Issue\",\"file\":\"file\",\"line\":\"0\",\"priority\":\"INFO\",\"solution\":\"http://myserver/rule4\"}]");
+    }
+
+    @Test
+    public void issuesCodeClimate() {
+        settings.setProperty(GitLabPlugin.GITLAB_JSON_MODE, JsonMode.CODECLIMATE.name());
+
+        for (int i = 0; i < 5; i++) {
+            reporter.process(Utils.newIssue("tata_" + i, "component", null, null, Severity.INFO, true, "Issue", "rule" + i), null, null, GITLAB_URL, "file", "http://myserver/rule" + i, true);
+        }
+
+        Assertions.assertThat(reporter.buildJson()).isEqualTo("[{\"fingerprint\":\"tata_0\",\"check_name\":\"Issue\",\"location\":{\"path\":\"file\",\"lines\": { \"begin\":0,\"end\":0}}},{\"fingerprint\":\"tata_1\",\"check_name\":\"Issue\",\"location\":{\"path\":\"file\",\"lines\": { \"begin\":0,\"end\":0}}},{\"fingerprint\":\"tata_2\",\"check_name\":\"Issue\",\"location\":{\"path\":\"file\",\"lines\": { \"begin\":0,\"end\":0}}},{\"fingerprint\":\"tata_3\",\"check_name\":\"Issue\",\"location\":{\"path\":\"file\",\"lines\": { \"begin\":0,\"end\":0}}},{\"fingerprint\":\"tata_4\",\"check_name\":\"Issue\",\"location\":{\"path\":\"file\",\"lines\": { \"begin\":0,\"end\":0}}}]");
     }
 }

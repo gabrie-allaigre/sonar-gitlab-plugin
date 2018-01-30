@@ -19,15 +19,14 @@
  */
 package com.talanlabs.sonar.plugins.gitlab;
 
+import com.talanlabs.sonar.plugins.gitlab.models.StatusNotificationsMode;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
-import org.sonar.api.batch.AnalysisMode;
 import org.sonar.api.batch.bootstrap.ProjectBuilder;
 import org.sonar.api.config.PropertyDefinitions;
 import org.sonar.api.config.Settings;
-import org.sonar.api.utils.MessageException;
 import org.sonar.api.utils.System2;
 
 import java.io.File;
@@ -41,69 +40,72 @@ public class CommitProjectBuilderTest {
     public ExpectedException thrown = ExpectedException.none();
 
     private CommitProjectBuilder commitProjectBuilder;
-    private CommitFacade facade;
+    private SonarFacade sonarFacade;
+    private CommitFacade commitFacade;
     private Settings settings;
-    private AnalysisMode mode;
 
     @Before
     public void prepare() {
         settings = new Settings(new PropertyDefinitions(GitLabPlugin.definitions()));
-        facade = mock(CommitFacade.class);
-        mode = mock(AnalysisMode.class);
-        commitProjectBuilder = new CommitProjectBuilder(new GitLabPluginConfiguration(settings, new System2()), facade, mode);
-
+        sonarFacade = mock(SonarFacade.class);
+        commitFacade = mock(CommitFacade.class);
+        commitProjectBuilder = new CommitProjectBuilder(new GitLabPluginConfiguration(settings, new System2()), sonarFacade, commitFacade);
     }
 
     @Test
     public void testShouldDoNothing() {
         commitProjectBuilder.build(null);
-        verifyZeroInteractions(facade);
+        verifyZeroInteractions(commitFacade);
     }
 
     @Test
-    public void shouldFailIfNotPreview() {
-        settings.setProperty(GitLabPlugin.GITLAB_COMMIT_SHA, "1");
-
-        thrown.expect(MessageException.class);
-        thrown.expectMessage("The GitLab plugin is only intended to be used in preview or issues mode. Please set 'sonar.analysis.mode'.");
-
-        commitProjectBuilder.build(null);
-    }
-
-    @Test
-    public void shouldNotFailIfIssuesPending() {
-        settings.setProperty(GitLabPlugin.GITLAB_COMMIT_SHA, "1");
-        when(mode.isIssues()).thenReturn(true);
-
-        commitProjectBuilder.build(mock(ProjectBuilder.Context.class, withSettings().defaultAnswer(RETURNS_DEEP_STUBS)));
-
-        verify(facade).init(any(File.class));
-        verify(facade).createOrUpdateSonarQubeStatus(BuildInitState.PENDING.getMeaning(), "SonarQube analysis in progress");
-    }
-
-    @Test
-    public void shouldNotFailIfIssuesRunning() {
-        settings.setProperty(GitLabPlugin.GITLAB_COMMIT_SHA, "1");
-        settings.setProperty(GitLabPlugin.GITLAB_BUILD_INIT_STATE, BuildInitState.RUNNING.getMeaning());
-
-        when(mode.isIssues()).thenReturn(true);
-
-        commitProjectBuilder.build(mock(ProjectBuilder.Context.class, withSettings().defaultAnswer(RETURNS_DEEP_STUBS)));
-
-        verify(facade).init(any(File.class));
-        verify(facade).createOrUpdateSonarQubeStatus(BuildInitState.RUNNING.getMeaning(), "SonarQube analysis in progress");
-    }
-
-    @Test
-    public void shouldNotFailIfIssuesNone() {
+    public void testExitCode() {
         settings.setProperty(GitLabPlugin.GITLAB_COMMIT_SHA, "1");
         settings.setProperty(GitLabPlugin.GITLAB_STATUS_NOTIFICATION_MODE, StatusNotificationsMode.EXIT_CODE.getMeaning());
 
-        when(mode.isIssues()).thenReturn(true);
+        commitProjectBuilder.build(mock(ProjectBuilder.Context.class, withSettings().defaultAnswer(RETURNS_DEEP_STUBS)));
+
+        verify(sonarFacade).init(any(File.class), any(File.class));
+        verify(commitFacade).init(any(File.class));
+        verify(commitFacade, never()).createOrUpdateSonarQubeStatus(BuildInitState.PENDING.getMeaning(), "SonarQube analysis in progress");
+        verify(commitFacade, never()).createOrUpdateSonarQubeStatus(BuildInitState.RUNNING.getMeaning(), "SonarQube analysis in progress");
+    }
+
+    @Test
+    public void testNothing() {
+        settings.setProperty(GitLabPlugin.GITLAB_COMMIT_SHA, "1");
+        settings.setProperty(GitLabPlugin.GITLAB_STATUS_NOTIFICATION_MODE, StatusNotificationsMode.NOTHING.getMeaning());
 
         commitProjectBuilder.build(mock(ProjectBuilder.Context.class, withSettings().defaultAnswer(RETURNS_DEEP_STUBS)));
 
-        verify(facade).init(any(File.class));
-        verify(facade, never()).createOrUpdateSonarQubeStatus(BuildInitState.PENDING.getMeaning(), "SonarQube analysis in progress");
+        verify(sonarFacade).init(any(File.class), any(File.class));
+        verify(commitFacade).init(any(File.class));
+        verify(commitFacade, never()).createOrUpdateSonarQubeStatus(BuildInitState.PENDING.getMeaning(), "SonarQube analysis in progress");
+        verify(commitFacade, never()).createOrUpdateSonarQubeStatus(BuildInitState.RUNNING.getMeaning(), "SonarQube analysis in progress");
+    }
+
+    @Test
+    public void testCommitStatusPending() {
+        settings.setProperty(GitLabPlugin.GITLAB_COMMIT_SHA, "1");
+        settings.setProperty(GitLabPlugin.GITLAB_STATUS_NOTIFICATION_MODE, StatusNotificationsMode.COMMIT_STATUS.getMeaning());
+
+        commitProjectBuilder.build(mock(ProjectBuilder.Context.class, withSettings().defaultAnswer(RETURNS_DEEP_STUBS)));
+
+        verify(sonarFacade).init(any(File.class), any(File.class));
+        verify(commitFacade).init(any(File.class));
+        verify(commitFacade).createOrUpdateSonarQubeStatus(BuildInitState.PENDING.getMeaning(), "SonarQube analysis in progress");
+    }
+
+    @Test
+    public void testCommitStatusRunning() {
+        settings.setProperty(GitLabPlugin.GITLAB_COMMIT_SHA, "1");
+        settings.setProperty(GitLabPlugin.GITLAB_STATUS_NOTIFICATION_MODE, StatusNotificationsMode.COMMIT_STATUS.getMeaning());
+        settings.setProperty(GitLabPlugin.GITLAB_BUILD_INIT_STATE, BuildInitState.RUNNING.getMeaning());
+
+        commitProjectBuilder.build(mock(ProjectBuilder.Context.class, withSettings().defaultAnswer(RETURNS_DEEP_STUBS)));
+
+        verify(sonarFacade).init(any(File.class), any(File.class));
+        verify(commitFacade).init(any(File.class));
+        verify(commitFacade).createOrUpdateSonarQubeStatus(BuildInitState.RUNNING.getMeaning(), "SonarQube analysis in progress");
     }
 }

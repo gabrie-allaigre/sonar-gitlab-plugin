@@ -19,25 +19,20 @@
  */
 package com.talanlabs.sonar.plugins.gitlab.freemarker;
 
-import com.talanlabs.sonar.plugins.gitlab.Reporter;
+import com.talanlabs.sonar.plugins.gitlab.Utils;
+import com.talanlabs.sonar.plugins.gitlab.models.ReportIssue;
 import freemarker.template.SimpleScalar;
 import freemarker.template.TemplateBooleanModel;
 import freemarker.template.TemplateModelException;
 import org.assertj.core.api.Assertions;
-import org.junit.Before;
 import org.junit.Test;
+import org.sonar.api.batch.rule.Severity;
 
 import java.util.*;
 
 public class IssuesTemplateMethodModelExTest {
 
     private IssuesTemplateMethodModelEx issuesTemplateMethodModelEx;
-
-    @Before
-    public void setUp() throws Exception {
-        List<Reporter.ReportIssue> reportIssues = new ArrayList<>();
-        issuesTemplateMethodModelEx = new IssuesTemplateMethodModelEx(reportIssues);
-    }
 
     private List<Map<String, Object>> list(List<Object> arguments) {
         try {
@@ -48,7 +43,9 @@ public class IssuesTemplateMethodModelExTest {
     }
 
     @Test
-    public void testSuccess() {
+    public void testSuccessEmpty() {
+        issuesTemplateMethodModelEx = new IssuesTemplateMethodModelEx(Collections.emptyList());
+
         Assertions.assertThat(list(Collections.emptyList())).isEmpty();
         Assertions.assertThat(list(Collections.singletonList(new SimpleScalar("MAJOR")))).isEmpty();
         Assertions.assertThat(list(Collections.singletonList(TemplateBooleanModel.FALSE))).isEmpty();
@@ -56,7 +53,35 @@ public class IssuesTemplateMethodModelExTest {
     }
 
     @Test
+    public void testSuccess() {
+        List<ReportIssue> reportIssues = new ArrayList<>();
+        reportIssues.add(ReportIssue.newBuilder().issue(Utils.newIssue("foo:src/Foo.php", null, 1, Severity.BLOCKER, true, "msg1")).revision("123").url("url").file("file").ruleLink("ruleLink").reportedOnDiff(true).build());
+        reportIssues.add(ReportIssue.newBuilder().issue(Utils.newIssue("foo:src/Foo.php", null, 1, Severity.BLOCKER, true, "msg1")).revision("123").url("url").file("file").ruleLink("ruleLink").reportedOnDiff(false).build());
+        reportIssues.add(ReportIssue.newBuilder().issue(Utils.newIssue("foo:src/Foo.php", null, 1, Severity.BLOCKER, true, "msg1")).revision("123").url("url").file("file").ruleLink("ruleLink").reportedOnDiff(false).build());
+
+        reportIssues.add(ReportIssue.newBuilder().issue(Utils.newIssue("foo:src/Foo.php", null, 1, Severity.MAJOR, true, "msg1")).revision("123").url("url").file("file").ruleLink("ruleLink").reportedOnDiff(false).build());
+        reportIssues.add(ReportIssue.newBuilder().issue(Utils.newIssue("foo:src/Foo.php", null, 1, Severity.MAJOR, true, "msg1")).revision("123").url("url").file("file").ruleLink("ruleLink").reportedOnDiff(true).build());
+
+        issuesTemplateMethodModelEx = new IssuesTemplateMethodModelEx(reportIssues);
+
+        Assertions.assertThat(list(Collections.emptyList())).hasSize(5);
+        Assertions.assertThat(list(Collections.singletonList(new SimpleScalar("MAJOR")))).hasSize(2);
+        Assertions.assertThat(list(Collections.singletonList(TemplateBooleanModel.FALSE))).hasSize(3);
+        Assertions.assertThat(list(Arrays.asList(new SimpleScalar("MAJOR"), TemplateBooleanModel.FALSE))).hasSize(1);
+    }
+
+    @Test
     public void testFailed() {
+        List<ReportIssue> reportIssues = new ArrayList<>();
+        reportIssues.add(ReportIssue.newBuilder().issue(Utils.newIssue("foo:src/Foo.php", null, 1, Severity.BLOCKER, true, "msg1")).revision("123").url("url").file("file").ruleLink("ruleLink").reportedOnDiff(true).build());
+        reportIssues.add(ReportIssue.newBuilder().issue(Utils.newIssue("foo:src/Foo.php", null, 1, Severity.BLOCKER, true, "msg1")).revision("123").url("url").file("file").ruleLink("ruleLink").reportedOnDiff(false).build());
+        reportIssues.add(ReportIssue.newBuilder().issue(Utils.newIssue("foo:src/Foo.php", null, 1, Severity.BLOCKER, true, "msg1")).revision("123").url("url").file("file").ruleLink("ruleLink").reportedOnDiff(false).build());
+
+        reportIssues.add(ReportIssue.newBuilder().issue(Utils.newIssue("foo:src/Foo.php", null, 1, Severity.MAJOR, true, "msg1")).revision("123").url("url").file("file").ruleLink("ruleLink").reportedOnDiff(false).build());
+        reportIssues.add(ReportIssue.newBuilder().issue(Utils.newIssue("foo:src/Foo.php", null, 1, Severity.MAJOR, true, "msg1")).revision("123").url("url").file("file").ruleLink("ruleLink").reportedOnDiff(true).build());
+
+        issuesTemplateMethodModelEx = new IssuesTemplateMethodModelEx(reportIssues);
+
         Assertions.assertThatThrownBy(() -> list(Collections.singletonList(null))).hasCauseInstanceOf(TemplateModelException.class);
         Assertions.assertThatThrownBy(() -> list(Collections.singletonList(new SimpleScalar("TOTO")))).hasCauseInstanceOf(TemplateModelException.class);
         Assertions.assertThatThrownBy(() -> list(Arrays.asList(TemplateBooleanModel.FALSE, new SimpleScalar("MAJOR")))).hasCauseInstanceOf(TemplateModelException.class);

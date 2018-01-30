@@ -1,0 +1,5 @@
+projectKey=com.talanlabs:avatar-generator-parent
+serverUrl={0}
+dashboardUrl={0}/dashboard/index/com.talanlabs:avatar-generator-parent
+ceTaskId=AVz4Pj0lCGu3nUwPQk4H
+ceTaskUrl={0}/api/ce/task?id=AVz4Pj0lCGu3nUwPQk4H

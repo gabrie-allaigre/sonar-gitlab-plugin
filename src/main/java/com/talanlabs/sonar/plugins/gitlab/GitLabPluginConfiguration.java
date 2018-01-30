@@ -19,9 +19,13 @@
  */
 package com.talanlabs.sonar.plugins.gitlab;
 
+import com.talanlabs.sonar.plugins.gitlab.models.JsonMode;
+import com.talanlabs.sonar.plugins.gitlab.models.QualityGateFailMode;
+import com.talanlabs.sonar.plugins.gitlab.models.StatusNotificationsMode;
 import org.sonar.api.CoreProperties;
 import org.sonar.api.batch.BatchSide;
 import org.sonar.api.batch.InstantiationStrategy;
+import org.sonar.api.batch.rule.Severity;
 import org.sonar.api.config.Settings;
 import org.sonar.api.utils.System2;
 import org.sonar.api.utils.log.Logger;
@@ -62,8 +66,6 @@ public class GitLabPluginConfiguration {
             tempBaseUrl += "/";
         }
         this.baseUrl = tempBaseUrl;
-
-        LOG.info("GlobalWorkingDir {}", settings.getString(CoreProperties.GLOBAL_WORKING_DIRECTORY));
     }
 
     public String projectId() {
@@ -147,6 +149,11 @@ public class GitLabPluginConfiguration {
         return s != null ? s : StatusNotificationsMode.COMMIT_STATUS;
     }
 
+    public QualityGateFailMode qualityGateFailMode() {
+        QualityGateFailMode s = QualityGateFailMode.of(settings.getString(GitLabPlugin.GITLAB_QUALITY_GATE_FAIL_MODE));
+        return s != null ? s : QualityGateFailMode.ERROR;
+    }
+
     @CheckForNull
     public String globalTemplate() {
         return settings.getString(GitLabPlugin.GITLAB_GLOBAL_TEMPLATE);
@@ -181,8 +188,33 @@ public class GitLabPluginConfiguration {
         return settings.getBoolean(GitLabPlugin.GITLAB_ALL_ISSUES);
     }
 
-    public boolean sastReport() {
-        return settings.getBoolean(GitLabPlugin.GITLAB_SAST_REPORT);
+    public JsonMode jsonMode() {
+        JsonMode s = JsonMode.of(settings.getString(GitLabPlugin.GITLAB_JSON_MODE));
+        return s != null ? s : JsonMode.NONE;
+    }
+
+    public int queryMaxRetry() {
+        return settings.getInt(GitLabPlugin.GITLAB_QUERY_MAX_RETRY);
+    }
+
+    public long queryWait() {
+        return settings.getLong(GitLabPlugin.GITLAB_QUERY_WAIT);
+    }
+
+    public Severity issueFilter() {
+        String name = settings.getString(GitLabPlugin.GITLAB_ISSUE_FILTER);
+        if (name == null) {
+            return Severity.INFO;
+        }
+        try {
+            return Severity.valueOf(name);
+        } catch (IllegalArgumentException e) {
+            return Severity.INFO;
+        }
+    }
+
+    public boolean loadRule() {
+        return settings.getBoolean(GitLabPlugin.GITLAB_LOAD_RULES);
     }
 
     /**

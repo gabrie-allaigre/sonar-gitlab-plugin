@@ -19,8 +19,12 @@
  */
 package com.talanlabs.sonar.plugins.gitlab;
 
+import com.talanlabs.sonar.plugins.gitlab.models.JsonMode;
+import com.talanlabs.sonar.plugins.gitlab.models.QualityGateFailMode;
+import com.talanlabs.sonar.plugins.gitlab.models.StatusNotificationsMode;
 import org.sonar.api.Plugin;
 import org.sonar.api.PropertyType;
+import org.sonar.api.batch.rule.Severity;
 import org.sonar.api.config.PropertyDefinition;
 import org.sonar.api.resources.Qualifiers;
 
@@ -55,7 +59,12 @@ public class GitLabPlugin implements Plugin {
     public static final String GITLAB_PREFIX_DIRECTORY = "sonar.gitlab.prefix_directory";
     public static final String GITLAB_API_VERSION = "sonar.gitlab.api_version";
     public static final String GITLAB_ALL_ISSUES = "sonar.gitlab.all_issues";
-    public static final String GITLAB_SAST_REPORT = "sonar.gitlab.sast_report";
+    public static final String GITLAB_JSON_MODE = "sonar.gitlab.json_mode";
+    public static final String GITLAB_QUERY_MAX_RETRY = "sonar.gitlab.query_max_retry";
+    public static final String GITLAB_QUERY_WAIT = "sonar.gitlab.query_wait";
+    public static final String GITLAB_QUALITY_GATE_FAIL_MODE = "sonar.gitlab.quality_gate_fail_mode";
+    public static final String GITLAB_ISSUE_FILTER = "sonar.gitlab.issue_filter";
+    public static final String GITLAB_LOAD_RULES = "sonar.gitlab.load_rules";
 
     public static final String CATEGORY = "gitlab";
     public static final String SUBCATEGORY = "reporting";
@@ -124,13 +133,31 @@ public class GitLabPlugin implements Plugin {
                                 .type(PropertyType.SINGLE_SELECT_LIST).options(V3_API_VERSION, V4_API_VERSION).defaultValue(V4_API_VERSION).index(25).build(),
                         PropertyDefinition.builder(GITLAB_ALL_ISSUES).name("All issues").description("Show all issues. (Default false, only new)").category(CATEGORY).subCategory(SUBCATEGORY)
                                 .type(PropertyType.BOOLEAN).defaultValue(String.valueOf(false)).index(26).build(),
-                        PropertyDefinition.builder(GITLAB_SAST_REPORT).name("Generate SAST report").description("Create a SAST report in root (gl-sast-report.json)").category(CATEGORY).subCategory(SUBCATEGORY)
-                                .type(PropertyType.BOOLEAN).defaultValue(String.valueOf(false)).index(27).build()
+                        PropertyDefinition.builder(GITLAB_JSON_MODE).name("Generate json report").description("Create a json report in root for GitLab EE").category(CATEGORY).subCategory(SUBCATEGORY)
+                                .type(PropertyType.SINGLE_SELECT_LIST).options(JsonMode.NONE.name(), JsonMode.CODECLIMATE.name(), JsonMode.SAST.name()).defaultValue(JsonMode.NONE.name()).onlyOnQualifiers(Qualifiers.PROJECT).index(27).build(),
+                        PropertyDefinition.builder(GITLAB_QUERY_MAX_RETRY).name("Query max retry").description("Max retry for wait finish analyse for publish mode").category(CATEGORY).subCategory(SUBCATEGORY)
+                                .type(PropertyType.INTEGER).defaultValue(String.valueOf(50)).index(28).build(),
+                        PropertyDefinition.builder(GITLAB_QUERY_WAIT).name("Query waiting between retry").description("Max retry for wait finish analyse for publish mode (millisecond)").category(CATEGORY).subCategory(SUBCATEGORY)
+                                .type(PropertyType.LONG).defaultValue(String.valueOf(1000)).index(29).build(),
+                        PropertyDefinition.builder(GITLAB_QUALITY_GATE_FAIL_MODE).name("Quality Gate fail mode").description("Quality gate fail mode: error or warn")
+                                .category(CATEGORY).subCategory(SUBCATEGORY).type(PropertyType.SINGLE_SELECT_LIST)
+                                .options(QualityGateFailMode.WARN.getMeaning(), QualityGateFailMode.ERROR.getMeaning()).defaultValue(QualityGateFailMode.ERROR.getMeaning())
+                                .index(30).build(),
+                        PropertyDefinition.builder(GITLAB_ISSUE_FILTER).name("Issue filter").description("Filter on issue, if MAJOR then show only MAJOR, CRITICAL and BLOCKER")
+                                .category(CATEGORY).subCategory(SUBCATEGORY).type(PropertyType.SINGLE_SELECT_LIST)
+                                .options(Severity.INFO.name(), Severity.MINOR.name(), Severity.MAJOR.name(), Severity.CRITICAL.name(), Severity.BLOCKER.name())
+                                .defaultValue(Severity.INFO.name())
+                                .index(31).build(),
+                        PropertyDefinition.builder(GITLAB_LOAD_RULES).name("Load rules information").description("Load rule for all issues")
+                                .category(CATEGORY).subCategory(SUBCATEGORY).type(PropertyType.BOOLEAN)
+                                .defaultValue(String.valueOf(false))
+                                .index(32).build()
+
                 );
     }
 
     @Override
     public void define(Context context) {
-        context.addExtensions(CommitIssuePostJob.class, GitLabPluginConfiguration.class, CommitProjectBuilder.class, CommitFacade.class, MarkDownUtils.class).addExtensions(definitions());
+        context.addExtensions(ReporterBuilder.class, GitLabPluginConfiguration.class, CommitProjectBuilder.class, CommitFacade.class, SonarFacade.class, MarkDownUtils.class, CommitPublishPostJob.class).addExtensions(definitions());
     }
 }

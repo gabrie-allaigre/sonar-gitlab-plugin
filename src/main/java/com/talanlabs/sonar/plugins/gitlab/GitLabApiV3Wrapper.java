@@ -26,12 +26,12 @@ import com.talanlabs.gitlab.api.v3.models.commits.GitLabCommitComments;
 import com.talanlabs.gitlab.api.v3.models.commits.GitLabCommitDiff;
 import com.talanlabs.gitlab.api.v3.models.projects.GitLabProject;
 import com.talanlabs.gitlab.api.v3.models.users.GitLabUser;
-import org.sonar.api.batch.fs.InputFile;
 import org.sonar.api.utils.log.Logger;
 import org.sonar.api.utils.log.Loggers;
 
 import javax.annotation.CheckForNull;
 import javax.annotation.Nullable;
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.util.*;
@@ -233,13 +233,14 @@ public class GitLabApiV3Wrapper implements IGitLabApiWrapper {
     }
 
     @Override
-    public String getRevisionForLine(InputFile inputFile, String path, int lineNumber) {
+    public String getRevisionForLine(File file,String path, int lineNumber) {
         String value = null;
         try {
-            List<String> ss = Files.readAllLines(inputFile.path());
-            value = ss.size() >= lineNumber ? ss.get(lineNumber - 1) : null;
+            List<String> ss = Files.readAllLines(file.toPath());
+            int l = lineNumber > 0 ? lineNumber - 1 : 0;
+            value = ss.size() >= lineNumber ? ss.get(l) : null;
         } catch (IOException e) {
-            LOG.trace("Not read all line for file {}", inputFile.path(), e);
+            LOG.trace("Not read all line for file {}", file, e);
         }
         Line line = new Line(lineNumber, value);
 
