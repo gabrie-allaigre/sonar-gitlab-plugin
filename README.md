@@ -76,13 +76,13 @@ Add to each **commit** GitLab in a global commentary on the new anomalies added 
 
 ![qualitygate](doc/quality_gate.png)
 
+**With generate code quality json file**
+
+![qualitygate](doc/codequality.png)
+
 **With generate SAST json file**
 
 ![qualitygate](doc/sast.png)
-
-**With generate codeclimate json file**
-
-![qualitygate](doc/codequality.png)
 
 Works with Java, Php, Android, JavaScript, C#, etc..
 
