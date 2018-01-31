@@ -61,16 +61,28 @@ Inspired by https://github.com/SonarCommunity/sonar-github
 Add to each **commit** GitLab in a global commentary on the new anomalies added by this **commit** and add comment lines of modified files.
 
 **Comment commits:**
+
 ![Comment commits](doc/sonar_global.jpg)
 
 **Comment line:**
+
 ![Comment line](doc/sonar_inline.jpg)
 
 **Add build line:**
+
 ![Add buids](doc/builds.jpg)
 
-**With quality gate**
+**With quality gate global comment**
+
 ![qualitygate](doc/quality_gate.png)
+
+**With generate SAST json file**
+
+![qualitygate](doc/sast.png)
+
+**With generate codeclimate json file**
+
+![qualitygate](doc/codequality.png)
 
 Works with Java, Php, Android, JavaScript, C#, etc..
 
@@ -144,69 +156,143 @@ Works with `sonar-scanner` and `gradle`
 
 ## GitLab CI
 
+> Set secret variable `SONAR_URL` and `SONAR_LOGIN`
+
 .gitlab-ci.yml sample for Maven project, comment last commit:
 
 ```yml
-sonarqube_preview:
-  script:
-    - git checkout origin/master
-    - git merge $CI_BUILD_REF --no-commit --no-ff
-    - mvn --batch-mode verify sonar:sonar -Dsonar.host.url=$SONAR_URL -Dsonar.analysis.mode=preview -Dsonar.gitlab.project_id=$CI_PROJECT_PATH -Dsonar.gitlab.commit_sha=$CI_BUILD_REF -Dsonar.gitlab.ref_name=$CI_BUILD_REF_NAME
-  stage: test
-  except:
-    - develop
-    - master
-    - /^hotfix_.*$/
-    - /.*-hotfix$/
-  tags:
-    - java
-
-sonarqube:
-  script:
-    - mvn --batch-mode verify sonar:sonar -Dsonar.host.url=$SONAR_URL
+sonarqube_master_job:
   stage: test
   only:
     - master
-  tags:
-    - java
-```
+  script:
+    - mvn --batch-mode verify sonar:sonar -Dsonar.host.url=$SONAR_URL -Dsonar.login=$SONAR_LOGIN
 
-Generate `codeclimate.json` (only GitLab EE)
-
-```yml
-sonarqube_preview:
+sonarqube_preview_feature_job:
+  stage: test
+  only:
+    - /^feature\/*/
   script:
     - git checkout origin/master
     - git merge $CI_BUILD_REF --no-commit --no-ff
-    - mvn --batch-mode verify sonar:sonar -Dsonar.host.url=$SONAR_URL -Dsonar.analysis.mode=preview -Dsonar.gitlab.project_id=$CI_PROJECT_PATH -Dsonar.gitlab.commit_sha=$CI_BUILD_REF -Dsonar.gitlab.ref_name=$CI_BUILD_REF_NAME -Dsonar.gitlab.json_mode=CODECLIMATE
+    - mvn --batch-mode verify sonar:sonar -Dsonar.host.url=$SONAR_URL -Dsonar.login=$SONAR_LOGIN -Dsonar.analysis.mode=preview -Dsonar.gitlab.project_id=$CI_PROJECT_PATH -Dsonar.gitlab.commit_sha=$CI_BUILD_REF -Dsonar.gitlab.ref_name=$CI_BUILD_REF_NAME
+```
+
+With quality gate
+
+```yml
+sonarqube_master_job:
   stage: test
-  except:
+  only:
     - master
-    - /^hotfix_.*$/
-    - /.*-hotfix$/
-    - tags
+  script:
+    - mvn --batch-mode verify sonar:sonar -Dsonar.host.url=$SONAR_URL -Dsonar.login=$SONAR_LOGIN -Dsonar.gitlab.project_id=$CI_PROJECT_PATH -Dsonar.gitlab.commit_sha=$CI_BUILD_REF -Dsonar.gitlab.ref_name=$CI_BUILD_REF_NAME
+
+sonarqube_preview_feature_job:
+  stage: test
+  only:
+    - /^feature\/*/
+  script:
+    - git checkout origin/master
+    - git merge $CI_BUILD_REF --no-commit --no-ff
+    - mvn --batch-mode verify sonar:sonar -Dsonar.host.url=$SONAR_URL -Dsonar.login=$SONAR_LOGIN -Dsonar.analysis.mode=preview -Dsonar.gitlab.project_id=$CI_PROJECT_PATH -Dsonar.gitlab.commit_sha=$CI_BUILD_REF -Dsonar.gitlab.ref_name=$CI_BUILD_REF_NAME
+```
+
+If use SonarQube with `BranchPlugin`
+
+```yml
+sonarqube_master_job:
+  stage: test
+  only:
+    - master
+  script:
+    - mvn --batch-mode verify sonar:sonar -Dsonar.host.url=$SONAR_URL -Dsonar.login=$SONAR_LOGIN -Dsonar.gitlab.project_id=$CI_PROJECT_PATH -Dsonar.gitlab.commit_sha=$CI_BUILD_REF -Dsonar.gitlab.ref_name=$CI_BUILD_REF_NAME
+
+sonarqube_preview_feature_job:
+  stage: test
+  only:
+    - /^feature\/*/
+  script:
+    - git checkout origin/master
+    - git merge $CI_BUILD_REF --no-commit --no-ff
+    - mvn --batch-mode verify sonar:sonar -Dsonar.host.url=$SONAR_URL -Dsonar.login=$SONAR_LOGIN -Dsonar.gitlab.project_id=$CI_PROJECT_PATH -Dsonar.gitlab.commit_sha=$CI_BUILD_REF -Dsonar.gitlab.ref_name=$CI_BUILD_REF_NAME -Dsonar.branch.name=$CI_BUILD_REF_NAME
+```
+
+For get code quality (`codeclimate.json`) in merge request (only GitLab EE https://docs.gitlab.com/ee/user/project/merge_requests/code_quality_diff.html)
+
+> Warning, master must have a `codequality.json`, use `commit-status` for notification mode (not mandatory)
+
+```yml
+stages:
+  ...
+  - test
+  - quality
+  ...
+sonarqube_master_job:
+  stage: test
+  only:
+    - master
+  script:
+    - mvn --batch-mode verify sonar:sonar -Dsonar.host.url=$SONAR_URL -Dsonar.login=$SONAR_LOGIN -Dsonar.gitlab.project_id=$CI_PROJECT_PATH -Dsonar.gitlab.commit_sha=$CI_BUILD_REF -Dsonar.gitlab.ref_name=$CI_BUILD_REF_NAME -Dsonar.gitlab.json_mode=CODECLIMATE -Dsonar.gitlab.failure_notification_mode=commit-status  
   artifacts:
     expire_in: 1 day
     paths:
       - codeclimate.json
-  tags:
-    - java
-codequality:
+
+sonarqube_preview_feature_job:
   stage: test
-  except:
-    - master
-    - /^hotfix_.*$/
-    - /.*-hotfix$/
-    - tags
-  dependencies:
-    - sonarqube_preview
+  only:
+    - /^feature\/*/
+  script:
+    - git checkout origin/master
+    - git merge $CI_BUILD_REF --no-commit --no-ff
+    - mvn --batch-mode verify sonar:sonar -Dsonar.host.url=$SONAR_URL -Dsonar.login=$SONAR_LOGIN -Dsonar.analysis.mode=preview -Dsonar.gitlab.project_id=$CI_PROJECT_PATH -Dsonar.gitlab.commit_sha=$CI_BUILD_REF -Dsonar.gitlab.ref_name=$CI_BUILD_REF_NAME -Dsonar.gitlab.json_mode=CODECLIMATE -Dsonar.gitlab.failure_notification_mode=commit-status
+  artifacts:
+    expire_in: 1 day
+    paths:
+      - codeclimate.json
+
+codequality:
+  stage: quality
+  variables:
+    GIT_STRATEGY: none
+  script:
+    - echo ok
+  artifacts:
+    paths:
+      - codeclimate.json
+```
+
+For get SAST (`gl-sast-report.json`) information in merge request (only GitLab EE https://docs.gitlab.com/ee/user/project/merge_requests/sast.html)
+
+```yml
+stages:
+  ...
+  - test
+  - quality
+  ...
+sonarqube_preview_feature_job:
+  stage: test
+  only:
+    - /^feature\/*/
+  script:
+    - git checkout origin/master
+    - git merge $CI_BUILD_REF --no-commit --no-ff
+    - mvn --batch-mode verify sonar:sonar -Dsonar.host.url=$SONAR_URL -Dsonar.login=$SONAR_LOGIN -Dsonar.analysis.mode=preview -Dsonar.gitlab.project_id=$CI_PROJECT_PATH -Dsonar.gitlab.commit_sha=$CI_BUILD_REF -Dsonar.gitlab.ref_name=$CI_BUILD_REF_NAME -Dsonar.gitlab.json_mode=SAST -Dsonar.gitlab.failure_notification_mode=commit-status
+  artifacts:
+    expire_in: 1 day
+    paths:
+      - gl-sast-report.json
+
+sast:
+  stage: quality
+  only:
+    - /^feature\/*/
   variables:
     GIT_STRATEGY: none
   artifacts:
     paths:
-      - codeclimate.json
-  tags:
-    - java
+      - gl-sast-report.json
 ```
 
 | GitLab 8.x name | GitLab 9.x name |
