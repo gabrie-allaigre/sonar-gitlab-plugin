@@ -17,6 +17,8 @@ Inspired by https://github.com/SonarCommunity/sonar-github
 - Add filter for issues
 - Add information rule by issue
 
+**Download 3.0.0-rc1** https://github.com/gabrie-allaigre/sonar-gitlab-plugin/releases/download/3.0.0-rc1/sonar-gitlab-plugin-3.0.0-rc1.jar
+
 **Version 2.1.0**
 
 - Add commit only line
