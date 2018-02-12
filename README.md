@@ -7,7 +7,7 @@ Inspired by https://github.com/SonarCommunity/sonar-github
 
 **The version 2.1.0 is directly in the SonarQube update center**
 
-**Version 3.0.0-SNAPSHOT**
+**Version 3.0.0**
 
 - For publish mode, get quality gate and print in global comment
 - For publish mode, get all new issues and print in inline and global comment
@@ -17,7 +17,7 @@ Inspired by https://github.com/SonarCommunity/sonar-github
 - Add filter for issues
 - Add information rule by issue
 
-**Download 3.0.0-rc1** https://github.com/gabrie-allaigre/sonar-gitlab-plugin/releases/download/3.0.0-rc1/sonar-gitlab-plugin-3.0.0-rc1.jar
+**Download 3.0.0** https://github.com/gabrie-allaigre/sonar-gitlab-plugin/releases/download/3.0.0/sonar-gitlab-plugin-3.0.0.jar
 
 **Version 2.1.0**
 
