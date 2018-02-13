@@ -5,7 +5,11 @@ Sonar GitLab Plugin
 
 Inspired by https://github.com/SonarCommunity/sonar-github
 
-**The version 2.1.0 is directly in the SonarQube update center**
+**The version 3.0.0 is directly in the SonarQube update center**
+
+**Version 3.0.1**
+
+- Support unit test sources
 
 **Version 3.0.0**
 
