@@ -32,6 +32,7 @@ import org.sonar.api.batch.rule.Severity;
 import org.sonar.api.config.Settings;
 import org.sonar.api.measures.CoreMetrics;
 import org.sonar.api.measures.Metric;
+import org.sonar.api.resources.Qualifiers;
 import org.sonar.api.utils.log.Logger;
 import org.sonar.api.utils.log.Loggers;
 import org.sonarqube.ws.*;
@@ -268,7 +269,7 @@ public class SonarFacade {
         List<Issue> res = new ArrayList<>();
         for (Issues.Issue issue : issues) {
             Optional<Issues.Component> componentOptional = components.stream()
-                .filter(c -> "FIL".equals(c.getQualifier()))
+                .filter(c -> Qualifiers.FILE.equals(c.getQualifier()))
                 .filter(c -> c.getKey().equals(issue.getComponent()))
                 .findFirst();
 
