@@ -7,9 +7,10 @@ Inspired by https://github.com/SonarCommunity/sonar-github
 
 **The version 3.0.0 is directly in the SonarQube update center**
 
-**Version 3.0.1**
+**Version 3.0.1-SNAPSHOT**
 
-- Support unit test sources
+- Fix bug with QualityGate status NONE #107
+- Support unit test sources #104
 
 **Version 3.0.0**
 
@@ -335,7 +336,7 @@ https://docs.gitlab.com/ce/ci/variables/#9-0-renaming
 | sonar.gitlab.ping_user | Ping the user who made an issue by @ mentioning. Only for default comment (default false) | Administration, Variable | >= 2.0.0 |
 | sonar.gitlab.unique_issue_per_inline | Unique issue per inline comment (default false) | Administration, Variable | >= 2.0.0 |
 | sonar.gitlab.prefix_directory | Add prefix when create link for GitLab | Variable | >= 2.1.0 |
-| sonar.gitlab.api_version | GitLab API version (default v3) | Administration, Variable | >= 2.1.0 |
+| sonar.gitlab.api_version | GitLab API version (default `v4` or `v3`) | Administration, Variable | >= 2.1.0 |
 | sonar.gitlab.all_issues | All issues new and old (default false, only new) | Administration, Variable | >= 2.1.0 |
 | sonar.gitlab.json_mode | Create a json report in root for GitLab EE (codeclimate.json or gl-sast-report.json) | Project, Variable | >= 3.0.0 |
 | sonar.gitlab.query_max_retry | Max retry for wait finish analyse for publish mode | Administration, Variable | >= 3.0.0 |

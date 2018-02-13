@@ -37,7 +37,6 @@ import org.sonar.api.utils.log.Logger;
 import org.sonar.api.utils.log.Loggers;
 import org.sonarqube.ws.*;
 import org.sonarqube.ws.client.*;
-import org.sonarqube.ws.client.component.ShowWsRequest;
 import org.sonarqube.ws.client.qualitygate.ProjectStatusWsRequest;
 
 import java.io.File;
@@ -225,7 +224,7 @@ public class SonarFacade {
             Issues.SearchWsResponse searchWsResponse = searchIssues(projectKey, refName, page);
             nbPage = computeNbPage(searchWsResponse.getTotal(), searchWsResponse.getPs());
 
-            issues.addAll(toIssues(searchWsResponse));
+            issues.addAll(toIssues(searchWsResponse, refName));
 
             page++;
         }
@@ -259,7 +258,7 @@ public class SonarFacade {
         return (int) (total / (long) (pageSize + 1)) + 1;
     }
 
-    private List<Issue> toIssues(Issues.SearchWsResponse issuesSearchWsResponse) {
+    private List<Issue> toIssues(Issues.SearchWsResponse issuesSearchWsResponse, String branch) {
         List<Issues.Issue> issues = issuesSearchWsResponse.getIssuesList();
         if (issues == null) {
             return Collections.emptyList();
@@ -280,7 +279,7 @@ public class SonarFacade {
             if (componentOptional.isPresent()) {
                 Issues.Component component = componentOptional.get();
                 try {
-                    file = componentCache.get(component.getKey(), () -> toFile(componentOptional.get()));
+                    file = componentCache.get(component.getKey(), () -> toFile(componentOptional.get(), branch));
                 } catch (Exception e) {
                     throw new IllegalStateException("Failed to get component file for " + component.getKey(), e);
                 }
@@ -290,12 +289,27 @@ public class SonarFacade {
         return res;
     }
 
-    private File toFile(Issues.Component component) {
-        WsComponents.ShowWsResponse showWsResponse = wsClient.components().show(new ShowWsRequest().setKey(component.getKey()));
+    private File toFile(Issues.Component component, String branch) {
+        GetRequest getRequest = new GetRequest("api/components/show").setParam("component", component.getKey()).setMediaType(MediaTypes.PROTOBUF);
+        if (branch != null && !branch.trim().isEmpty()) {
+            getRequest.setParam("branch", branch);
+        }
+        WsResponse wsResponse = wsClient.wsConnector().call(getRequest);
+
+        if (wsResponse.code() != 200) {
+            throw new HttpException(wsClient.wsConnector().baseUrl() + toString(getRequest), wsResponse.code());
+        }
+
+        WsComponents.ShowWsResponse showWsResponse;
+        try {
+            showWsResponse = WsComponents.ShowWsResponse.parseFrom(wsResponse.contentStream());
+        } catch (IOException e) {
+            throw new IllegalStateException(e.getMessage(), e);
+        }
 
         StringBuilder sb = new StringBuilder(component.getPath());
         for (WsComponents.Component a : showWsResponse.getAncestorsList()) {
-            if ("BRC".equals(a.getQualifier()) && a.getPath() != null) {
+            if (Qualifiers.MODULE.equals(a.getQualifier()) && a.getPath() != null) {
                 sb.insert(0, a.getPath() + File.separator);
             }
         }

@@ -74,6 +74,9 @@
     <contributor>
       <name>Alex Krevenya</name>
     </contributor>
+    <contributor>
+      <name>Jérôme BAROTIN</name>
+    </contributor>
   </contributors>
   <scm>
     <url>https://github.com/gabrie-allaigre/sonar-gitlab-plugin</url>

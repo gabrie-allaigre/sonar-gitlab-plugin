@@ -46,7 +46,7 @@ public class QualityGate {
 
     public enum Status {
 
-        OK, WARN, ERROR
+        OK, WARN, ERROR, NONE
 
     }
 
