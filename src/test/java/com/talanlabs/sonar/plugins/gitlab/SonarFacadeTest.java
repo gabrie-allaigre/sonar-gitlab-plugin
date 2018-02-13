@@ -106,12 +106,12 @@ public class SonarFacadeTest {
 
     @Test
     public void testNotFound() throws IOException {
-        sonar.enqueue(new MockResponse().setResponseCode(404));
+        sonar.enqueue(new MockResponse().setResponseCode(404).setBody("Not Found"));
 
         createReportTaskFile();
 
         Assertions.assertThatThrownBy(() -> sonarFacade.loadQualityGate()).isInstanceOf(HttpException.class)
-                .hasMessage("Error 404 on http://" + sonar.getHostName() + ":" + sonar.getPort() + "/api/ce/task?id=AVz4Pj0lCGu3nUwPQk4H");
+                .hasMessage("Error 404 on http://" + sonar.getHostName() + ":" + sonar.getPort() + "/api/ce/task?id=AVz4Pj0lCGu3nUwPQk4H : Not Found");
     }
 
     @Test
@@ -201,12 +201,12 @@ public class SonarFacadeTest {
         WsCe.TaskResponse taskResponse = WsCe.TaskResponse.newBuilder().setTask(WsCe.Task.newBuilder().setStatus(WsCe.TaskStatus.SUCCESS).setAnalysisId("123456").build()).build();
         sonar.enqueue(new MockResponse().setResponseCode(200).addHeader("Content-Type", "application/x-protobuf").setBody(toBuffer(taskResponse)));
 
-        sonar.enqueue(new MockResponse().setResponseCode(404));
+        sonar.enqueue(new MockResponse().setResponseCode(404).setBody("Not Found"));
 
         createReportTaskFile();
 
         Assertions.assertThatThrownBy(() -> sonarFacade.loadQualityGate()).isInstanceOf(HttpException.class)
-                .hasMessage("Error 404 on http://" + sonar.getHostName() + ":" + sonar.getPort() + "/api/qualitygates/project_status?analysisId=123456");
+                .hasMessage("Error 404 on http://" + sonar.getHostName() + ":" + sonar.getPort() + "/api/qualitygates/project_status?analysisId=123456 : Not Found");
     }
 
     @Test
@@ -353,11 +353,11 @@ public class SonarFacadeTest {
 
     @Test
     public void tesFailed1GetNewIssue() throws IOException {
-        sonar.enqueue(new MockResponse().setResponseCode(404));
+        sonar.enqueue(new MockResponse().setResponseCode(404).setBody("Not Found"));
 
         createReportTaskFile();
         Assertions.assertThatThrownBy(() -> sonarFacade.getNewIssues()).isInstanceOf(HttpException.class)
-                .hasMessage("Error 404 on http://" + sonar.getHostName() + ":" + sonar.getPort() + "/api/issues/search?componentKeys=com.talanlabs:avatar-generator-parent&p=1&resolved=false");
+                .hasMessage("Error 404 on http://" + sonar.getHostName() + ":" + sonar.getPort() + "/api/issues/search?componentKeys=com.talanlabs:avatar-generator-parent&p=1&resolved=false : Not Found");
     }
 
     @Test
