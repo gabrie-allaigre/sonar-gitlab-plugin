@@ -37,6 +37,7 @@ import org.sonar.api.batch.rule.Severity;
 import org.sonar.api.config.PropertyDefinition;
 import org.sonar.api.config.PropertyDefinitions;
 import org.sonar.api.config.Settings;
+import org.sonar.api.resources.Qualifiers;
 import org.sonar.api.utils.System2;
 import org.sonarqube.ws.*;
 import org.sonarqube.ws.client.HttpException;
@@ -252,7 +253,7 @@ public class SonarFacadeTest {
     public void testNotEmptyGetNewIssue() throws IOException {
         Issues.SearchWsResponse searchWsResponse = Issues.SearchWsResponse.newBuilder().setTotal(1).setPs(10).addIssues(
                 Issues.Issue.newBuilder().setKey("123").setComponent("moi:toto.java").setRule("squid:123").setLine(10).setMessage("Error here").setSeverity(Common.Severity.BLOCKER).setProject("moi")
-                        .build()).addComponents(Issues.Component.newBuilder().setKey("moi:toto.java").setQualifier("FIL").setPath("toto.java").build()).build();
+                        .build()).addComponents(Issues.Component.newBuilder().setKey("moi:toto.java").setQualifier(Qualifiers.FILE).setPath("toto.java").build()).build();
         sonar.enqueue(new MockResponse().setResponseCode(200).addHeader("Content-Type", "application/x-protobuf").setBody(toBuffer(searchWsResponse)));
 
         WsComponents.ShowWsResponse showWsResponse = WsComponents.ShowWsResponse.newBuilder().build();
@@ -268,12 +269,12 @@ public class SonarFacadeTest {
 
     @Test
     public void tesFullPageGetNewIssue() throws IOException {
-        tesFullPageGetNewIssueForQualifier("FIL");
+        tesFullPageGetNewIssueForQualifier(Qualifiers.FILE);
     }
 
     @Test
     public void tesFullPageGetNewIssueInTest() throws IOException {
-        tesFullPageGetNewIssueForQualifier("UTS");
+        tesFullPageGetNewIssueForQualifier(Qualifiers.UNIT_TEST_FILE);
     }
 
     private void tesFullPageGetNewIssueForQualifier(String qualifier) throws IOException {
@@ -298,12 +299,12 @@ public class SonarFacadeTest {
 
     @Test
     public void tesMultiPageGetNewIssue() throws IOException {
-        tesMultiPageGetNewIssueForQualifier("FIL");
+        tesMultiPageGetNewIssueForQualifier(Qualifiers.FILE);
     }
 
     @Test
     public void tesMultiPageGetNewIssueInTest() throws IOException {
-        tesMultiPageGetNewIssueForQualifier("UTS");
+        tesMultiPageGetNewIssueForQualifier(Qualifiers.UNIT_TEST_FILE);
     }
 
     private void tesMultiPageGetNewIssueForQualifier(String qualifier) throws IOException {
@@ -383,25 +384,25 @@ public class SonarFacadeTest {
 
     @Test
     public void testNotEmpty2GetNewIssue() throws IOException {
-        testNotEmpty2GetNewIssueForQualifier("FIL");
+        testNotEmpty2GetNewIssueForQualifier(Qualifiers.FILE);
     }
 
     @Test
     public void testNotEmpty2GetNewIssueInTest() throws IOException {
-        testNotEmpty2GetNewIssueForQualifier("UTS");
+        testNotEmpty2GetNewIssueForQualifier(Qualifiers.UNIT_TEST_FILE);
     }
 
     @Test
     public void testNotEmptyGetNewIssueWithComponent() throws IOException {
         Issues.SearchWsResponse searchWsResponse = Issues.SearchWsResponse.newBuilder().setTotal(1).setPs(10).addIssues(
                 Issues.Issue.newBuilder().setKey("123").setComponent("moi:toto.java").setRule("squid:123").setLine(10).setMessage("Error here").setSeverity(Common.Severity.BLOCKER).setProject("moi")
-                        .build()).addComponents(Issues.Component.newBuilder().setKey("moi:toto.java").setQualifier("FIL").setPath("toto.java").build()).build();
+                        .build()).addComponents(Issues.Component.newBuilder().setKey("moi:toto.java").setQualifier(Qualifiers.FILE).setPath("toto.java").build()).build();
         sonar.enqueue(new MockResponse().setResponseCode(200).addHeader("Content-Type", "application/x-protobuf").setBody(toBuffer(searchWsResponse)));
 
         WsComponents.ShowWsResponse showWsResponse = WsComponents.ShowWsResponse.newBuilder()
                 .addAncestors(WsComponents.Component.newBuilder().setQualifier("RTG").build())
-                .addAncestors(WsComponents.Component.newBuilder().setQualifier("BRC").setPath("core").build())
-                .addAncestors(WsComponents.Component.newBuilder().setQualifier("BRC").setPath("client").build())
+                .addAncestors(WsComponents.Component.newBuilder().setQualifier(Qualifiers.MODULE).setPath("core").build())
+                .addAncestors(WsComponents.Component.newBuilder().setQualifier(Qualifiers.MODULE).setPath("client").build())
                 .build();
         sonar.enqueue(new MockResponse().setResponseCode(200).addHeader("Content-Type", "application/x-protobuf").setBody(toBuffer(showWsResponse)));
 
@@ -417,13 +418,13 @@ public class SonarFacadeTest {
     public void testNotEmptyGetNewIssueWithComponentInTest() throws IOException {
         Issues.SearchWsResponse searchWsResponse = Issues.SearchWsResponse.newBuilder().setTotal(1).setPs(10).addIssues(
                 Issues.Issue.newBuilder().setKey("123").setComponent("moi:test.java").setRule("squid:123").setLine(42).setMessage("Error here").setSeverity(Common.Severity.MAJOR).setProject("moi")
-                        .build()).addComponents(Issues.Component.newBuilder().setKey("moi:test.java").setQualifier("UTS").setPath("test.java").build()).build();
+                        .build()).addComponents(Issues.Component.newBuilder().setKey("moi:test.java").setQualifier(Qualifiers.UNIT_TEST_FILE).setPath("test.java").build()).build();
         sonar.enqueue(new MockResponse().setResponseCode(200).addHeader("Content-Type", "application/x-protobuf").setBody(toBuffer(searchWsResponse)));
 
         WsComponents.ShowWsResponse showWsResponse = WsComponents.ShowWsResponse.newBuilder()
                 .addAncestors(WsComponents.Component.newBuilder().setQualifier("RTG").build())
-                .addAncestors(WsComponents.Component.newBuilder().setQualifier("BRC").setPath("core").build())
-                .addAncestors(WsComponents.Component.newBuilder().setQualifier("BRC").setPath("client").build())
+                .addAncestors(WsComponents.Component.newBuilder().setQualifier(Qualifiers.MODULE).setPath("core").build())
+                .addAncestors(WsComponents.Component.newBuilder().setQualifier(Qualifiers.MODULE).setPath("client").build())
                 .build();
         sonar.enqueue(new MockResponse().setResponseCode(200).addHeader("Content-Type", "application/x-protobuf").setBody(toBuffer(showWsResponse)));
 
@@ -442,29 +443,29 @@ public class SonarFacadeTest {
                 .addIssues(Issues.Issue.newBuilder().setKey("789").setComponent("moi:toto.java").setRule("squid:123").setLine(10).setMessage("Error here").setSeverity(Common.Severity.BLOCKER).setProject("moi").build())
                 .addIssues(Issues.Issue.newBuilder().setKey("456").setComponent("rien:tata.java").setRule("squid:123").setLine(10).setMessage("Error here").setSeverity(Common.Severity.BLOCKER).setProject("moi").build())
                 .addIssues(Issues.Issue.newBuilder().setKey("abc").setComponent("moi:test.java").setRule("squid:234").setLine(5).setMessage("Error here").setSeverity(Common.Severity.MAJOR).setProject("moi").build())
-                .addComponents(Issues.Component.newBuilder().setKey("moi:toto.java").setQualifier("FIL").setPath("toto.java").build())
-                .addComponents(Issues.Component.newBuilder().setKey("moi:test.java").setQualifier("UTS").setPath("test.java").build())
-                .addComponents(Issues.Component.newBuilder().setKey("rien:tata.java").setQualifier("FIL").setPath("tata.java").build())
+                .addComponents(Issues.Component.newBuilder().setKey("moi:toto.java").setQualifier(Qualifiers.FILE).setPath("toto.java").build())
+                .addComponents(Issues.Component.newBuilder().setKey("moi:test.java").setQualifier(Qualifiers.UNIT_TEST_FILE).setPath("test.java").build())
+                .addComponents(Issues.Component.newBuilder().setKey("rien:tata.java").setQualifier(Qualifiers.FILE).setPath("tata.java").build())
                 .build();
         sonar.enqueue(new MockResponse().setResponseCode(200).addHeader("Content-Type", "application/x-protobuf").setBody(toBuffer(searchWsResponse)));
 
         WsComponents.ShowWsResponse showWsResponse1 = WsComponents.ShowWsResponse.newBuilder()
                 .addAncestors(WsComponents.Component.newBuilder().setQualifier("RTG").build())
-                .addAncestors(WsComponents.Component.newBuilder().setQualifier("BRC").setPath("core").build())
-                .addAncestors(WsComponents.Component.newBuilder().setQualifier("BRC").setPath("client").build())
+                .addAncestors(WsComponents.Component.newBuilder().setQualifier(Qualifiers.MODULE).setPath("core").build())
+                .addAncestors(WsComponents.Component.newBuilder().setQualifier(Qualifiers.MODULE).setPath("client").build())
                 .build();
         sonar.enqueue(new MockResponse().setResponseCode(200).addHeader("Content-Type", "application/x-protobuf").setBody(toBuffer(showWsResponse1)));
 
         WsComponents.ShowWsResponse showWsResponse2 = WsComponents.ShowWsResponse.newBuilder()
                 .addAncestors(WsComponents.Component.newBuilder().setQualifier("RTG").build())
-                .addAncestors(WsComponents.Component.newBuilder().setQualifier("BRC").setPath("core").build())
+                .addAncestors(WsComponents.Component.newBuilder().setQualifier(Qualifiers.MODULE).setPath("core").build())
                 .build();
         sonar.enqueue(new MockResponse().setResponseCode(200).addHeader("Content-Type", "application/x-protobuf").setBody(toBuffer(showWsResponse2)));
 
         WsComponents.ShowWsResponse showWsResponseTest = WsComponents.ShowWsResponse.newBuilder()
                 .addAncestors(WsComponents.Component.newBuilder().setQualifier("RTG").build())
-                .addAncestors(WsComponents.Component.newBuilder().setQualifier("BRC").setPath("core").build())
-                .addAncestors(WsComponents.Component.newBuilder().setQualifier("BRC").setPath("client").build())
+                .addAncestors(WsComponents.Component.newBuilder().setQualifier(Qualifiers.MODULE).setPath("core").build())
+                .addAncestors(WsComponents.Component.newBuilder().setQualifier(Qualifiers.MODULE).setPath("client").build())
                 .build();
         sonar.enqueue(new MockResponse().setResponseCode(200).addHeader("Content-Type", "application/x-protobuf").setBody(toBuffer(showWsResponseTest)));
 
