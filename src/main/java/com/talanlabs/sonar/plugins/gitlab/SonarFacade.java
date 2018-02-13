@@ -233,7 +233,7 @@ public class SonarFacade {
 
     private Issues.SearchWsResponse searchIssues(String componentKey, String branch, int page) {
         GetRequest getRequest = new GetRequest("api/issues/search").setParam("componentKeys", componentKey).setParam("p", page).setParam("resolved", false).setMediaType(MediaTypes.PROTOBUF);
-        if (branch != null && !branch.trim().isEmpty()) {
+        if (!isBlankOrEmpty(branch)) {
             getRequest.setParam("branch", branch);
         }
         WsResponse wsResponse = wsClient.wsConnector().call(getRequest);
@@ -247,6 +247,10 @@ public class SonarFacade {
         } catch (IOException e) {
             throw new IllegalStateException(e.getMessage(), e);
         }
+    }
+
+    private boolean isBlankOrEmpty(String branch) {
+        return branch == null || branch.trim().isEmpty();
     }
 
     private String toString(GetRequest getRequest) {
