@@ -32,6 +32,7 @@ import org.sonar.api.batch.rule.Severity;
 import org.sonar.api.config.Settings;
 import org.sonar.api.measures.CoreMetrics;
 import org.sonar.api.measures.Metric;
+import org.sonar.api.resources.Qualifiers;
 import org.sonar.api.utils.log.Logger;
 import org.sonar.api.utils.log.Loggers;
 import org.sonarqube.ws.*;
@@ -43,6 +44,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 /**
@@ -265,9 +267,14 @@ public class SonarFacade {
 
         List<Issues.Component> components = issuesSearchWsResponse.getComponentsList();
 
+        Predicate<String> supported = ((Predicate<String>) Qualifiers.FILE::equals).or(Qualifiers.UNIT_TEST_FILE::equals);
+
         List<Issue> res = new ArrayList<>();
         for (Issues.Issue issue : issues) {
-            Optional<Issues.Component> componentOptional = components.stream().filter(c -> c.getKey().equals(issue.getComponent()) && "FIL".equals(c.getQualifier())).findFirst();
+            Optional<Issues.Component> componentOptional = components.stream()
+                .filter(c -> supported.test(c.getQualifier()))
+                .filter(c -> c.getKey().equals(issue.getComponent()))
+                .findFirst();
 
             File file = null;
             if (componentOptional.isPresent()) {
