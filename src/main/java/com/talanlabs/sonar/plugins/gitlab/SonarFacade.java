@@ -37,6 +37,7 @@ import org.sonar.api.utils.log.Logger;
 import org.sonar.api.utils.log.Loggers;
 import org.sonarqube.ws.*;
 import org.sonarqube.ws.client.*;
+import org.sonarqube.ws.client.component.ShowWsRequest;
 import org.sonarqube.ws.client.qualitygate.ProjectStatusWsRequest;
 
 import java.io.File;
@@ -294,21 +295,11 @@ public class SonarFacade {
     }
 
     private File toFile(Issues.Component component, String branch) {
-        GetRequest getRequest = new GetRequest("api/components/show").setParam("component", component.getKey()).setMediaType(MediaTypes.PROTOBUF);
-        if (branch != null && !branch.trim().isEmpty()) {
-            getRequest.setParam("branch", branch);
-        }
-        WsResponse wsResponse = wsClient.wsConnector().call(getRequest);
+        ShowWsRequest showRequest = new ShowWsRequest().setKey(component.getKey());
+        WsComponents.ShowWsResponse showWsResponse = wsClient.components().show(showRequest);
 
-        if (wsResponse.code() != 200) {
-            throw new HttpException(wsClient.wsConnector().baseUrl() + toString(getRequest), wsResponse.code(), wsResponse.content());
-        }
-
-        WsComponents.ShowWsResponse showWsResponse;
-        try {
-            showWsResponse = WsComponents.ShowWsResponse.parseFrom(wsResponse.contentStream());
-        } catch (IOException e) {
-            throw new IllegalStateException(e.getMessage(), e);
+        if (!isBlankOrEmpty(branch)) {
+            showRequest.setBranch(branch);
         }
 
         StringBuilder sb = new StringBuilder(component.getPath());
