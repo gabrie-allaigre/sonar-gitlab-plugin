@@ -54,7 +54,7 @@
   <developers>
     <developer>
       <name>Gabriel Allaigre</name>
-      <email>gabriel.allaigre@talanlabs.com</email>
+      <email>gabriel.allaigre@talan.com</email>
     </developer>
   </developers>
   <contributors>
@@ -76,6 +76,9 @@
     </contributor>
     <contributor>
       <name>Jérôme BAROTIN</name>
+    </contributor>
+    <contributor>
+      <name>Eugene Dubrovka</name>
     </contributor>
   </contributors>
   <scm>
