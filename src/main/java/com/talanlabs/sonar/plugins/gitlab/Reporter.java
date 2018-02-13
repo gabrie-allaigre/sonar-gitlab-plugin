@@ -160,6 +160,7 @@ public class Reporter {
             printCondition(sb, QualityGate.Status.ERROR, conditions);
             printCondition(sb, QualityGate.Status.WARN, conditions);
             printCondition(sb, QualityGate.Status.OK, conditions);
+            printCondition(sb, QualityGate.Status.NONE, conditions);
             if (sb.charAt(sb.length() - 1) != ',') {
                 sb.append(",");
             }
