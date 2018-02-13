@@ -46,8 +46,16 @@ public class QualityGate {
 
     public enum Status {
 
-        OK, WARN, ERROR, NONE
+        OK, WARN, ERROR, NONE;
 
+        public static Status of(String name) {
+            for (Status m : values()) {
+                if (m.name().equals(name)) {
+                    return m;
+                }
+            }
+            return null;
+        }
     }
 
     public static class Builder {

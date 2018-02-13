@@ -105,6 +105,8 @@ public class GlobalCommentBuilder extends AbstractCommentBuilder {
                 return "warning";
             case ERROR:
                 return "failed";
+            case NONE:
+                return "none";
         }
         return "unknown";
     }

@@ -94,12 +94,12 @@ public class SonarFacade {
     }
 
     private QualityGate toQualityGate(WsQualityGates.ProjectStatusWsResponse.ProjectStatus projectStatus) {
-        return QualityGate.newBuilder().status(projectStatus.getStatus() != null ? QualityGate.Status.valueOf(projectStatus.getStatus().name()) : null).conditions(
+        return QualityGate.newBuilder().status(projectStatus.getStatus() != null ? QualityGate.Status.of(projectStatus.getStatus().name()) : null).conditions(
                 projectStatus.getConditionsList() != null ? projectStatus.getConditionsList().stream().map(this::toCondition).collect(Collectors.toList()) : Collections.emptyList()).build();
     }
 
     private QualityGate.Condition toCondition(WsQualityGates.ProjectStatusWsResponse.Condition condition) {
-        return QualityGate.Condition.newBuilder().status(condition.getStatus() != null ? QualityGate.Status.valueOf(condition.getStatus().name()) : null).metricKey(condition.getMetricKey()).metricName(
+        return QualityGate.Condition.newBuilder().status(condition.getStatus() != null ? QualityGate.Status.of(condition.getStatus().name()) : null).metricKey(condition.getMetricKey()).metricName(
                 getMetricName(condition.getMetricKey())).actual(condition.getActualValue()).symbol(getComparatorSymbol(condition.getComparator())).warning(condition.getWarningThreshold()).error(condition.getErrorThreshold()).build();
     }
 
@@ -271,9 +271,9 @@ public class SonarFacade {
         List<Issue> res = new ArrayList<>();
         for (Issues.Issue issue : issues) {
             Optional<Issues.Component> componentOptional = components.stream()
-                .filter(c -> supported.test(c.getQualifier()))
-                .filter(c -> c.getKey().equals(issue.getComponent()))
-                .findFirst();
+                    .filter(c -> supported.test(c.getQualifier()))
+                    .filter(c -> c.getKey().equals(issue.getComponent()))
+                    .findFirst();
 
             File file = null;
             if (componentOptional.isPresent()) {
