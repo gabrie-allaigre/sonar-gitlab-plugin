@@ -268,13 +268,22 @@ public class SonarFacadeTest {
 
     @Test
     public void tesFullPageGetNewIssue() throws IOException {
+        tesFullPageGetNewIssueForQualifier("FIL");
+    }
+
+    @Test
+    public void tesFullPageGetNewIssueInTest() throws IOException {
+        tesFullPageGetNewIssueForQualifier("UTS");
+    }
+
+    private void tesFullPageGetNewIssueForQualifier(String qualifier) throws IOException {
         Issues.SearchWsResponse.Builder searchWsResponseBuilder = Issues.SearchWsResponse.newBuilder().setTotal(1).setPs(10);
         for (int i = 0; i < 10; i++) {
             searchWsResponseBuilder.addIssues(
                     Issues.Issue.newBuilder().setKey("123").setComponent("moi:toto.java").setRule("squid:123").setLine(10).setMessage("Error here").setSeverity(Common.Severity.BLOCKER)
                             .setProject("moi").build());
         }
-        Issues.SearchWsResponse searchWsResponse = searchWsResponseBuilder.addComponents(Issues.Component.newBuilder().setKey("moi:toto.java").setQualifier("FIL").setPath("toto.java").build())
+        Issues.SearchWsResponse searchWsResponse = searchWsResponseBuilder.addComponents(Issues.Component.newBuilder().setKey("moi:toto.java").setQualifier(qualifier).setPath("toto.java").build())
                 .build();
         sonar.enqueue(new MockResponse().setResponseCode(200).addHeader("Content-Type", "application/x-protobuf").setBody(toBuffer(searchWsResponse)));
 
@@ -289,6 +298,15 @@ public class SonarFacadeTest {
 
     @Test
     public void tesMultiPageGetNewIssue() throws IOException {
+        tesMultiPageGetNewIssueForQualifier("FIL");
+    }
+
+    @Test
+    public void tesMultiPageGetNewIssueInTest() throws IOException {
+        tesMultiPageGetNewIssueForQualifier("UTS");
+    }
+
+    private void tesMultiPageGetNewIssueForQualifier(String qualifier) throws IOException {
         for (int j = 0; j < 5; j++) {
             Issues.SearchWsResponse.Builder searchWsResponseBuilder = Issues.SearchWsResponse.newBuilder().setTotal(44).setPs(10);
             for (int i = 0; i < (j < 4 ? 10 : 4); i++) {
@@ -296,7 +314,7 @@ public class SonarFacadeTest {
                         Issues.Issue.newBuilder().setKey("123").setComponent("moi:toto.java").setRule("squid:123").setLine(10).setMessage("Error here").setSeverity(Common.Severity.BLOCKER)
                                 .setProject("moi").build());
             }
-            Issues.SearchWsResponse searchWsResponse = searchWsResponseBuilder.addComponents(Issues.Component.newBuilder().setKey("moi:toto.java").setQualifier("FIL").setPath("toto.java").build())
+            Issues.SearchWsResponse searchWsResponse = searchWsResponseBuilder.addComponents(Issues.Component.newBuilder().setKey("moi:toto.java").setQualifier(qualifier).setPath("toto.java").build())
                     .build();
             sonar.enqueue(new MockResponse().setResponseCode(200).addHeader("Content-Type", "application/x-protobuf").setBody(toBuffer(searchWsResponse)));
 
@@ -345,11 +363,10 @@ public class SonarFacadeTest {
         Assertions.assertThatThrownBy(() -> sonarFacade.getNewIssues()).isInstanceOf(IllegalStateException.class).hasCauseInstanceOf(FileNotFoundException.class);
     }
 
-    @Test
-    public void testNotEmpty2GetNewIssue() throws IOException {
+    private void testNotEmpty2GetNewIssueForQualifier(String qualifier) throws IOException {
         Issues.SearchWsResponse searchWsResponse = Issues.SearchWsResponse.newBuilder().setTotal(1).setPs(10).addIssues(
                 Issues.Issue.newBuilder().setKey("123").setComponent("moi:ici:toto.java").setRule("squid:123").setLine(10).setMessage("Error here").setSeverity(Common.Severity.BLOCKER)
-                        .setProject("moi").setSubProject("moi:ici").build()).addComponents(Issues.Component.newBuilder().setKey("moi:ici:toto.java").setQualifier("FIL").setPath("toto.java").build())
+                        .setProject("moi").setSubProject("moi:ici").build()).addComponents(Issues.Component.newBuilder().setKey("moi:ici:toto.java").setQualifier(qualifier).setPath("toto.java").build())
                 .build();
         sonar.enqueue(new MockResponse().setResponseCode(200).addHeader("Content-Type", "application/x-protobuf").setBody(toBuffer(searchWsResponse)));
 
@@ -362,6 +379,16 @@ public class SonarFacadeTest {
         Assertions.assertThat(issues).isNotNull().isNotEmpty().extracting(Issue::getKey, Issue::getComponentKey, Issue::getSeverity, Issue::getLine, Issue::getMessage, Issue::getRuleKey)
                 .contains(Tuple.tuple("123", "moi:ici:toto.java", Severity.BLOCKER, 10, "Error here", "squid:123"));
         Assertions.assertThat(issues.get(0).getFile().getAbsolutePath()).isEqualTo(new File(projectDir, "toto.java").getAbsolutePath());
+    }
+
+    @Test
+    public void testNotEmpty2GetNewIssue() throws IOException {
+        testNotEmpty2GetNewIssueForQualifier("FIL");
+    }
+
+    @Test
+    public void testNotEmpty2GetNewIssueInTest() throws IOException {
+        testNotEmpty2GetNewIssueForQualifier("UTS");
     }
 
     @Test
@@ -387,12 +414,36 @@ public class SonarFacadeTest {
     }
 
     @Test
+    public void testNotEmptyGetNewIssueWithComponentInTest() throws IOException {
+        Issues.SearchWsResponse searchWsResponse = Issues.SearchWsResponse.newBuilder().setTotal(1).setPs(10).addIssues(
+                Issues.Issue.newBuilder().setKey("123").setComponent("moi:test.java").setRule("squid:123").setLine(42).setMessage("Error here").setSeverity(Common.Severity.MAJOR).setProject("moi")
+                        .build()).addComponents(Issues.Component.newBuilder().setKey("moi:test.java").setQualifier("UTS").setPath("test.java").build()).build();
+        sonar.enqueue(new MockResponse().setResponseCode(200).addHeader("Content-Type", "application/x-protobuf").setBody(toBuffer(searchWsResponse)));
+
+        WsComponents.ShowWsResponse showWsResponse = WsComponents.ShowWsResponse.newBuilder()
+                .addAncestors(WsComponents.Component.newBuilder().setQualifier("RTG").build())
+                .addAncestors(WsComponents.Component.newBuilder().setQualifier("BRC").setPath("core").build())
+                .addAncestors(WsComponents.Component.newBuilder().setQualifier("BRC").setPath("client").build())
+                .build();
+        sonar.enqueue(new MockResponse().setResponseCode(200).addHeader("Content-Type", "application/x-protobuf").setBody(toBuffer(showWsResponse)));
+
+        createReportTaskFile();
+
+        List<Issue> issues = sonarFacade.getNewIssues();
+        Assertions.assertThat(issues).isNotNull().isNotEmpty().extracting(Issue::getKey, Issue::getComponentKey, Issue::getSeverity, Issue::getLine, Issue::getMessage, Issue::getRuleKey)
+                .contains(Tuple.tuple("123", "moi:test.java", Severity.MAJOR, 42, "Error here", "squid:123"));
+        Assertions.assertThat(issues.get(0).getFile().getAbsolutePath()).isEqualTo(new File(projectDir, "client/core/test.java").getAbsolutePath());
+    }
+
+    @Test
     public void testNotEmptyGetNewIssueWithComponents() throws IOException {
         Issues.SearchWsResponse searchWsResponse = Issues.SearchWsResponse.newBuilder().setTotal(1).setPs(10)
                 .addIssues(Issues.Issue.newBuilder().setKey("123").setComponent("moi:toto.java").setRule("squid:123").setLine(10).setMessage("Error here").setSeverity(Common.Severity.BLOCKER).setProject("moi").build())
                 .addIssues(Issues.Issue.newBuilder().setKey("789").setComponent("moi:toto.java").setRule("squid:123").setLine(10).setMessage("Error here").setSeverity(Common.Severity.BLOCKER).setProject("moi").build())
                 .addIssues(Issues.Issue.newBuilder().setKey("456").setComponent("rien:tata.java").setRule("squid:123").setLine(10).setMessage("Error here").setSeverity(Common.Severity.BLOCKER).setProject("moi").build())
+                .addIssues(Issues.Issue.newBuilder().setKey("abc").setComponent("moi:test.java").setRule("squid:234").setLine(5).setMessage("Error here").setSeverity(Common.Severity.MAJOR).setProject("moi").build())
                 .addComponents(Issues.Component.newBuilder().setKey("moi:toto.java").setQualifier("FIL").setPath("toto.java").build())
+                .addComponents(Issues.Component.newBuilder().setKey("moi:test.java").setQualifier("UTS").setPath("test.java").build())
                 .addComponents(Issues.Component.newBuilder().setKey("rien:tata.java").setQualifier("FIL").setPath("tata.java").build())
                 .build();
         sonar.enqueue(new MockResponse().setResponseCode(200).addHeader("Content-Type", "application/x-protobuf").setBody(toBuffer(searchWsResponse)));
@@ -410,14 +461,27 @@ public class SonarFacadeTest {
                 .build();
         sonar.enqueue(new MockResponse().setResponseCode(200).addHeader("Content-Type", "application/x-protobuf").setBody(toBuffer(showWsResponse2)));
 
+        WsComponents.ShowWsResponse showWsResponseTest = WsComponents.ShowWsResponse.newBuilder()
+                .addAncestors(WsComponents.Component.newBuilder().setQualifier("RTG").build())
+                .addAncestors(WsComponents.Component.newBuilder().setQualifier("BRC").setPath("core").build())
+                .addAncestors(WsComponents.Component.newBuilder().setQualifier("BRC").setPath("client").build())
+                .build();
+        sonar.enqueue(new MockResponse().setResponseCode(200).addHeader("Content-Type", "application/x-protobuf").setBody(toBuffer(showWsResponseTest)));
+
         createReportTaskFile();
 
         List<Issue> issues = sonarFacade.getNewIssues();
         Assertions.assertThat(issues).isNotNull().isNotEmpty().extracting(Issue::getKey, Issue::getComponentKey, Issue::getSeverity, Issue::getLine, Issue::getMessage, Issue::getRuleKey)
-                .contains(Tuple.tuple("123", "moi:toto.java", Severity.BLOCKER, 10, "Error here", "squid:123"), Tuple.tuple("789", "moi:toto.java", Severity.BLOCKER, 10, "Error here", "squid:123"), Tuple.tuple("456", "rien:tata.java", Severity.BLOCKER, 10, "Error here", "squid:123"));
+                .contains(
+                        Tuple.tuple("123", "moi:toto.java", Severity.BLOCKER, 10, "Error here", "squid:123"),
+                        Tuple.tuple("789", "moi:toto.java", Severity.BLOCKER, 10, "Error here", "squid:123"),
+                        Tuple.tuple("456", "rien:tata.java", Severity.BLOCKER, 10, "Error here", "squid:123"),
+                        Tuple.tuple("abc", "moi:test.java", Severity.MAJOR, 5, "Error here", "squid:234")
+                );
         Assertions.assertThat(issues.get(0).getFile().getAbsolutePath()).isEqualTo(new File(projectDir, "client/core/toto.java").getAbsolutePath());
         Assertions.assertThat(issues.get(1).getFile().getAbsolutePath()).isEqualTo(new File(projectDir, "client/core/toto.java").getAbsolutePath());
         Assertions.assertThat(issues.get(2).getFile().getAbsolutePath()).isEqualTo(new File(projectDir, "core/tata.java").getAbsolutePath());
+        Assertions.assertThat(issues.get(3).getFile().getAbsolutePath()).isEqualTo(new File(projectDir, "client/core/test.java").getAbsolutePath());
     }
 
     @Test
