@@ -267,7 +267,10 @@ public class SonarFacade {
 
         List<Issue> res = new ArrayList<>();
         for (Issues.Issue issue : issues) {
-            Optional<Issues.Component> componentOptional = components.stream().filter(c -> c.getKey().equals(issue.getComponent()) && "FIL".equals(c.getQualifier())).findFirst();
+            Optional<Issues.Component> componentOptional = components.stream()
+                .filter(c -> "FIL".equals(c.getQualifier()))
+                .filter(c -> c.getKey().equals(issue.getComponent()))
+                .findFirst();
 
             File file = null;
             if (componentOptional.isPresent()) {
