@@ -569,7 +569,9 @@ ${emojiSeverity(issue.severity)} ${issue.message} [:blue_book:](${issue.ruleLink
 - [Template Default](templates/inline/default.md) Current template
 - [Template Default with Images](templates/inline/default-image.md) Same template as default but with images
 
+
 # Tips
+
 
 ## Import GitLab SSL certifcate
 
@@ -580,3 +582,19 @@ If you don't already have you certificate on the SonarQube server, run `openssl 
 Import it into your JRE cacerts (you can check from the "System Info" page in the Administration section of your sonarqube instance), running `sudo $JDK8/bin/keytool -import -file ~/mygitlab.crt -keystore $JDK8/jre/lib/security/cacerts -alias mygitlab`.
 
 Restart your SonarQube instance.
+
+## Make it works with a private project
+- On a private project, with the provided command line upper in this document, you'll got an "IllegalStateException: Unable found project for" Exception.
+- It's necessary to create a "Personal Access Tokens". It needs a user with the "developper" right in the project. The token can be created in the profile menu, check the api checkbox. 
+- Then, use the following command line to run sonar thought gitlab-ci 
+```mvn --batch-mode verify sonar:sonar
+      -Dsonar.gitlab.api_version=v4
+      -Dsonar.host.url=http://<your_sonar_url>:9000
+      -Dsonar.login=<your_sonar_login>
+      -Dsonar.analysis.mode=preview
+      -Dsonar.gitlab.commit_sha=$CI_BUILD_REF
+      -Dsonar.gitlab.ref_name=$CI_BUILD_REF_NAME
+      -Dsonar.gitlab.project_id=$CI_PROJECT_ID
+      -Dsonar.gitlab.url=http://<your_sonar_url>
+      -Dsonar.gitlab.user_token=<your_user_token>```
+
