@@ -27,6 +27,7 @@ import org.junit.rules.ExpectedException;
 import org.sonar.api.batch.bootstrap.ProjectBuilder;
 import org.sonar.api.config.PropertyDefinitions;
 import org.sonar.api.config.Settings;
+import org.sonar.api.config.internal.MapSettings;
 import org.sonar.api.utils.System2;
 
 import java.io.File;
@@ -46,7 +47,7 @@ public class CommitProjectBuilderTest {
 
     @Before
     public void prepare() {
-        settings = new Settings(new PropertyDefinitions(GitLabPlugin.definitions()));
+        settings = new MapSettings(new PropertyDefinitions(GitLabPlugin.definitions()));
         sonarFacade = mock(SonarFacade.class);
         commitFacade = mock(CommitFacade.class);
         commitProjectBuilder = new CommitProjectBuilder(new GitLabPluginConfiguration(settings, new System2()), sonarFacade, commitFacade);
