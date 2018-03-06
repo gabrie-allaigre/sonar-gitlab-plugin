@@ -602,6 +602,6 @@ Restart your SonarQube instance.
       -Dsonar.gitlab.commit_sha=$CI_COMMIT_REF
       -Dsonar.gitlab.ref_name=$CI_COMMIT_REF_NAME
       -Dsonar.gitlab.project_id=$CI_PROJECT_ID
-      -Dsonar.gitlab.url=http://<your_sonar_url>
+      -Dsonar.gitlab.url=http://<your_gitlab_url>
       -Dsonar.gitlab.user_token=<your_user_token>```
 
