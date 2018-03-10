@@ -11,8 +11,9 @@ Inspired by https://github.com/SonarCommunity/sonar-github
 
 - Fix bug with QualityGate status NONE #107
 - Support unit test sources #104
+- Show user token in project config #89
 
-**Download 3.0.1-SNAPSHOT** https://github.com/gabrie-allaigre/sonar-gitlab-plugin/releases/download/3.0.1-rc1/sonar-gitlab-plugin-3.0.1-rc1.jar
+**Download 3.0.1-SNAPSHOT** https://github.com/gabrie-allaigre/sonar-gitlab-plugin/releases/download/3.0.1-rc2/sonar-gitlab-plugin-3.0.1-rc2.jar
 
 **Version 3.0.0**
 
