@@ -5,45 +5,57 @@ Sonar GitLab Plugin
 
 Inspired by https://github.com/SonarCommunity/sonar-github
 
-**The version 3.0.0 is directly in the SonarQube update center**
+# Changelog
 
-**Version 3.0.1-SNAPSHOT**
+## Version 3.0.1-RC2
 
-- Fix bug with QualityGate status NONE #107
+### Changed
 - Support unit test sources #104
 - Show user token in project config #89
 
-**Download 3.0.1-SNAPSHOT** https://github.com/gabrie-allaigre/sonar-gitlab-plugin/releases/download/3.0.1-rc2/sonar-gitlab-plugin-3.0.1-rc2.jar
+### Fixed
+- Fix bug with QualityGate status NONE #107
 
-**Version 3.0.0**
+**[Download 3.0.1-RC2](https://github.com/gabrie-allaigre/sonar-gitlab-plugin/releases/download/3.0.1-rc2/sonar-gitlab-plugin-3.0.1-rc2.jar)** 
 
+## Version 3.0.0
+
+**This version is directly in the SonarQube update center**
+
+### Changed
+- Api v4 is now default value
 - For publish mode, get quality gate and print in global comment
 - For publish mode, get all new issues and print in inline and global comment
 - For publish mode, build breaker (status or exit) if quality gate is error or warn (option)
-- Api v4 is now default value
 - Add json report for GitLab EE, codeclimate or sast
 - Add filter for issues
 - Add information rule by issue
 
-**Download 3.0.0** https://github.com/gabrie-allaigre/sonar-gitlab-plugin/releases/download/3.0.0/sonar-gitlab-plugin-3.0.0.jar
+### Removed
+- Plugin property sonar.gitlab.ref. The property is replaced by sonar.gitlab.ref_name
 
-**Version 2.1.0**
+**[Download 3.0.0](https://github.com/gabrie-allaigre/sonar-gitlab-plugin/releases/download/3.0.0/sonar-gitlab-plugin-3.0.0.jar)** 
 
+## Version 2.1.0
+
+### Changed
 - Add commit only line
 - Add prefix workspace (not found .git folder)
 - Support v3 & v4 api for GitLab
 - Add all issues options
 
-**Download 2.1.0 version** https://github.com/gabrie-allaigre/sonar-gitlab-plugin/releases/download/2.1.0/sonar-gitlab-plugin-2.1.0.jar
+**[Download 2.1.0](https://github.com/gabrie-allaigre/sonar-gitlab-plugin/releases/download/2.1.0/sonar-gitlab-plugin-2.1.0.jar)**
 
-**Version 2.0.1**
+## Version 2.0.1
 
+### Fixed
 - Fixbug : NoClassDefFoundError with internal sonar class #26
 
-**Download 2.0.1 version** https://github.com/gabrie-allaigre/sonar-gitlab-plugin/releases/download/2.0.1/sonar-gitlab-plugin-2.0.1.jar
+**[Download 2.0.1](https://github.com/gabrie-allaigre/sonar-gitlab-plugin/releases/download/2.0.1/sonar-gitlab-plugin-2.0.1.jar)**
 
-**Version 2.0.0**
+## Version 2.0.0
 
+### Changed
 - Use emoticon (Thanks Artpej)
 - Change fail rule (Thanks Artpej)
 - Add comment for no issue (Thanks frol2103)
@@ -56,9 +68,6 @@ Inspired by https://github.com/SonarCommunity/sonar-github
 - Custom inline comment (Template)
 - Get multi SHA for comment inline all commits
 - Custom comment maybe empty then no comment added
-
-**Update**
-
 - Add test unit
 - Add quality project https://sonarqube.com/dashboard?id=com.talanlabs%3Asonar-gitlab-plugin
 - GitLab API is in maven central
@@ -321,6 +330,7 @@ https://docs.gitlab.com/ce/ci/variables/#9-0-renaming
 | sonar.gitlab.user_token | Token of the user who can make reports on the project, either global or per project |  Administration, Project, Variable | >= 1.6.6 |
 | sonar.gitlab.project_id | Project ID in GitLab or internal id or namespace + name or namespace + path or url http or ssh url or url or web | Project, Variable | >= 1.6.6 |
 | sonar.gitlab.commit_sha | SHA of the commit comment | Variable | >= 1.6.6 |
+| sonar.gitlab.ref | Branch name or reference of the commit | Variable | < 3.0.0 |
 | sonar.gitlab.ref_name | Branch name or reference of the commit | Variable | >= 1.6.6 |
 | sonar.gitlab.max_blocker_issues_gate | Max blocker issue for build failed (default 0) | Project, Variable | >= 2.0.0 |
 | sonar.gitlab.max_critical_issues_gate | Max critical issues for build failed (default 0) | Project, Variable | >= 2.0.0 |
