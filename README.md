@@ -7,7 +7,7 @@ Inspired by https://github.com/SonarCommunity/sonar-github
 
 # Changelog
 
-## Version 3.0.1-RC2
+## Version 3.0.1
 
 ### Changed
 - Support unit test sources #104
@@ -16,7 +16,7 @@ Inspired by https://github.com/SonarCommunity/sonar-github
 ### Fixed
 - Fix bug with QualityGate status NONE #107
 
-**[Download 3.0.1-RC2](https://github.com/gabrie-allaigre/sonar-gitlab-plugin/releases/download/3.0.1-rc2/sonar-gitlab-plugin-3.0.1-rc2.jar)** 
+**[Download 3.0.1](https://github.com/gabrie-allaigre/sonar-gitlab-plugin/releases/download/3.0.1/sonar-gitlab-plugin-3.0.1.jar)** 
 
 ## Version 3.0.0
 
