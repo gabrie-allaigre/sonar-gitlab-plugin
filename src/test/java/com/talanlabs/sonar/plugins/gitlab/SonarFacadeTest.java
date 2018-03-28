@@ -34,6 +34,7 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.sonar.api.CoreProperties;
 import org.sonar.api.batch.rule.Severity;
+import org.sonar.api.config.internal.MapSettings;
 import org.sonar.api.config.PropertyDefinition;
 import org.sonar.api.config.PropertyDefinitions;
 import org.sonar.api.config.Settings;
@@ -60,7 +61,7 @@ public class SonarFacadeTest {
 
     @Before
     public void prepare() throws IOException {
-        settings = new Settings(new PropertyDefinitions(PropertyDefinition.builder(CoreProperties.SERVER_BASE_URL).name("Server base URL")
+        settings = new MapSettings(new PropertyDefinitions(PropertyDefinition.builder(CoreProperties.SERVER_BASE_URL).name("Server base URL")
                 .description("HTTP URL of this SonarQube server, such as <i>http://yourhost.yourdomain/sonar</i>. This value is used i.e. to create links in emails.")
                 .category(CoreProperties.CATEGORY_GENERAL).defaultValue(CoreProperties.SERVER_BASE_URL_DEFAULT_VALUE).build()).addComponents(GitLabPlugin.definitions()));
         settings.setProperty(CoreProperties.SERVER_BASE_URL, String.format("http://%s:%d", sonar.getHostName(), sonar.getPort()));
@@ -105,12 +106,12 @@ public class SonarFacadeTest {
 
     @Test
     public void testNotFound() throws IOException {
-        sonar.enqueue(new MockResponse().setResponseCode(404));
+        sonar.enqueue(new MockResponse().setResponseCode(404).setBody("Not Found"));
 
         createReportTaskFile();
 
         Assertions.assertThatThrownBy(() -> sonarFacade.loadQualityGate()).isInstanceOf(HttpException.class)
-                .hasMessage("Error 404 on http://" + sonar.getHostName() + ":" + sonar.getPort() + "/api/ce/task?id=AVz4Pj0lCGu3nUwPQk4H");
+                .hasMessage("Error 404 on http://" + sonar.getHostName() + ":" + sonar.getPort() + "/api/ce/task?id=AVz4Pj0lCGu3nUwPQk4H : Not Found");
     }
 
     @Test
@@ -200,12 +201,12 @@ public class SonarFacadeTest {
         WsCe.TaskResponse taskResponse = WsCe.TaskResponse.newBuilder().setTask(WsCe.Task.newBuilder().setStatus(WsCe.TaskStatus.SUCCESS).setAnalysisId("123456").build()).build();
         sonar.enqueue(new MockResponse().setResponseCode(200).addHeader("Content-Type", "application/x-protobuf").setBody(toBuffer(taskResponse)));
 
-        sonar.enqueue(new MockResponse().setResponseCode(404));
+        sonar.enqueue(new MockResponse().setResponseCode(404).setBody("Not Found"));
 
         createReportTaskFile();
 
         Assertions.assertThatThrownBy(() -> sonarFacade.loadQualityGate()).isInstanceOf(HttpException.class)
-                .hasMessage("Error 404 on http://" + sonar.getHostName() + ":" + sonar.getPort() + "/api/qualitygates/project_status?analysisId=123456");
+                .hasMessage("Error 404 on http://" + sonar.getHostName() + ":" + sonar.getPort() + "/api/qualitygates/project_status?analysisId=123456 : Not Found");
     }
 
     @Test
@@ -352,11 +353,11 @@ public class SonarFacadeTest {
 
     @Test
     public void tesFailed1GetNewIssue() throws IOException {
-        sonar.enqueue(new MockResponse().setResponseCode(404));
+        sonar.enqueue(new MockResponse().setResponseCode(404).setBody("Not Found"));
 
         createReportTaskFile();
         Assertions.assertThatThrownBy(() -> sonarFacade.getNewIssues()).isInstanceOf(HttpException.class)
-                .hasMessage("Error 404 on http://" + sonar.getHostName() + ":" + sonar.getPort() + "/api/issues/search?componentKeys=com.talanlabs:avatar-generator-parent&p=1&resolved=false");
+                .hasMessage("Error 404 on http://" + sonar.getHostName() + ":" + sonar.getPort() + "/api/issues/search?componentKeys=com.talanlabs:avatar-generator-parent&p=1&resolved=false : Not Found");
     }
 
     @Test

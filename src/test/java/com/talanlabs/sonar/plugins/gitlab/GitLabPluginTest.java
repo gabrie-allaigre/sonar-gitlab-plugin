@@ -21,6 +21,8 @@ package com.talanlabs.sonar.plugins.gitlab;
 
 import org.junit.Test;
 import org.sonar.api.Plugin;
+import org.sonar.api.SonarQubeSide;
+import org.sonar.api.internal.SonarRuntimeImpl;
 import org.sonar.api.utils.Version;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -29,7 +31,8 @@ public class GitLabPluginTest {
 
     @Test
     public void uselessTest() {
-        Plugin.Context context = new Plugin.Context(Version.parse("5.6"));
+        final Version version = Version.parse("6.7");
+        Plugin.Context context = new Plugin.Context(SonarRuntimeImpl.forSonarQube(version, SonarQubeSide.SCANNER));
         new GitLabPlugin().define(context);
         assertThat(context.getExtensions().size()).isGreaterThan(7);
     }

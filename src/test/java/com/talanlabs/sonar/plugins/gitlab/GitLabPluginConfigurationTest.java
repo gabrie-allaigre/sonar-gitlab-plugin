@@ -32,6 +32,7 @@ import org.sonar.api.CoreProperties;
 import org.sonar.api.batch.rule.Severity;
 import org.sonar.api.config.PropertyDefinitions;
 import org.sonar.api.config.Settings;
+import org.sonar.api.config.internal.MapSettings;
 import org.sonar.api.utils.System2;
 
 import java.net.Proxy;
@@ -46,7 +47,7 @@ public class GitLabPluginConfigurationTest {
 
     @Before
     public void before() {
-        settings = new Settings(new PropertyDefinitions(GitLabPlugin.definitions()));
+        settings = new MapSettings(new PropertyDefinitions(GitLabPlugin.definitions()));
         settings.setProperty(CoreProperties.SERVER_BASE_URL, "http://myserver");
         config = new GitLabPluginConfiguration(settings, new System2());
     }
