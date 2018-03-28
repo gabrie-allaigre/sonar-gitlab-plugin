@@ -19,7 +19,10 @@
  */
 package com.talanlabs.sonar.plugins.gitlab;
 
-import com.talanlabs.sonar.plugins.gitlab.models.*;
+import com.talanlabs.sonar.plugins.gitlab.models.Issue;
+import com.talanlabs.sonar.plugins.gitlab.models.JsonMode;
+import com.talanlabs.sonar.plugins.gitlab.models.QualityGate;
+import com.talanlabs.sonar.plugins.gitlab.models.StatusNotificationsMode;
 import org.assertj.core.api.Assertions;
 import org.junit.Before;
 import org.junit.Test;
@@ -31,7 +34,6 @@ import org.sonar.api.batch.AnalysisMode;
 import org.sonar.api.batch.rule.Severity;
 import org.sonar.api.config.PropertyDefinition;
 import org.sonar.api.config.PropertyDefinitions;
-import org.sonar.api.config.Settings;
 import org.sonar.api.config.internal.MapSettings;
 import org.sonar.api.utils.System2;
 
@@ -48,7 +50,7 @@ import static org.mockito.Mockito.when;
 
 public class ReporterBuilderTest {
 
-    private Settings settings;
+    private MapSettings settings;
     private ReporterBuilder reporterBuilder;
     private SonarFacade sonarFacade;
     private CommitFacade commitFacade;
@@ -69,7 +71,7 @@ public class ReporterBuilderTest {
         when(analysisMode.isPreview()).thenReturn(true);
         when(analysisMode.isPublish()).thenReturn(false);
 
-        GitLabPluginConfiguration config = new GitLabPluginConfiguration(settings, new System2());
+        GitLabPluginConfiguration config = new GitLabPluginConfiguration(settings.asConfig(), new System2());
 
         reporterBuilder = new ReporterBuilder(config, sonarFacade, commitFacade, new MarkDownUtils(), analysisMode);
     }

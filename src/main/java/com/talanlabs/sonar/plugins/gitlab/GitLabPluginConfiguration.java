@@ -23,10 +23,10 @@ import com.talanlabs.sonar.plugins.gitlab.models.JsonMode;
 import com.talanlabs.sonar.plugins.gitlab.models.QualityGateFailMode;
 import com.talanlabs.sonar.plugins.gitlab.models.StatusNotificationsMode;
 import org.sonar.api.CoreProperties;
-import org.sonar.api.batch.BatchSide;
 import org.sonar.api.batch.InstantiationStrategy;
+import org.sonar.api.batch.ScannerSide;
 import org.sonar.api.batch.rule.Severity;
-import org.sonar.api.config.Settings;
+import org.sonar.api.config.Configuration;
 import org.sonar.api.utils.System2;
 import org.sonar.api.utils.log.Logger;
 import org.sonar.api.utils.log.Loggers;
@@ -37,7 +37,7 @@ import java.util.Arrays;
 import java.util.List;
 
 @InstantiationStrategy(InstantiationStrategy.PER_BATCH)
-@BatchSide
+@ScannerSide
 public class GitLabPluginConfiguration {
 
     public static final String HTTP_PROXY_HOSTNAME = "http.proxyHost";
@@ -48,17 +48,17 @@ public class GitLabPluginConfiguration {
     public static final String HTTP_PROXY_USER = "http.proxyUser";
     public static final String HTTP_PROXY_PASS = "http.proxyPassword";
     private static final Logger LOG = Loggers.get(GitLabPluginConfiguration.class);
-    private final Settings settings;
+    private final Configuration configuration;
     private final System2 system2;
     private final String baseUrl;
 
-    public GitLabPluginConfiguration(Settings settings, System2 system2) {
+    public GitLabPluginConfiguration(Configuration configuration, System2 system2) {
         super();
 
-        this.settings = settings;
+        this.configuration = configuration;
         this.system2 = system2;
 
-        String tempBaseUrl = settings.hasKey(CoreProperties.SERVER_BASE_URL) ? settings.getString(CoreProperties.SERVER_BASE_URL) : settings.getString("sonar.host.url");
+        String tempBaseUrl = configuration.hasKey(CoreProperties.SERVER_BASE_URL) ? configuration.get(CoreProperties.SERVER_BASE_URL).orElse(null) : configuration.get("sonar.host.url").orElse(null);
         if (tempBaseUrl == null) {
             tempBaseUrl = "http://localhost:9090";
         }
@@ -69,140 +69,140 @@ public class GitLabPluginConfiguration {
     }
 
     public String projectId() {
-        return settings.getString(GitLabPlugin.GITLAB_PROJECT_ID);
+        return configuration.get(GitLabPlugin.GITLAB_PROJECT_ID).orElse(null);
     }
 
     public List<String> commitSHA() {
-        return Arrays.asList(settings.getStringArray(GitLabPlugin.GITLAB_COMMIT_SHA));
+        return Arrays.asList(configuration.getStringArray(GitLabPlugin.GITLAB_COMMIT_SHA));
     }
 
     @CheckForNull
     public String refName() {
-        return settings.getString(GitLabPlugin.GITLAB_REF_NAME);
+        return configuration.get(GitLabPlugin.GITLAB_REF_NAME).orElse(null);
     }
 
     @CheckForNull
     public String userToken() {
-        return settings.getString(GitLabPlugin.GITLAB_USER_TOKEN);
+        return configuration.get(GitLabPlugin.GITLAB_USER_TOKEN).orElse(null);
     }
 
     public boolean isEnabled() {
-        return settings.hasKey(GitLabPlugin.GITLAB_COMMIT_SHA);
+        return configuration.hasKey(GitLabPlugin.GITLAB_COMMIT_SHA);
     }
 
     @CheckForNull
     public String url() {
-        return settings.getString(GitLabPlugin.GITLAB_URL);
+        return configuration.get(GitLabPlugin.GITLAB_URL).orElseGet(null);
     }
 
     public boolean ignoreCertificate() {
-        return settings.getBoolean(GitLabPlugin.GITLAB_IGNORE_CERT);
+        return configuration.getBoolean(GitLabPlugin.GITLAB_IGNORE_CERT).orElse(false);
     }
 
     public int maxGlobalIssues() {
-        return settings.getInt(GitLabPlugin.GITLAB_MAX_GLOBAL_ISSUES);
+        return configuration.getInt(GitLabPlugin.GITLAB_MAX_GLOBAL_ISSUES).orElse(10);
     }
 
     public int maxBlockerIssuesGate() {
-        return settings.getInt(GitLabPlugin.GITLAB_MAX_BLOCKER_ISSUES_GATE);
+        return configuration.getInt(GitLabPlugin.GITLAB_MAX_BLOCKER_ISSUES_GATE).orElse(0);
     }
 
     public int maxCriticalIssuesGate() {
-        return settings.getInt(GitLabPlugin.GITLAB_MAX_CRITICAL_ISSUES_GATE);
+        return configuration.getInt(GitLabPlugin.GITLAB_MAX_CRITICAL_ISSUES_GATE).orElse(0);
     }
 
     public int maxMajorIssuesGate() {
-        return settings.getInt(GitLabPlugin.GITLAB_MAX_MAJOR_ISSUES_GATE);
+        return configuration.getInt(GitLabPlugin.GITLAB_MAX_MAJOR_ISSUES_GATE).orElse(-1);
     }
 
     public int maxMinorIssuesGate() {
-        return settings.getInt(GitLabPlugin.GITLAB_MAX_MINOR_ISSUES_GATE);
+        return configuration.getInt(GitLabPlugin.GITLAB_MAX_MINOR_ISSUES_GATE).orElse(-1);
     }
 
     public int maxInfoIssuesGate() {
-        return settings.getInt(GitLabPlugin.GITLAB_MAX_INFO_ISSUES_GATE);
+        return configuration.getInt(GitLabPlugin.GITLAB_MAX_INFO_ISSUES_GATE).orElse(-1);
     }
 
     public boolean tryReportIssuesInline() {
-        return !settings.getBoolean(GitLabPlugin.GITLAB_DISABLE_INLINE_COMMENTS);
+        return !configuration.getBoolean(GitLabPlugin.GITLAB_DISABLE_INLINE_COMMENTS).orElse(true);
     }
 
     public boolean onlyIssueFromCommitFile() {
-        return settings.getBoolean(GitLabPlugin.GITLAB_ONLY_ISSUE_FROM_COMMIT_FILE);
+        return configuration.getBoolean(GitLabPlugin.GITLAB_ONLY_ISSUE_FROM_COMMIT_FILE).orElse(false);
     }
 
     public boolean onlyIssueFromCommitLine() {
-        return settings.getBoolean(GitLabPlugin.GITLAB_ONLY_ISSUE_FROM_COMMIT_LINE);
+        return configuration.getBoolean(GitLabPlugin.GITLAB_ONLY_ISSUE_FROM_COMMIT_LINE).orElse(false);
     }
 
     public BuildInitState buildInitState() {
-        BuildInitState b = BuildInitState.of(settings.getString(GitLabPlugin.GITLAB_BUILD_INIT_STATE));
+        BuildInitState b = BuildInitState.of(configuration.get(GitLabPlugin.GITLAB_BUILD_INIT_STATE).orElse(null));
         return b != null ? b : BuildInitState.PENDING;
     }
 
     public boolean disableGlobalComment() {
-        return settings.getBoolean(GitLabPlugin.GITLAB_DISABLE_GLOBAL_COMMENT);
+        return configuration.getBoolean(GitLabPlugin.GITLAB_DISABLE_GLOBAL_COMMENT).orElse(false);
     }
 
     public StatusNotificationsMode statusNotificationsMode() {
-        StatusNotificationsMode s = StatusNotificationsMode.of(settings.getString(GitLabPlugin.GITLAB_STATUS_NOTIFICATION_MODE));
+        StatusNotificationsMode s = StatusNotificationsMode.of(configuration.get(GitLabPlugin.GITLAB_STATUS_NOTIFICATION_MODE).orElse(null));
         return s != null ? s : StatusNotificationsMode.COMMIT_STATUS;
     }
 
     public QualityGateFailMode qualityGateFailMode() {
-        QualityGateFailMode s = QualityGateFailMode.of(settings.getString(GitLabPlugin.GITLAB_QUALITY_GATE_FAIL_MODE));
+        QualityGateFailMode s = QualityGateFailMode.of(configuration.get(GitLabPlugin.GITLAB_QUALITY_GATE_FAIL_MODE).orElse(null));
         return s != null ? s : QualityGateFailMode.ERROR;
     }
 
     @CheckForNull
     public String globalTemplate() {
-        return settings.getString(GitLabPlugin.GITLAB_GLOBAL_TEMPLATE);
+        return configuration.get(GitLabPlugin.GITLAB_GLOBAL_TEMPLATE).orElse(null);
     }
 
     @CheckForNull
     public String inlineTemplate() {
-        return settings.getString(GitLabPlugin.GITLAB_INLINE_TEMPLATE);
+        return configuration.get(GitLabPlugin.GITLAB_INLINE_TEMPLATE).orElse(null);
     }
 
     public boolean commentNoIssue() {
-        return settings.getBoolean(GitLabPlugin.GITLAB_COMMENT_NO_ISSUE);
+        return configuration.getBoolean(GitLabPlugin.GITLAB_COMMENT_NO_ISSUE).orElse(false);
     }
 
     public boolean pingUser() {
-        return settings.getBoolean(GitLabPlugin.GITLAB_PING_USER);
+        return configuration.getBoolean(GitLabPlugin.GITLAB_PING_USER).orElse(false);
     }
 
     public boolean uniqueIssuePerInline() {
-        return settings.getBoolean(GitLabPlugin.GITLAB_UNIQUE_ISSUE_PER_INLINE);
+        return configuration.getBoolean(GitLabPlugin.GITLAB_UNIQUE_ISSUE_PER_INLINE).orElse(false);
     }
 
     public String prefixDirectory() {
-        return settings.getString(GitLabPlugin.GITLAB_PREFIX_DIRECTORY);
+        return configuration.get(GitLabPlugin.GITLAB_PREFIX_DIRECTORY).orElse(null);
     }
 
     public String apiVersion() {
-        return settings.getString(GitLabPlugin.GITLAB_API_VERSION);
+        return configuration.get(GitLabPlugin.GITLAB_API_VERSION).orElse(GitLabPlugin.V4_API_VERSION);
     }
 
     public boolean allIssues() {
-        return settings.getBoolean(GitLabPlugin.GITLAB_ALL_ISSUES);
+        return configuration.getBoolean(GitLabPlugin.GITLAB_ALL_ISSUES).orElse(false);
     }
 
     public JsonMode jsonMode() {
-        JsonMode s = JsonMode.of(settings.getString(GitLabPlugin.GITLAB_JSON_MODE));
+        JsonMode s = JsonMode.of(configuration.get(GitLabPlugin.GITLAB_JSON_MODE).orElse(null));
         return s != null ? s : JsonMode.NONE;
     }
 
     public int queryMaxRetry() {
-        return settings.getInt(GitLabPlugin.GITLAB_QUERY_MAX_RETRY);
+        return configuration.getInt(GitLabPlugin.GITLAB_QUERY_MAX_RETRY).orElse(50);
     }
 
-    public long queryWait() {
-        return settings.getLong(GitLabPlugin.GITLAB_QUERY_WAIT);
+    public int queryWait() {
+        return configuration.getInt(GitLabPlugin.GITLAB_QUERY_WAIT).orElse(1000);
     }
 
     public Severity issueFilter() {
-        String name = settings.getString(GitLabPlugin.GITLAB_ISSUE_FILTER);
+        String name = configuration.get(GitLabPlugin.GITLAB_ISSUE_FILTER).orElse(null);
         if (name == null) {
             return Severity.INFO;
         }
@@ -214,7 +214,7 @@ public class GitLabPluginConfiguration {
     }
 
     public boolean loadRule() {
-        return settings.getBoolean(GitLabPlugin.GITLAB_LOAD_RULES);
+        return configuration.getBoolean(GitLabPlugin.GITLAB_LOAD_RULES).orElse(false);
     }
 
     /**

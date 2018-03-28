@@ -26,10 +26,10 @@ import com.talanlabs.sonar.plugins.gitlab.models.Issue;
 import com.talanlabs.sonar.plugins.gitlab.models.QualityGate;
 import com.talanlabs.sonar.plugins.gitlab.models.Rule;
 import org.sonar.api.CoreProperties;
-import org.sonar.api.batch.BatchSide;
 import org.sonar.api.batch.InstantiationStrategy;
+import org.sonar.api.batch.ScannerSide;
 import org.sonar.api.batch.rule.Severity;
-import org.sonar.api.config.Settings;
+import org.sonar.api.config.Configuration;
 import org.sonar.api.measures.CoreMetrics;
 import org.sonar.api.measures.Metric;
 import org.sonar.api.resources.Qualifiers;
@@ -37,8 +37,10 @@ import org.sonar.api.utils.log.Logger;
 import org.sonar.api.utils.log.Loggers;
 import org.sonarqube.ws.*;
 import org.sonarqube.ws.client.*;
-import org.sonarqube.ws.client.component.ShowWsRequest;
-import org.sonarqube.ws.client.qualitygate.ProjectStatusWsRequest;
+import org.sonarqube.ws.client.ce.TaskRequest;
+import org.sonarqube.ws.client.components.ShowRequest;
+import org.sonarqube.ws.client.issues.SearchRequest;
+import org.sonarqube.ws.client.qualitygates.ProjectStatusRequest;
 
 import java.io.File;
 import java.io.IOException;
@@ -51,7 +53,7 @@ import java.util.stream.Collectors;
  * Facade for all WS interaction with Sonar
  */
 @InstantiationStrategy(InstantiationStrategy.PER_BATCH)
-@BatchSide
+@ScannerSide
 public class SonarFacade {
 
     private static final Logger LOG = Loggers.get(SonarFacade.class);
@@ -64,11 +66,11 @@ public class SonarFacade {
     private Cache<String, File> componentCache = CacheBuilder.newBuilder().build();
     private Cache<String, Rule> ruleCache = CacheBuilder.newBuilder().build();
 
-    public SonarFacade(Settings settings, GitLabPluginConfiguration gitLabPluginConfiguration) {
+    public SonarFacade(Configuration settings, GitLabPluginConfiguration gitLabPluginConfiguration) {
         this.gitLabPluginConfiguration = gitLabPluginConfiguration;
 
         HttpConnector httpConnector = HttpConnector.newBuilder().url(gitLabPluginConfiguration.baseUrl())
-                .credentials(settings.getString(CoreProperties.LOGIN), settings.getString(CoreProperties.PASSWORD)).build();
+                .credentials(settings.get(CoreProperties.LOGIN).orElse(null), settings.get(CoreProperties.PASSWORD).orElse(null)).build();
 
         wsClient = WsClientFactories.getDefault().newClient(httpConnector);
     }
@@ -88,18 +90,18 @@ public class SonarFacade {
 
         String analysisId = getAnalysisId(reportTaskProps.getProperty("ceTaskId"));
 
-        WsQualityGates.ProjectStatusWsResponse.ProjectStatus projectStatus = checkQualityGate(analysisId);
+        Qualitygates.ProjectStatusResponse.ProjectStatus projectStatus = checkQualityGate(analysisId);
         logQualityGate(projectStatus);
 
         return toQualityGate(projectStatus);
     }
 
-    private QualityGate toQualityGate(WsQualityGates.ProjectStatusWsResponse.ProjectStatus projectStatus) {
+    private QualityGate toQualityGate(Qualitygates.ProjectStatusResponse.ProjectStatus projectStatus) {
         return QualityGate.newBuilder().status(projectStatus.getStatus() != null ? QualityGate.Status.of(projectStatus.getStatus().name()) : null).conditions(
                 projectStatus.getConditionsList() != null ? projectStatus.getConditionsList().stream().map(this::toCondition).collect(Collectors.toList()) : Collections.emptyList()).build();
     }
 
-    private QualityGate.Condition toCondition(WsQualityGates.ProjectStatusWsResponse.Condition condition) {
+    private QualityGate.Condition toCondition(Qualitygates.ProjectStatusResponse.Condition condition) {
         return QualityGate.Condition.newBuilder().status(condition.getStatus() != null ? QualityGate.Status.of(condition.getStatus().name()) : null).metricKey(condition.getMetricKey()).metricName(
                 getMetricName(condition.getMetricKey())).actual(condition.getActualValue()).symbol(getComparatorSymbol(condition.getComparator())).warning(condition.getWarningThreshold()).error(condition.getErrorThreshold()).build();
     }
@@ -123,12 +125,12 @@ public class SonarFacade {
         int retry = 0;
         String analysisId = null;
         do {
-            WsCe.Task task = getTask(ceTaskId);
-            WsCe.TaskStatus taskStatus = task.getStatus();
+            Ce.Task task = getTask(ceTaskId);
+            Ce.TaskStatus taskStatus = task.getStatus();
 
-            if (WsCe.TaskStatus.SUCCESS.equals(taskStatus)) {
+            if (Ce.TaskStatus.SUCCESS.equals(taskStatus)) {
                 analysisId = task.getAnalysisId();
-            } else if (WsCe.TaskStatus.IN_PROGRESS.equals(taskStatus) || WsCe.TaskStatus.PENDING.equals(taskStatus)) {
+            } else if (Ce.TaskStatus.IN_PROGRESS.equals(taskStatus) || Ce.TaskStatus.PENDING.equals(taskStatus)) {
                 LOG.info("Waiting quality gate to complete...");
                 try {
                     Thread.sleep(queryWait);
@@ -152,34 +154,34 @@ public class SonarFacade {
         return analysisId;
     }
 
-    private WsCe.Task getTask(String ceTaskId) {
-        WsCe.TaskResponse taskResponse = wsClient.ce().task(ceTaskId);
+    private Ce.Task getTask(String ceTaskId) {
+        Ce.TaskResponse taskResponse = wsClient.ce().task(new TaskRequest().setId(ceTaskId));
         return taskResponse.getTask();
     }
 
-    private WsQualityGates.ProjectStatusWsResponse.ProjectStatus checkQualityGate(String analysisId) {
+    private Qualitygates.ProjectStatusResponse.ProjectStatus checkQualityGate(String analysisId) {
         LOG.debug("Requesting quality gate status for analysisId {}", analysisId);
-        WsQualityGates.ProjectStatusWsResponse projectStatusResponse = wsClient.qualityGates().projectStatus(new ProjectStatusWsRequest().setAnalysisId(analysisId));
+        Qualitygates.ProjectStatusResponse projectStatusResponse = wsClient.qualitygates().projectStatus(new ProjectStatusRequest().setAnalysisId(analysisId));
         return projectStatusResponse.getProjectStatus();
     }
 
-    private void logQualityGate(WsQualityGates.ProjectStatusWsResponse.ProjectStatus projectStatus) {
-        WsQualityGates.ProjectStatusWsResponse.Status status = projectStatus.getStatus();
+    private void logQualityGate(Qualitygates.ProjectStatusResponse.ProjectStatus projectStatus) {
+        Qualitygates.ProjectStatusResponse.Status status = projectStatus.getStatus();
         LOG.info("Quality gate status: {}", status);
 
         logConditions(projectStatus.getConditionsList());
     }
 
-    private void logConditions(List<WsQualityGates.ProjectStatusWsResponse.Condition> conditions) {
+    private void logConditions(List<Qualitygates.ProjectStatusResponse.Condition> conditions) {
         conditions.forEach(this::logCondition);
     }
 
-    private void logCondition(WsQualityGates.ProjectStatusWsResponse.Condition condition) {
-        if (WsQualityGates.ProjectStatusWsResponse.Status.OK.equals(condition.getStatus())) {
+    private void logCondition(Qualitygates.ProjectStatusResponse.Condition condition) {
+        if (Qualitygates.ProjectStatusResponse.Status.OK.equals(condition.getStatus())) {
             LOG.info("{} : {}", getMetricName(condition.getMetricKey()), condition.getActualValue());
-        } else if (WsQualityGates.ProjectStatusWsResponse.Status.WARN.equals(condition.getStatus())) {
+        } else if (Qualitygates.ProjectStatusResponse.Status.WARN.equals(condition.getStatus())) {
             LOG.warn(LOG_MSG, getMetricName(condition.getMetricKey()), condition.getActualValue(), getComparatorSymbol(condition.getComparator()), condition.getWarningThreshold());
-        } else if (WsQualityGates.ProjectStatusWsResponse.Status.ERROR.equals(condition.getStatus())) {
+        } else if (Qualitygates.ProjectStatusResponse.Status.ERROR.equals(condition.getStatus())) {
             LOG.error(LOG_MSG, getMetricName(condition.getMetricKey()), condition.getActualValue(), getComparatorSymbol(condition.getComparator()), condition.getErrorThreshold());
         }
     }
@@ -194,7 +196,7 @@ public class SonarFacade {
         return metricKey;
     }
 
-    private String getComparatorSymbol(WsQualityGates.ProjectStatusWsResponse.Comparator comparator) {
+    private String getComparatorSymbol(Qualitygates.ProjectStatusResponse.Comparator comparator) {
         if (comparator == null) {
             return "";
         }
@@ -233,25 +235,15 @@ public class SonarFacade {
     }
 
     private Issues.SearchWsResponse searchIssues(String componentKey, String branch, int page) {
-        GetRequest getRequest = new GetRequest("api/issues/search").setParam("componentKeys", componentKey).setParam("p", page).setParam("resolved", false).setMediaType(MediaTypes.PROTOBUF);
-        if (!isBlankOrEmpty(branch)) {
-            getRequest.setParam("branch", branch);
+        SearchRequest searchRequest = new SearchRequest().setComponentKeys(Collections.singletonList(componentKey)).setP(String.valueOf(page)).setResolved("false");
+        if (isNotBlankAndNotEmpty(branch)) {
+            searchRequest.setBranch(branch);
         }
-        WsResponse wsResponse = wsClient.wsConnector().call(getRequest);
-
-        if (wsResponse.code() != 200) {
-            throw new HttpException(wsClient.wsConnector().baseUrl() + toString(getRequest), wsResponse.code(), wsResponse.content());
-        }
-
-        try {
-            return Issues.SearchWsResponse.parseFrom(wsResponse.contentStream());
-        } catch (IOException e) {
-            throw new IllegalStateException(e.getMessage(), e);
-        }
+        return wsClient.issues().search(searchRequest);
     }
 
-    private boolean isBlankOrEmpty(String branch) {
-        return branch == null || branch.trim().isEmpty();
+    private boolean isNotBlankAndNotEmpty(String branch) {
+        return branch != null && !branch.trim().isEmpty();
     }
 
     private String toString(GetRequest getRequest) {
@@ -295,15 +287,15 @@ public class SonarFacade {
     }
 
     private File toFile(Issues.Component component, String branch) {
-        ShowWsRequest showRequest = new ShowWsRequest().setKey(component.getKey());
-        WsComponents.ShowWsResponse showWsResponse = wsClient.components().show(showRequest);
-
-        if (!isBlankOrEmpty(branch)) {
+        ShowRequest showRequest = new ShowRequest().setComponent(component.getKey());
+        if (isNotBlankAndNotEmpty(branch)) {
             showRequest.setBranch(branch);
         }
 
+        Components.ShowWsResponse showWsResponse = wsClient.components().show(showRequest);
+
         StringBuilder sb = new StringBuilder(component.getPath());
-        for (WsComponents.Component a : showWsResponse.getAncestorsList()) {
+        for (Components.Component a : showWsResponse.getAncestorsList()) {
             if (Qualifiers.MODULE.equals(a.getQualifier()) && a.getPath() != null) {
                 sb.insert(0, a.getPath() + File.separator);
             }

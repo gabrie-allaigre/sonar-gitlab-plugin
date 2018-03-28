@@ -35,7 +35,6 @@ import org.sonar.api.batch.postjob.issue.PostJobIssue;
 import org.sonar.api.batch.rule.Severity;
 import org.sonar.api.config.PropertyDefinition;
 import org.sonar.api.config.PropertyDefinitions;
-import org.sonar.api.config.Settings;
 import org.sonar.api.config.internal.MapSettings;
 import org.sonar.api.utils.MessageException;
 import org.sonar.api.utils.System2;
@@ -52,7 +51,7 @@ import static org.mockito.Mockito.when;
 public class CommitPublishPostJobTest {
 
     private ReporterBuilder reporterBuilder;
-    private Settings settings;
+    private MapSettings settings;
     private CommitFacade commitFacade;
     private SonarFacade sonarFacade;
     private CommitPublishPostJob commitPublishPostJob;
@@ -79,7 +78,7 @@ public class CommitPublishPostJobTest {
         context = Mockito.mock(PostJobContext.class);
         when(context.analysisMode()).thenReturn(analysisMode);
 
-        GitLabPluginConfiguration config = new GitLabPluginConfiguration(settings, new System2());
+        GitLabPluginConfiguration config = new GitLabPluginConfiguration(settings.asConfig(), new System2());
 
         commitPublishPostJob = new CommitPublishPostJob(config, sonarFacade, commitFacade, reporterBuilder);
     }

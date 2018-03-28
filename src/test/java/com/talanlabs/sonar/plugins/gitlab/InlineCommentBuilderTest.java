@@ -29,7 +29,6 @@ import org.sonar.api.batch.AnalysisMode;
 import org.sonar.api.batch.rule.Severity;
 import org.sonar.api.config.PropertyDefinition;
 import org.sonar.api.config.PropertyDefinitions;
-import org.sonar.api.config.Settings;
 import org.sonar.api.config.internal.MapSettings;
 import org.sonar.api.utils.MessageException;
 import org.sonar.api.utils.System2;
@@ -45,7 +44,7 @@ public class InlineCommentBuilderTest {
 
     private static final String GITLAB_URL = "https://gitlab.com/test/test";
 
-    private Settings settings;
+    private MapSettings settings;
     private GitLabPluginConfiguration config;
     private AnalysisMode analysisMode;
 
@@ -58,7 +57,7 @@ public class InlineCommentBuilderTest {
         settings.setProperty(CoreProperties.SERVER_BASE_URL, "http://myserver");
         settings.setProperty(GitLabPlugin.GITLAB_COMMIT_SHA, "abc123");
 
-        config = new GitLabPluginConfiguration(settings, new System2());
+        config = new GitLabPluginConfiguration(settings.asConfig(), new System2());
 
         analysisMode = Mockito.mock(AnalysisMode.class);
         when(analysisMode.isIssues()).thenReturn(false);

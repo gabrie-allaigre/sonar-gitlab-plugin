@@ -34,10 +34,9 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.sonar.api.CoreProperties;
 import org.sonar.api.batch.rule.Severity;
-import org.sonar.api.config.internal.MapSettings;
 import org.sonar.api.config.PropertyDefinition;
 import org.sonar.api.config.PropertyDefinitions;
-import org.sonar.api.config.Settings;
+import org.sonar.api.config.internal.MapSettings;
 import org.sonar.api.resources.Qualifiers;
 import org.sonar.api.utils.System2;
 import org.sonarqube.ws.*;
@@ -54,7 +53,7 @@ public class SonarFacadeTest {
     @Rule
     public TemporaryFolder temp = new TemporaryFolder();
 
-    private Settings settings;
+    private MapSettings settings;
     private SonarFacade sonarFacade;
     private File projectDir;
     private File workDir;
@@ -63,16 +62,16 @@ public class SonarFacadeTest {
     public void prepare() throws IOException {
         settings = new MapSettings(new PropertyDefinitions(PropertyDefinition.builder(CoreProperties.SERVER_BASE_URL).name("Server base URL")
                 .description("HTTP URL of this SonarQube server, such as <i>http://yourhost.yourdomain/sonar</i>. This value is used i.e. to create links in emails.")
-                .category(CoreProperties.CATEGORY_GENERAL).defaultValue(CoreProperties.SERVER_BASE_URL_DEFAULT_VALUE).build()).addComponents(GitLabPlugin.definitions()));
+                .category(CoreProperties.CATEGORY_GENERAL).defaultValue("http://localhost:9000").build()).addComponents(GitLabPlugin.definitions()));
         settings.setProperty(CoreProperties.SERVER_BASE_URL, String.format("http://%s:%d", sonar.getHostName(), sonar.getPort()));
         settings.setProperty(GitLabPlugin.GITLAB_QUERY_MAX_RETRY, 5);
 
         projectDir = temp.newFolder();
         workDir = temp.newFolder();
 
-        GitLabPluginConfiguration config = new GitLabPluginConfiguration(settings, new System2());
+        GitLabPluginConfiguration config = new GitLabPluginConfiguration(settings.asConfig(), new System2());
 
-        sonarFacade = new SonarFacade(settings, config);
+        sonarFacade = new SonarFacade(settings.asConfig(), config);
         sonarFacade.init(projectDir, workDir);
     }
 
@@ -96,7 +95,7 @@ public class SonarFacadeTest {
 
     @Test
     public void testFailed() throws IOException {
-        WsCe.TaskResponse taskResponse = WsCe.TaskResponse.newBuilder().setTask(WsCe.Task.newBuilder().setStatus(WsCe.TaskStatus.FAILED).build()).build();
+        Ce.TaskResponse taskResponse = Ce.TaskResponse.newBuilder().setTask(Ce.Task.newBuilder().setStatus(Ce.TaskStatus.FAILED).build()).build();
         sonar.enqueue(new MockResponse().setResponseCode(200).addHeader("Content-Type", "application/x-protobuf").setBody(toBuffer(taskResponse)));
 
         createReportTaskFile();
@@ -116,11 +115,11 @@ public class SonarFacadeTest {
 
     @Test
     public void testSuccess() throws IOException {
-        WsCe.TaskResponse taskResponse = WsCe.TaskResponse.newBuilder().setTask(WsCe.Task.newBuilder().setStatus(WsCe.TaskStatus.SUCCESS).build()).build();
+        Ce.TaskResponse taskResponse = Ce.TaskResponse.newBuilder().setTask(Ce.Task.newBuilder().setStatus(Ce.TaskStatus.SUCCESS).build()).build();
         sonar.enqueue(new MockResponse().setResponseCode(200).addHeader("Content-Type", "application/x-protobuf").setBody(toBuffer(taskResponse)));
 
-        WsQualityGates.ProjectStatusWsResponse projectStatusWsResponse = WsQualityGates.ProjectStatusWsResponse.newBuilder()
-                .setProjectStatus(WsQualityGates.ProjectStatusWsResponse.ProjectStatus.newBuilder().setStatus(WsQualityGates.ProjectStatusWsResponse.Status.OK).build()).build();
+        Qualitygates.ProjectStatusResponse projectStatusWsResponse = Qualitygates.ProjectStatusResponse.newBuilder()
+                .setProjectStatus(Qualitygates.ProjectStatusResponse.ProjectStatus.newBuilder().setStatus(Qualitygates.ProjectStatusResponse.Status.OK).build()).build();
         sonar.enqueue(new MockResponse().setResponseCode(200).addHeader("Content-Type", "application/x-protobuf").setBody(toBuffer(projectStatusWsResponse)));
 
         createReportTaskFile();
@@ -131,11 +130,11 @@ public class SonarFacadeTest {
 
     @Test
     public void testWarning() throws IOException {
-        WsCe.TaskResponse taskResponse = WsCe.TaskResponse.newBuilder().setTask(WsCe.Task.newBuilder().setStatus(WsCe.TaskStatus.SUCCESS).build()).build();
+        Ce.TaskResponse taskResponse = Ce.TaskResponse.newBuilder().setTask(Ce.Task.newBuilder().setStatus(Ce.TaskStatus.SUCCESS).build()).build();
         sonar.enqueue(new MockResponse().setResponseCode(200).addHeader("Content-Type", "application/x-protobuf").setBody(toBuffer(taskResponse)));
 
-        WsQualityGates.ProjectStatusWsResponse projectStatusWsResponse = WsQualityGates.ProjectStatusWsResponse.newBuilder()
-                .setProjectStatus(WsQualityGates.ProjectStatusWsResponse.ProjectStatus.newBuilder().setStatus(WsQualityGates.ProjectStatusWsResponse.Status.WARN).build()).build();
+        Qualitygates.ProjectStatusResponse projectStatusWsResponse = Qualitygates.ProjectStatusResponse.newBuilder()
+                .setProjectStatus(Qualitygates.ProjectStatusResponse.ProjectStatus.newBuilder().setStatus(Qualitygates.ProjectStatusResponse.Status.WARN).build()).build();
         sonar.enqueue(new MockResponse().setResponseCode(200).addHeader("Content-Type", "application/x-protobuf").setBody(toBuffer(projectStatusWsResponse)));
 
         createReportTaskFile();
@@ -147,15 +146,15 @@ public class SonarFacadeTest {
     @Test
     public void testSuccessWait() throws IOException {
         for (int i = 0; i < 2; i++) {
-            WsCe.TaskResponse taskResponse1 = WsCe.TaskResponse.newBuilder().setTask(WsCe.Task.newBuilder().setStatus(WsCe.TaskStatus.PENDING).build()).build();
+            Ce.TaskResponse taskResponse1 = Ce.TaskResponse.newBuilder().setTask(Ce.Task.newBuilder().setStatus(Ce.TaskStatus.PENDING).build()).build();
             sonar.enqueue(new MockResponse().setResponseCode(200).addHeader("Content-Type", "application/x-protobuf").setBody(toBuffer(taskResponse1)));
         }
 
-        WsCe.TaskResponse taskResponse3 = WsCe.TaskResponse.newBuilder().setTask(WsCe.Task.newBuilder().setStatus(WsCe.TaskStatus.SUCCESS).build()).build();
+        Ce.TaskResponse taskResponse3 = Ce.TaskResponse.newBuilder().setTask(Ce.Task.newBuilder().setStatus(Ce.TaskStatus.SUCCESS).build()).build();
         sonar.enqueue(new MockResponse().setResponseCode(200).addHeader("Content-Type", "application/x-protobuf").setBody(toBuffer(taskResponse3)));
 
-        WsQualityGates.ProjectStatusWsResponse projectStatusWsResponse = WsQualityGates.ProjectStatusWsResponse.newBuilder()
-                .setProjectStatus(WsQualityGates.ProjectStatusWsResponse.ProjectStatus.newBuilder().setStatus(WsQualityGates.ProjectStatusWsResponse.Status.OK).build()).build();
+        Qualitygates.ProjectStatusResponse projectStatusWsResponse = Qualitygates.ProjectStatusResponse.newBuilder()
+                .setProjectStatus(Qualitygates.ProjectStatusResponse.ProjectStatus.newBuilder().setStatus(Qualitygates.ProjectStatusResponse.Status.OK).build()).build();
         sonar.enqueue(new MockResponse().setResponseCode(200).addHeader("Content-Type", "application/x-protobuf").setBody(toBuffer(projectStatusWsResponse)));
 
         createReportTaskFile();
@@ -167,15 +166,15 @@ public class SonarFacadeTest {
     @Test
     public void testSuccessWaitLong() throws IOException {
         for (int i = 0; i < 4; i++) {
-            WsCe.TaskResponse taskResponse1 = WsCe.TaskResponse.newBuilder().setTask(WsCe.Task.newBuilder().setStatus(WsCe.TaskStatus.PENDING).build()).build();
+            Ce.TaskResponse taskResponse1 = Ce.TaskResponse.newBuilder().setTask(Ce.Task.newBuilder().setStatus(Ce.TaskStatus.PENDING).build()).build();
             sonar.enqueue(new MockResponse().setResponseCode(200).addHeader("Content-Type", "application/x-protobuf").setBody(toBuffer(taskResponse1)));
         }
 
-        WsCe.TaskResponse taskResponse3 = WsCe.TaskResponse.newBuilder().setTask(WsCe.Task.newBuilder().setStatus(WsCe.TaskStatus.SUCCESS).build()).build();
+        Ce.TaskResponse taskResponse3 = Ce.TaskResponse.newBuilder().setTask(Ce.Task.newBuilder().setStatus(Ce.TaskStatus.SUCCESS).build()).build();
         sonar.enqueue(new MockResponse().setResponseCode(200).addHeader("Content-Type", "application/x-protobuf").setBody(toBuffer(taskResponse3)));
 
-        WsQualityGates.ProjectStatusWsResponse projectStatusWsResponse = WsQualityGates.ProjectStatusWsResponse.newBuilder()
-                .setProjectStatus(WsQualityGates.ProjectStatusWsResponse.ProjectStatus.newBuilder().setStatus(WsQualityGates.ProjectStatusWsResponse.Status.OK).build()).build();
+        Qualitygates.ProjectStatusResponse projectStatusWsResponse = Qualitygates.ProjectStatusResponse.newBuilder()
+                .setProjectStatus(Qualitygates.ProjectStatusResponse.ProjectStatus.newBuilder().setStatus(Qualitygates.ProjectStatusResponse.Status.OK).build()).build();
         sonar.enqueue(new MockResponse().setResponseCode(200).addHeader("Content-Type", "application/x-protobuf").setBody(toBuffer(projectStatusWsResponse)));
 
         createReportTaskFile();
@@ -187,7 +186,7 @@ public class SonarFacadeTest {
     @Test
     public void testFailedWaitLong() throws IOException {
         for (int i = 0; i < 5; i++) {
-            WsCe.TaskResponse taskResponse1 = WsCe.TaskResponse.newBuilder().setTask(WsCe.Task.newBuilder().setStatus(WsCe.TaskStatus.PENDING).build()).build();
+            Ce.TaskResponse taskResponse1 = Ce.TaskResponse.newBuilder().setTask(Ce.Task.newBuilder().setStatus(Ce.TaskStatus.PENDING).build()).build();
             sonar.enqueue(new MockResponse().setResponseCode(200).addHeader("Content-Type", "application/x-protobuf").setBody(toBuffer(taskResponse1)));
         }
 
@@ -198,7 +197,7 @@ public class SonarFacadeTest {
 
     @Test
     public void testFailedProject() throws IOException {
-        WsCe.TaskResponse taskResponse = WsCe.TaskResponse.newBuilder().setTask(WsCe.Task.newBuilder().setStatus(WsCe.TaskStatus.SUCCESS).setAnalysisId("123456").build()).build();
+        Ce.TaskResponse taskResponse = Ce.TaskResponse.newBuilder().setTask(Ce.Task.newBuilder().setStatus(Ce.TaskStatus.SUCCESS).setAnalysisId("123456").build()).build();
         sonar.enqueue(new MockResponse().setResponseCode(200).addHeader("Content-Type", "application/x-protobuf").setBody(toBuffer(taskResponse)));
 
         sonar.enqueue(new MockResponse().setResponseCode(404).setBody("Not Found"));
@@ -211,19 +210,19 @@ public class SonarFacadeTest {
 
     @Test
     public void testQualityGateError() throws IOException {
-        WsCe.TaskResponse taskResponse = WsCe.TaskResponse.newBuilder().setTask(WsCe.Task.newBuilder().setStatus(WsCe.TaskStatus.SUCCESS).build()).build();
+        Ce.TaskResponse taskResponse = Ce.TaskResponse.newBuilder().setTask(Ce.Task.newBuilder().setStatus(Ce.TaskStatus.SUCCESS).build()).build();
         sonar.enqueue(new MockResponse().setResponseCode(200).addHeader("Content-Type", "application/x-protobuf").setBody(toBuffer(taskResponse)));
 
-        WsQualityGates.ProjectStatusWsResponse projectStatusWsResponse = WsQualityGates.ProjectStatusWsResponse.newBuilder().setProjectStatus(
-                WsQualityGates.ProjectStatusWsResponse.ProjectStatus.newBuilder().setStatus(WsQualityGates.ProjectStatusWsResponse.Status.ERROR).addConditions(
-                        WsQualityGates.ProjectStatusWsResponse.Condition.newBuilder().setActualValue("10").setMetricKey("security_rating")
-                                .setComparator(WsQualityGates.ProjectStatusWsResponse.Comparator.EQ).setStatus(WsQualityGates.ProjectStatusWsResponse.Status.OK).build()).addConditions(
-                        WsQualityGates.ProjectStatusWsResponse.Condition.newBuilder().setActualValue("5").setMetricKey("new_sqale_debt_ratio")
-                                .setComparator(WsQualityGates.ProjectStatusWsResponse.Comparator.GT).setStatus(WsQualityGates.ProjectStatusWsResponse.Status.WARN).setWarningThreshold("Warning")
-                                .build()).addConditions(WsQualityGates.ProjectStatusWsResponse.Condition.newBuilder().setActualValue("100").setMetricKey("new_technical_debt")
-                        .setComparator(WsQualityGates.ProjectStatusWsResponse.Comparator.GT).setStatus(WsQualityGates.ProjectStatusWsResponse.Status.ERROR).setErrorThreshold("Error").build())
-                        .addConditions(WsQualityGates.ProjectStatusWsResponse.Condition.newBuilder().setActualValue("100").setMetricKey("new_technical_debt")
-                                .setComparator(WsQualityGates.ProjectStatusWsResponse.Comparator.GT).setStatus(WsQualityGates.ProjectStatusWsResponse.Status.ERROR).setWarningThreshold("Warning")
+        Qualitygates.ProjectStatusResponse projectStatusWsResponse = Qualitygates.ProjectStatusResponse.newBuilder().setProjectStatus(
+                Qualitygates.ProjectStatusResponse.ProjectStatus.newBuilder().setStatus(Qualitygates.ProjectStatusResponse.Status.ERROR).addConditions(
+                        Qualitygates.ProjectStatusResponse.Condition.newBuilder().setActualValue("10").setMetricKey("security_rating")
+                                .setComparator(Qualitygates.ProjectStatusResponse.Comparator.EQ).setStatus(Qualitygates.ProjectStatusResponse.Status.OK).build()).addConditions(
+                        Qualitygates.ProjectStatusResponse.Condition.newBuilder().setActualValue("5").setMetricKey("new_sqale_debt_ratio")
+                                .setComparator(Qualitygates.ProjectStatusResponse.Comparator.GT).setStatus(Qualitygates.ProjectStatusResponse.Status.WARN).setWarningThreshold("Warning")
+                                .build()).addConditions(Qualitygates.ProjectStatusResponse.Condition.newBuilder().setActualValue("100").setMetricKey("new_technical_debt")
+                        .setComparator(Qualitygates.ProjectStatusResponse.Comparator.GT).setStatus(Qualitygates.ProjectStatusResponse.Status.ERROR).setErrorThreshold("Error").build())
+                        .addConditions(Qualitygates.ProjectStatusResponse.Condition.newBuilder().setActualValue("100").setMetricKey("new_technical_debt")
+                                .setComparator(Qualitygates.ProjectStatusResponse.Comparator.GT).setStatus(Qualitygates.ProjectStatusResponse.Status.ERROR).setWarningThreshold("Warning")
                                 .setErrorThreshold("Error").build()).build()).build();
         sonar.enqueue(new MockResponse().setResponseCode(200).addHeader("Content-Type", "application/x-protobuf").setBody(toBuffer(projectStatusWsResponse)));
 
@@ -257,7 +256,7 @@ public class SonarFacadeTest {
                         .build()).addComponents(Issues.Component.newBuilder().setKey("moi:toto.java").setQualifier(Qualifiers.FILE).setPath("toto.java").build()).build();
         sonar.enqueue(new MockResponse().setResponseCode(200).addHeader("Content-Type", "application/x-protobuf").setBody(toBuffer(searchWsResponse)));
 
-        WsComponents.ShowWsResponse showWsResponse = WsComponents.ShowWsResponse.newBuilder().build();
+        Components.ShowWsResponse showWsResponse = Components.ShowWsResponse.newBuilder().build();
         sonar.enqueue(new MockResponse().setResponseCode(200).addHeader("Content-Type", "application/x-protobuf").setBody(toBuffer(showWsResponse)));
 
         createReportTaskFile();
@@ -289,7 +288,7 @@ public class SonarFacadeTest {
                 .build();
         sonar.enqueue(new MockResponse().setResponseCode(200).addHeader("Content-Type", "application/x-protobuf").setBody(toBuffer(searchWsResponse)));
 
-        WsComponents.ShowWsResponse showWsResponse = WsComponents.ShowWsResponse.newBuilder().build();
+        Components.ShowWsResponse showWsResponse = Components.ShowWsResponse.newBuilder().build();
         sonar.enqueue(new MockResponse().setResponseCode(200).addHeader("Content-Type", "application/x-protobuf").setBody(toBuffer(showWsResponse)));
 
         createReportTaskFile();
@@ -321,7 +320,7 @@ public class SonarFacadeTest {
             sonar.enqueue(new MockResponse().setResponseCode(200).addHeader("Content-Type", "application/x-protobuf").setBody(toBuffer(searchWsResponse)));
 
             if (j == 0) {
-                WsComponents.ShowWsResponse showWsResponse = WsComponents.ShowWsResponse.newBuilder().build();
+                Components.ShowWsResponse showWsResponse = Components.ShowWsResponse.newBuilder().build();
                 sonar.enqueue(new MockResponse().setResponseCode(200).addHeader("Content-Type", "application/x-protobuf").setBody(toBuffer(showWsResponse)));
 
             }
@@ -372,7 +371,7 @@ public class SonarFacadeTest {
                 .build();
         sonar.enqueue(new MockResponse().setResponseCode(200).addHeader("Content-Type", "application/x-protobuf").setBody(toBuffer(searchWsResponse)));
 
-        WsComponents.ShowWsResponse showWsResponse = WsComponents.ShowWsResponse.newBuilder().build();
+        Components.ShowWsResponse showWsResponse = Components.ShowWsResponse.newBuilder().build();
         sonar.enqueue(new MockResponse().setResponseCode(200).addHeader("Content-Type", "application/x-protobuf").setBody(toBuffer(showWsResponse)));
 
         createReportTaskFile();
@@ -400,10 +399,10 @@ public class SonarFacadeTest {
                         .build()).addComponents(Issues.Component.newBuilder().setKey("moi:toto.java").setQualifier(Qualifiers.FILE).setPath("toto.java").build()).build();
         sonar.enqueue(new MockResponse().setResponseCode(200).addHeader("Content-Type", "application/x-protobuf").setBody(toBuffer(searchWsResponse)));
 
-        WsComponents.ShowWsResponse showWsResponse = WsComponents.ShowWsResponse.newBuilder()
-                .addAncestors(WsComponents.Component.newBuilder().setQualifier("RTG").build())
-                .addAncestors(WsComponents.Component.newBuilder().setQualifier(Qualifiers.MODULE).setPath("core").build())
-                .addAncestors(WsComponents.Component.newBuilder().setQualifier(Qualifiers.MODULE).setPath("client").build())
+        Components.ShowWsResponse showWsResponse = Components.ShowWsResponse.newBuilder()
+                .addAncestors(Components.Component.newBuilder().setQualifier("RTG").build())
+                .addAncestors(Components.Component.newBuilder().setQualifier(Qualifiers.MODULE).setPath("core").build())
+                .addAncestors(Components.Component.newBuilder().setQualifier(Qualifiers.MODULE).setPath("client").build())
                 .build();
         sonar.enqueue(new MockResponse().setResponseCode(200).addHeader("Content-Type", "application/x-protobuf").setBody(toBuffer(showWsResponse)));
 
@@ -422,10 +421,10 @@ public class SonarFacadeTest {
                         .build()).addComponents(Issues.Component.newBuilder().setKey("moi:test.java").setQualifier(Qualifiers.UNIT_TEST_FILE).setPath("test.java").build()).build();
         sonar.enqueue(new MockResponse().setResponseCode(200).addHeader("Content-Type", "application/x-protobuf").setBody(toBuffer(searchWsResponse)));
 
-        WsComponents.ShowWsResponse showWsResponse = WsComponents.ShowWsResponse.newBuilder()
-                .addAncestors(WsComponents.Component.newBuilder().setQualifier("RTG").build())
-                .addAncestors(WsComponents.Component.newBuilder().setQualifier(Qualifiers.MODULE).setPath("core").build())
-                .addAncestors(WsComponents.Component.newBuilder().setQualifier(Qualifiers.MODULE).setPath("client").build())
+        Components.ShowWsResponse showWsResponse = Components.ShowWsResponse.newBuilder()
+                .addAncestors(Components.Component.newBuilder().setQualifier("RTG").build())
+                .addAncestors(Components.Component.newBuilder().setQualifier(Qualifiers.MODULE).setPath("core").build())
+                .addAncestors(Components.Component.newBuilder().setQualifier(Qualifiers.MODULE).setPath("client").build())
                 .build();
         sonar.enqueue(new MockResponse().setResponseCode(200).addHeader("Content-Type", "application/x-protobuf").setBody(toBuffer(showWsResponse)));
 
@@ -450,23 +449,23 @@ public class SonarFacadeTest {
                 .build();
         sonar.enqueue(new MockResponse().setResponseCode(200).addHeader("Content-Type", "application/x-protobuf").setBody(toBuffer(searchWsResponse)));
 
-        WsComponents.ShowWsResponse showWsResponse1 = WsComponents.ShowWsResponse.newBuilder()
-                .addAncestors(WsComponents.Component.newBuilder().setQualifier("RTG").build())
-                .addAncestors(WsComponents.Component.newBuilder().setQualifier(Qualifiers.MODULE).setPath("core").build())
-                .addAncestors(WsComponents.Component.newBuilder().setQualifier(Qualifiers.MODULE).setPath("client").build())
+        Components.ShowWsResponse showWsResponse1 = Components.ShowWsResponse.newBuilder()
+                .addAncestors(Components.Component.newBuilder().setQualifier("RTG").build())
+                .addAncestors(Components.Component.newBuilder().setQualifier(Qualifiers.MODULE).setPath("core").build())
+                .addAncestors(Components.Component.newBuilder().setQualifier(Qualifiers.MODULE).setPath("client").build())
                 .build();
         sonar.enqueue(new MockResponse().setResponseCode(200).addHeader("Content-Type", "application/x-protobuf").setBody(toBuffer(showWsResponse1)));
 
-        WsComponents.ShowWsResponse showWsResponse2 = WsComponents.ShowWsResponse.newBuilder()
-                .addAncestors(WsComponents.Component.newBuilder().setQualifier("RTG").build())
-                .addAncestors(WsComponents.Component.newBuilder().setQualifier(Qualifiers.MODULE).setPath("core").build())
+        Components.ShowWsResponse showWsResponse2 = Components.ShowWsResponse.newBuilder()
+                .addAncestors(Components.Component.newBuilder().setQualifier("RTG").build())
+                .addAncestors(Components.Component.newBuilder().setQualifier(Qualifiers.MODULE).setPath("core").build())
                 .build();
         sonar.enqueue(new MockResponse().setResponseCode(200).addHeader("Content-Type", "application/x-protobuf").setBody(toBuffer(showWsResponse2)));
 
-        WsComponents.ShowWsResponse showWsResponseTest = WsComponents.ShowWsResponse.newBuilder()
-                .addAncestors(WsComponents.Component.newBuilder().setQualifier("RTG").build())
-                .addAncestors(WsComponents.Component.newBuilder().setQualifier(Qualifiers.MODULE).setPath("core").build())
-                .addAncestors(WsComponents.Component.newBuilder().setQualifier(Qualifiers.MODULE).setPath("client").build())
+        Components.ShowWsResponse showWsResponseTest = Components.ShowWsResponse.newBuilder()
+                .addAncestors(Components.Component.newBuilder().setQualifier("RTG").build())
+                .addAncestors(Components.Component.newBuilder().setQualifier(Qualifiers.MODULE).setPath("core").build())
+                .addAncestors(Components.Component.newBuilder().setQualifier(Qualifiers.MODULE).setPath("client").build())
                 .build();
         sonar.enqueue(new MockResponse().setResponseCode(200).addHeader("Content-Type", "application/x-protobuf").setBody(toBuffer(showWsResponseTest)));
 

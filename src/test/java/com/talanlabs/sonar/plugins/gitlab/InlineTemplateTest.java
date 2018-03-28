@@ -29,7 +29,6 @@ import org.sonar.api.batch.AnalysisMode;
 import org.sonar.api.batch.rule.Severity;
 import org.sonar.api.config.PropertyDefinition;
 import org.sonar.api.config.PropertyDefinitions;
-import org.sonar.api.config.Settings;
 import org.sonar.api.config.internal.MapSettings;
 import org.sonar.api.utils.System2;
 
@@ -45,7 +44,7 @@ public class InlineTemplateTest {
     private static final String TEMPLATE = "<#list issues() as issue>\n" + "<@p issue=issue/>\n" + "</#list>\n" + "<#macro p issue>\n"
             + "${emojiSeverity(issue.severity)} ${issue.message} [:blue_book:](${ruleLink(issue.ruleKey)})\n" + "</#macro>";
 
-    private Settings settings;
+    private MapSettings settings;
     private GitLabPluginConfiguration config;
     private AnalysisMode analysisMode;
 
@@ -58,7 +57,7 @@ public class InlineTemplateTest {
         settings.setProperty(CoreProperties.SERVER_BASE_URL, "http://myserver");
         settings.setProperty(GitLabPlugin.GITLAB_COMMIT_SHA, "abc123");
 
-        config = new GitLabPluginConfiguration(settings, new System2());
+        config = new GitLabPluginConfiguration(settings.asConfig(), new System2());
 
         settings.setProperty(GitLabPlugin.GITLAB_INLINE_TEMPLATE, TEMPLATE);
 

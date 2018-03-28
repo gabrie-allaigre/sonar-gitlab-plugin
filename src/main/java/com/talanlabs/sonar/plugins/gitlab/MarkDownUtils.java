@@ -19,14 +19,14 @@
  */
 package com.talanlabs.sonar.plugins.gitlab;
 
-import org.sonar.api.batch.BatchSide;
 import org.sonar.api.batch.InstantiationStrategy;
+import org.sonar.api.batch.ScannerSide;
 import org.sonar.api.batch.rule.Severity;
 
 import javax.annotation.Nullable;
 
 @InstantiationStrategy(InstantiationStrategy.PER_BATCH)
-@BatchSide
+@ScannerSide
 public class MarkDownUtils {
 
     private static final String IMAGES_ROOT_URL = "https://github.com/gabrie-allaigre/sonar-gitlab-plugin/raw/master/images/";

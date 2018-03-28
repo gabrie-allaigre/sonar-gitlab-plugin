@@ -29,7 +29,6 @@ import org.sonar.api.batch.AnalysisMode;
 import org.sonar.api.batch.rule.Severity;
 import org.sonar.api.config.PropertyDefinition;
 import org.sonar.api.config.PropertyDefinitions;
-import org.sonar.api.config.Settings;
 import org.sonar.api.config.internal.MapSettings;
 import org.sonar.api.utils.System2;
 
@@ -105,7 +104,7 @@ public class GlobalTemplateTest {
                     "    </#if>\n" +
                     "</#if>";
 
-    private Settings settings;
+    private MapSettings settings;
     private GitLabPluginConfiguration config;
     private AnalysisMode analysisMode;
 
@@ -123,7 +122,7 @@ public class GlobalTemplateTest {
         when(analysisMode.isPreview()).thenReturn(true);
         when(analysisMode.isPublish()).thenReturn(false);
 
-        config = new GitLabPluginConfiguration(settings, new System2());
+        config = new GitLabPluginConfiguration(settings.asConfig(), new System2());
 
         settings.setProperty(GitLabPlugin.GITLAB_GLOBAL_TEMPLATE, TEMPLATE);
     }

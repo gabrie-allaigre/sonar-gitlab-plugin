@@ -31,7 +31,6 @@ import org.mockito.Mockito;
 import org.sonar.api.CoreProperties;
 import org.sonar.api.batch.rule.Severity;
 import org.sonar.api.config.PropertyDefinitions;
-import org.sonar.api.config.Settings;
 import org.sonar.api.config.internal.MapSettings;
 import org.sonar.api.utils.System2;
 
@@ -42,14 +41,14 @@ public class GitLabPluginConfigurationTest {
     @Rule
     public ExpectedException thrown = ExpectedException.none();
 
-    private Settings settings;
+    private MapSettings settings;
     private GitLabPluginConfiguration config;
 
     @Before
     public void before() {
         settings = new MapSettings(new PropertyDefinitions(GitLabPlugin.definitions()));
         settings.setProperty(CoreProperties.SERVER_BASE_URL, "http://myserver");
-        config = new GitLabPluginConfiguration(settings, new System2());
+        config = new GitLabPluginConfiguration(settings.asConfig(), new System2());
     }
 
     @Test
@@ -153,9 +152,9 @@ public class GitLabPluginConfigurationTest {
         settings.setProperty(GitLabPlugin.GITLAB_QUERY_MAX_RETRY, "10");
         Assertions.assertThat(config.queryMaxRetry()).isEqualTo(10);
 
-        Assertions.assertThat(config.queryWait()).isEqualTo(1000L);
+        Assertions.assertThat(config.queryWait()).isEqualTo(1000);
         settings.setProperty(GitLabPlugin.GITLAB_QUERY_WAIT, "2000");
-        Assertions.assertThat(config.queryWait()).isEqualTo(2000L);
+        Assertions.assertThat(config.queryWait()).isEqualTo(2000);
 
         Assertions.assertThat(config.issueFilter()).isEqualTo(Severity.INFO);
         settings.setProperty(GitLabPlugin.GITLAB_ISSUE_FILTER, Severity.MAJOR.name());
@@ -202,7 +201,7 @@ public class GitLabPluginConfigurationTest {
     @Test
     public void testProxyConfiguration() {
         System2 system2 = Mockito.mock(System2.class);
-        config = new GitLabPluginConfiguration(settings, system2);
+        config = new GitLabPluginConfiguration(settings.asConfig(), system2);
         Assertions.assertThat(config.isProxyConnectionEnabled()).isFalse();
         Mockito.when(system2.property("http.proxyHost")).thenReturn("foo");
         Assertions.assertThat(config.isProxyConnectionEnabled()).isTrue();

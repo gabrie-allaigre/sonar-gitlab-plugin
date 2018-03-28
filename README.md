@@ -605,7 +605,9 @@ Restart your SonarQube instance.
 - On a private project, with the provided command line upper in this document, you'll got an "IllegalStateException: Unable found project for" Exception.
 - It's necessary to create a "Personal Access Tokens". It needs a user with the "developper" right in the project. The token can be created in the profile menu, check the api checkbox. 
 - Then, use the following command line to run sonar thought gitlab-ci 
-```mvn --batch-mode verify sonar:sonar
+
+``` batch
+mvn --batch-mode verify sonar:sonar
       -Dsonar.gitlab.api_version=v4
       -Dsonar.host.url=http://<your_sonar_url>:9000
       -Dsonar.login=<your_sonar_login>
@@ -614,5 +616,10 @@ Restart your SonarQube instance.
       -Dsonar.gitlab.ref_name=$CI_COMMIT_REF_NAME
       -Dsonar.gitlab.project_id=$CI_PROJECT_ID
       -Dsonar.gitlab.url=http://<your_gitlab_url>
-      -Dsonar.gitlab.user_token=<your_user_token>```
+      -Dsonar.gitlab.user_token=<your_user_token>
+```
 
+
+## Version 3.1.0-SNAPSHOT
+
+- UP to Sonarqube API 7.0

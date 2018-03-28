@@ -23,7 +23,7 @@
     <license.mailto>gabriel.allaigre@talanlabs.com</license.mailto>
     <license.owner>Talanlabs</license.owner>
 
-    <sonar.version>6.7</sonar.version>
+    <sonar.version>7.0</sonar.version>
     <sonar.pluginName>GitLab</sonar.pluginName>
     <sonar.pluginClass>com.talanlabs.sonar.plugins.gitlab.GitLabPlugin</sonar.pluginClass>
 
