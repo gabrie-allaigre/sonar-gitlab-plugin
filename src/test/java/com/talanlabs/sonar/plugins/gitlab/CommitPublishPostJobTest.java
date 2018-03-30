@@ -44,6 +44,7 @@ import java.util.Collections;
 import java.util.List;
 
 import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyBoolean;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.when;
@@ -115,10 +116,10 @@ public class CommitPublishPostJobTest {
 
         when(analysisMode.isPreview()).thenReturn(true);
         when(context.issues()).thenReturn(issues);
-        when(reporterBuilder.build(eq(null), any())).thenReturn(reporter);
+        when(reporterBuilder.build(eq(null), any(), any(), anyBoolean())).thenReturn(reporter);
 
         commitPublishPostJob.execute(context);
-        Mockito.verify(reporterBuilder).build(eq(null), any());
+        Mockito.verify(reporterBuilder).build(eq(null), any(), any(), anyBoolean());
         Mockito.verify(commitFacade).createOrUpdateSonarQubeStatus("success", "SonarQube reported no issues");
     }
 
@@ -134,10 +135,10 @@ public class CommitPublishPostJobTest {
 
         when(analysisMode.isIssues()).thenReturn(true);
         when(context.issues()).thenReturn(issues);
-        when(reporterBuilder.build(eq(null), any())).thenReturn(reporter);
+        when(reporterBuilder.build(eq(null), any(), any(), anyBoolean())).thenReturn(reporter);
 
         commitPublishPostJob.execute(context);
-        Mockito.verify(reporterBuilder).build(eq(null), any());
+        Mockito.verify(reporterBuilder).build(eq(null), any(), any(), anyBoolean());
         Mockito.verify(commitFacade).createOrUpdateSonarQubeStatus("failed", "SonarQube reported 2 issues");
     }
 
@@ -154,10 +155,10 @@ public class CommitPublishPostJobTest {
         when(analysisMode.isPreview()).thenReturn(true);
         when(analysisMode.isIssues()).thenReturn(true);
         when(context.issues()).thenReturn(issues);
-        when(reporterBuilder.build(eq(null), any())).thenReturn(reporter);
+        when(reporterBuilder.build(eq(null), any(), any(), anyBoolean())).thenReturn(reporter);
 
         commitPublishPostJob.execute(context);
-        Mockito.verify(reporterBuilder).build(eq(null), any());
+        Mockito.verify(reporterBuilder).build(eq(null), any(), any(), anyBoolean());
         Mockito.verify(commitFacade).createOrUpdateSonarQubeStatus("success", "SonarQube reported no issues");
     }
 
@@ -171,10 +172,10 @@ public class CommitPublishPostJobTest {
 
         when(analysisMode.isPreview()).thenReturn(true);
         when(context.issues()).thenReturn(issues);
-        when(reporterBuilder.build(eq(null), any())).thenReturn(reporter);
+        when(reporterBuilder.build(eq(null), any(), any(), anyBoolean())).thenReturn(reporter);
 
         commitPublishPostJob.execute(context);
-        Mockito.verify(reporterBuilder).build(eq(null), any());
+        Mockito.verify(reporterBuilder).build(eq(null), any(), any(), anyBoolean());
         Mockito.verify(commitFacade).createOrUpdateSonarQubeStatus("success", "SonarQube reported no issues");
     }
 
@@ -190,10 +191,10 @@ public class CommitPublishPostJobTest {
 
         when(analysisMode.isPreview()).thenReturn(true);
         when(context.issues()).thenReturn(issues);
-        when(reporterBuilder.build(eq(null), any())).thenReturn(reporter);
+        when(reporterBuilder.build(eq(null), any(), any(), anyBoolean())).thenReturn(reporter);
 
         commitPublishPostJob.execute(context);
-        Mockito.verify(reporterBuilder).build(eq(null), any());
+        Mockito.verify(reporterBuilder).build(eq(null), any(), any(), anyBoolean());
         Mockito.verify(commitFacade).createOrUpdateSonarQubeStatus("failed", "SonarQube reported no issues");
     }
 
@@ -211,10 +212,10 @@ public class CommitPublishPostJobTest {
 
         when(analysisMode.isIssues()).thenReturn(true);
         when(context.issues()).thenReturn(issues);
-        when(reporterBuilder.build(eq(null), any())).thenReturn(reporter);
+        when(reporterBuilder.build(eq(null), any(), any(), anyBoolean())).thenReturn(reporter);
 
         Assertions.assertThatThrownBy(() -> commitPublishPostJob.execute(context)).isInstanceOf(MessageException.class).hasMessage("Report status=failed, desc=SonarQube reported 2 issues");
-        Mockito.verify(reporterBuilder).build(eq(null), any());
+        Mockito.verify(reporterBuilder).build(eq(null), any(), any(), anyBoolean());
         Mockito.verify(commitFacade, never()).createOrUpdateSonarQubeStatus("failed", "SonarQube reported 2 issues");
     }
 
@@ -230,10 +231,10 @@ public class CommitPublishPostJobTest {
 
         when(analysisMode.isIssues()).thenReturn(true);
         when(context.issues()).thenReturn(issues);
-        when(reporterBuilder.build(eq(null), any())).thenReturn(reporter);
+        when(reporterBuilder.build(eq(null), any(), any(), anyBoolean())).thenReturn(reporter);
 
         commitPublishPostJob.execute(context);
-        Mockito.verify(reporterBuilder).build(eq(null), any());
+        Mockito.verify(reporterBuilder).build(eq(null), any(), any(), anyBoolean());
         Mockito.verify(commitFacade, never()).createOrUpdateSonarQubeStatus("success", "SonarQube reported no issues");
     }
 
@@ -251,10 +252,10 @@ public class CommitPublishPostJobTest {
 
         when(analysisMode.isIssues()).thenReturn(true);
         when(context.issues()).thenReturn(issues);
-        when(reporterBuilder.build(eq(null), any())).thenReturn(reporter);
+        when(reporterBuilder.build(eq(null), any(), any(), anyBoolean())).thenReturn(reporter);
 
         commitPublishPostJob.execute(context);
-        Mockito.verify(reporterBuilder).build(eq(null), any());
+        Mockito.verify(reporterBuilder).build(eq(null), any(), any(), anyBoolean());
         Mockito.verify(commitFacade, never()).createOrUpdateSonarQubeStatus("failed", "SonarQube reported 2 issues");
     }
 
@@ -270,10 +271,10 @@ public class CommitPublishPostJobTest {
 
         when(analysisMode.isIssues()).thenReturn(true);
         when(context.issues()).thenReturn(issues);
-        when(reporterBuilder.build(eq(null), any())).thenReturn(reporter);
+        when(reporterBuilder.build(eq(null), any(), any(), anyBoolean())).thenReturn(reporter);
 
         commitPublishPostJob.execute(context);
-        Mockito.verify(reporterBuilder).build(eq(null), any());
+        Mockito.verify(reporterBuilder).build(eq(null), any(), any(), anyBoolean());
         Mockito.verify(commitFacade, never()).createOrUpdateSonarQubeStatus("success", "SonarQube reported no issues");
     }
 
@@ -298,12 +299,12 @@ public class CommitPublishPostJobTest {
         when(reporter.getStatus()).thenReturn("success");
         when(reporter.getStatusDescription()).thenReturn("SonarQube Condition Error:0 Warning:0 Ok:0 SonarQube reported no issues");
         List<Issue> issues = Collections.emptyList();
-        when(reporterBuilder.build(qualityGate, issues)).thenReturn(reporter);
+        when(reporterBuilder.build(qualityGate, issues, issues, true)).thenReturn(reporter);
 
         commitPublishPostJob.execute(context);
 
         Mockito.verify(sonarFacade).loadQualityGate();
-        Mockito.verify(reporterBuilder).build(qualityGate, issues);
+        Mockito.verify(reporterBuilder).build(qualityGate, issues, issues, true);
         Mockito.verify(commitFacade).createOrUpdateSonarQubeStatus("success", "SonarQube Condition Error:0 Warning:0 Ok:0 SonarQube reported no issues");
     }
 
@@ -326,12 +327,12 @@ public class CommitPublishPostJobTest {
         when(reporter.getStatus()).thenReturn("failed");
         when(reporter.getStatusDescription()).thenReturn("SonarQube Condition Error:1 Warning:2 Ok:3 SonarQube reported 2 issues");
         List<Issue> issues = Collections.emptyList();
-        when(reporterBuilder.build(qualityGate, issues)).thenReturn(reporter);
+        when(reporterBuilder.build(qualityGate, issues, issues, true)).thenReturn(reporter);
 
         commitPublishPostJob.execute(context);
 
         Mockito.verify(sonarFacade).loadQualityGate();
-        Mockito.verify(reporterBuilder).build(qualityGate, issues);
+        Mockito.verify(reporterBuilder).build(qualityGate, issues, issues, true);
         Mockito.verify(commitFacade).createOrUpdateSonarQubeStatus("failed", "SonarQube Condition Error:1 Warning:2 Ok:3 SonarQube reported 2 issues");
     }
 
@@ -353,12 +354,12 @@ public class CommitPublishPostJobTest {
         when(reporter.getStatus()).thenReturn("failed");
         when(reporter.getStatusDescription()).thenReturn("SonarQube Condition Error:0 Warning:2 Ok:3 SonarQube reported 2 issues");
         List<Issue> issues = Collections.emptyList();
-        when(reporterBuilder.build(qualityGate, issues)).thenReturn(reporter);
+        when(reporterBuilder.build(qualityGate, issues, issues, true)).thenReturn(reporter);
 
         commitPublishPostJob.execute(context);
 
         Mockito.verify(sonarFacade).loadQualityGate();
-        Mockito.verify(reporterBuilder).build(qualityGate, issues);
+        Mockito.verify(reporterBuilder).build(qualityGate, issues, issues, true);
         Mockito.verify(commitFacade).createOrUpdateSonarQubeStatus("failed", "SonarQube Condition Error:0 Warning:2 Ok:3 SonarQube reported 2 issues");
     }
 
@@ -382,12 +383,12 @@ public class CommitPublishPostJobTest {
         when(reporter.getStatus()).thenReturn("failed");
         when(reporter.getStatusDescription()).thenReturn("SonarQube Condition Error:0 Warning:2 Ok:3 SonarQube reported 2 issues");
         List<Issue> issues = Collections.emptyList();
-        when(reporterBuilder.build(qualityGate, issues)).thenReturn(reporter);
+        when(reporterBuilder.build(qualityGate, issues, issues, true)).thenReturn(reporter);
 
         commitPublishPostJob.execute(context);
 
         Mockito.verify(sonarFacade).loadQualityGate();
-        Mockito.verify(reporterBuilder).build(qualityGate, issues);
+        Mockito.verify(reporterBuilder).build(qualityGate, issues, issues, true);
         Mockito.verify(commitFacade).createOrUpdateSonarQubeStatus("failed", "SonarQube Condition Error:0 Warning:2 Ok:3 SonarQube reported 2 issues");
     }
 
@@ -412,12 +413,12 @@ public class CommitPublishPostJobTest {
         when(reporter.getStatus()).thenReturn("failed");
         when(reporter.getStatusDescription()).thenReturn("SonarQube reported 2 issues");
         List<Issue> issues = Collections.emptyList();
-        when(reporterBuilder.build(qualityGate, issues)).thenReturn(reporter);
+        when(reporterBuilder.build(qualityGate, issues, issues, true)).thenReturn(reporter);
 
         commitPublishPostJob.execute(context);
 
         Mockito.verify(sonarFacade).loadQualityGate();
-        Mockito.verify(reporterBuilder).build(qualityGate, issues);
+        Mockito.verify(reporterBuilder).build(qualityGate, issues, issues, true);
         Mockito.verify(commitFacade, never()).createOrUpdateSonarQubeStatus("failed", "SonarQube Condition Error:1 Warning:2 Ok:3 SonarQube reported 2 issues");
     }
 
@@ -435,12 +436,12 @@ public class CommitPublishPostJobTest {
         when(reporter.getStatus()).thenReturn("success");
         when(reporter.getStatusDescription()).thenReturn("SonarQube reported no issues");
         List<Issue> issues = Collections.emptyList();
-        when(reporterBuilder.build(qualityGate, issues)).thenReturn(reporter);
+        when(reporterBuilder.build(qualityGate, issues, issues, true)).thenReturn(reporter);
 
         commitPublishPostJob.execute(context);
 
         Mockito.verify(sonarFacade).loadQualityGate();
-        Mockito.verify(reporterBuilder).build(qualityGate, issues);
+        Mockito.verify(reporterBuilder).build(qualityGate, issues, issues, true);
         Mockito.verify(commitFacade, never()).createOrUpdateSonarQubeStatus("success", "SonarQube Condition Error:0 Warning:0 Ok:0 SonarQube reported no issues");
     }
 
@@ -464,12 +465,12 @@ public class CommitPublishPostJobTest {
         when(reporter.getStatus()).thenReturn("success");
         when(reporter.getStatusDescription()).thenReturn("SonarQube reported no issues");
         List<Issue> issues = Collections.emptyList();
-        when(reporterBuilder.build(qualityGate, issues)).thenReturn(reporter);
+        when(reporterBuilder.build(qualityGate, issues, issues, true)).thenReturn(reporter);
 
         commitPublishPostJob.execute(context);
 
         Mockito.verify(sonarFacade).loadQualityGate();
-        Mockito.verify(reporterBuilder).build(qualityGate, issues);
+        Mockito.verify(reporterBuilder).build(qualityGate, issues, issues, true);
         Mockito.verify(commitFacade, never()).createOrUpdateSonarQubeStatus("success", "SonarQube Condition Error:0 Warning:2 Ok:3 SonarQube reported no issues");
     }
 
@@ -494,7 +495,7 @@ public class CommitPublishPostJobTest {
         when(reporter.getStatus()).thenReturn("success");
         when(reporter.getStatusDescription()).thenReturn("SonarQube reported no issues");
         List<Issue> issues = Collections.emptyList();
-        when(reporterBuilder.build(qualityGate, issues)).thenReturn(reporter);
+        when(reporterBuilder.build(qualityGate, issues, issues, true)).thenReturn(reporter);
 
         commitPublishPostJob.execute(context);
 
@@ -516,12 +517,12 @@ public class CommitPublishPostJobTest {
         when(reporter.getStatus()).thenReturn("success");
         when(reporter.getStatusDescription()).thenReturn("SonarQube reported no issues");
         List<Issue> issues = Collections.emptyList();
-        when(reporterBuilder.build(qualityGate, issues)).thenReturn(reporter);
+        when(reporterBuilder.build(qualityGate, issues, issues, true)).thenReturn(reporter);
 
         commitPublishPostJob.execute(context);
 
         Mockito.verify(sonarFacade).loadQualityGate();
-        Mockito.verify(reporterBuilder).build(qualityGate, issues);
+        Mockito.verify(reporterBuilder).build(qualityGate, issues, issues, true);
         Mockito.verify(commitFacade, never()).createOrUpdateSonarQubeStatus("success", "SonarQube Condition Error:0 Warning:0 Ok:0 SonarQube reported no issues");
     }
 
@@ -545,12 +546,12 @@ public class CommitPublishPostJobTest {
         when(reporter.getStatus()).thenReturn("success");
         when(reporter.getStatusDescription()).thenReturn("SonarQube reported no issues");
         List<Issue> issues = Collections.emptyList();
-        when(reporterBuilder.build(qualityGate, issues)).thenReturn(reporter);
+        when(reporterBuilder.build(qualityGate, issues, issues, true)).thenReturn(reporter);
 
         commitPublishPostJob.execute(context);
 
         Mockito.verify(sonarFacade).loadQualityGate();
-        Mockito.verify(reporterBuilder).build(qualityGate, issues);
+        Mockito.verify(reporterBuilder).build(qualityGate, issues, issues, true);
         Mockito.verify(commitFacade, never()).createOrUpdateSonarQubeStatus("success", "SonarQube Condition Error:0 Warning:2 Ok:3 SonarQube reported no issues");
     }
 
@@ -574,12 +575,12 @@ public class CommitPublishPostJobTest {
         when(reporter.getStatus()).thenReturn("success");
         when(reporter.getStatusDescription()).thenReturn("SonarQube reported no issues");
         List<Issue> issues = Collections.emptyList();
-        when(reporterBuilder.build(qualityGate, issues)).thenReturn(reporter);
+        when(reporterBuilder.build(qualityGate, issues, issues, true)).thenReturn(reporter);
 
         commitPublishPostJob.execute(context);
 
         Mockito.verify(sonarFacade).loadQualityGate();
-        Mockito.verify(reporterBuilder).build(qualityGate, issues);
+        Mockito.verify(reporterBuilder).build(qualityGate, issues, issues, true);
         Mockito.verify(commitFacade, never()).createOrUpdateSonarQubeStatus("failed", "SonarQube Condition Error:0 Warning:2 Ok:3 SonarQube reported no issues");
     }
 
@@ -604,13 +605,13 @@ public class CommitPublishPostJobTest {
         when(reporter.getStatus()).thenReturn("failed");
         when(reporter.getStatusDescription()).thenReturn("SonarQube Condition Error:0 Warning:2 Ok:3 SonarQube reported no issues");
         List<Issue> issues = Collections.emptyList();
-        when(reporterBuilder.build(qualityGate, issues)).thenReturn(reporter);
+        when(reporterBuilder.build(qualityGate, issues, issues, true)).thenReturn(reporter);
 
         Assertions.assertThatThrownBy(() -> commitPublishPostJob.execute(context)).isInstanceOf(MessageException.class)
                 .hasMessage("Report status=failed, desc=SonarQube Condition Error:0 Warning:2 Ok:3 SonarQube reported no issues");
 
         Mockito.verify(sonarFacade).loadQualityGate();
-        Mockito.verify(reporterBuilder).build(qualityGate, issues);
+        Mockito.verify(reporterBuilder).build(qualityGate, issues, issues, true);
         Mockito.verify(commitFacade, never()).createOrUpdateSonarQubeStatus("failed", "SonarQube Condition Error:0 Warning:2 Ok:3 SonarQube reported no issues");
     }
 
@@ -632,12 +633,12 @@ public class CommitPublishPostJobTest {
         when(sonarFacade.loadQualityGate()).thenReturn(qualityGate);
 
         List<Issue> issues = Collections.emptyList();
-        when(reporterBuilder.build(qualityGate, issues)).thenThrow(new IllegalStateException("blabla"));
+        when(reporterBuilder.build(qualityGate, issues, issues, true)).thenThrow(new IllegalStateException("blabla"));
 
         Assertions.assertThatThrownBy(() -> commitPublishPostJob.execute(context)).isInstanceOf(MessageException.class).hasMessage("SonarQube failed to complete the review of this commit: blabla");
 
         Mockito.verify(sonarFacade).loadQualityGate();
-        Mockito.verify(reporterBuilder).build(qualityGate, issues);
+        Mockito.verify(reporterBuilder).build(qualityGate, issues, issues, true);
         Mockito.verify(commitFacade, never()).createOrUpdateSonarQubeStatus("failed", "SonarQube Condition Error:0 Warning:2 Ok:3 SonarQube reported no issues");
     }
 
