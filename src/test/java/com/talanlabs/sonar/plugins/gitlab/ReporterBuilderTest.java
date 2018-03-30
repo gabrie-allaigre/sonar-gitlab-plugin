@@ -771,4 +771,57 @@ public class ReporterBuilderTest {
 
         Mockito.verify(sonarFacade).getRule("repo:rule");
     }
+
+    @Test
+    public void testJsonReportAllIssuesInPublishMode() {
+        settings.setProperty(GitLabPlugin.GITLAB_JSON_MODE, JsonMode.CODECLIMATE.name());
+        settings.setProperty(GitLabPlugin.GITLAB_JSON_ALL_ISSUES, "true");
+
+        File inputFile1 = new File("src/Foo.php");
+        Issue newIssue = Utils.newIssue("foo:src/Foo.php", inputFile1, 1, Severity.BLOCKER, true, "msg1");
+        Mockito.when(commitFacade.getGitLabUrl(null, inputFile1, 1)).thenReturn("http://gitlab/blob/abc123/src/Foo.php#L1");
+        Mockito.when(commitFacade.getRuleLink("repo:rule")).thenReturn("http://myserver/coding_rules#rule_key=repo%3Arule");
+
+        Issue lineNotVisible = Utils.newIssue("foo:src/Foo.php", inputFile1, 2, Severity.BLOCKER, true, "msg2");
+        Mockito.when(commitFacade.getGitLabUrl(null, inputFile1, 2)).thenReturn("http://gitlab/blob/abc123/src/Foo.php#L2");
+
+        Mockito.when(commitFacade.hasFile(inputFile1)).thenReturn(true);
+        Mockito.when(commitFacade.getRevisionForLine(inputFile1, 1)).thenReturn("abc123");
+
+        List<Issue> newIssues = Collections.singletonList(newIssue);
+        List<Issue> allIssues = Arrays.asList(newIssue, lineNotVisible);
+
+        Reporter reporter = reporterBuilder.build(null, allIssues, newIssues, true);
+
+        // verify JSON reports everything (2 issues), and that regular report mentions only 1 issue
+        Assertions.assertThat(reporter).isNotNull().extracting(Reporter::getStatus, Reporter::getStatusDescription).contains("failed", "SonarQube reported 1 issue, with 1 blocker (fail)");
+        Mockito.verify(commitFacade).writeJsonFile(Mockito.eq(
+                "[{\"fingerprint\":\"null\",\"check_name\":\"msg1\",\"location\":{\"path\":\"null\",\"lines\": { \"begin\":1,\"end\":1}}},{\"fingerprint\":\"null\",\"check_name\":\"msg2\",\"location\":{\"path\":\"null\",\"lines\": { \"begin\":2,\"end\":2}}}]"));
+    }
+
+    @Test
+    public void testJsonReportNewIssuesInPublishMode() {
+        settings.setProperty(GitLabPlugin.GITLAB_JSON_MODE, JsonMode.CODECLIMATE.name());
+
+        File inputFile1 = new File("src/Foo.php");
+        Issue newIssue = Utils.newIssue("foo:src/Foo.php", inputFile1, 1, Severity.BLOCKER, true, "msg1");
+        Mockito.when(commitFacade.getGitLabUrl(null, inputFile1, 1)).thenReturn("http://gitlab/blob/abc123/src/Foo.php#L1");
+        Mockito.when(commitFacade.getRuleLink("repo:rule")).thenReturn("http://myserver/coding_rules#rule_key=repo%3Arule");
+
+        Issue lineNotVisible = Utils.newIssue("foo:src/Foo.php", inputFile1, 2, Severity.BLOCKER, true, "msg2");
+        Mockito.when(commitFacade.getGitLabUrl(null, inputFile1, 2)).thenReturn("http://gitlab/blob/abc123/src/Foo.php#L2");
+
+        Mockito.when(commitFacade.hasFile(inputFile1)).thenReturn(true);
+        Mockito.when(commitFacade.getRevisionForLine(inputFile1, 1)).thenReturn("abc123");
+
+        List<Issue> newIssues = Collections.singletonList(newIssue);
+        List<Issue> allIssues = Arrays.asList(newIssue, lineNotVisible);
+
+        Reporter reporter = reporterBuilder.build(null, allIssues, newIssues, true);
+
+        // verify JSON reports new issue only, just like regular report
+        Assertions.assertThat(reporter).isNotNull().extracting(Reporter::getStatus, Reporter::getStatusDescription).contains("failed", "SonarQube reported 1 issue, with 1 blocker (fail)");
+        Mockito.verify(commitFacade).writeJsonFile(Mockito.eq(
+                "[{\"fingerprint\":\"null\",\"check_name\":\"msg1\",\"location\":{\"path\":\"null\",\"lines\": { \"begin\":1,\"end\":1}}}]"));
+    }
 }
