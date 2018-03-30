@@ -287,7 +287,7 @@ public class ReporterBuilderTest {
         when(commitFacade.hasFile(inputFile1)).thenReturn(true);
         when(commitFacade.getRevisionForLine(inputFile1, 1)).thenReturn(null);
 
-        Reporter reporter = reporterBuilder.build(null, Collections.singletonList(newIssue), Collections.emptyList(), false);
+        Reporter reporter = reporterBuilder.build(null, Collections.emptyList(), Collections.singletonList(newIssue), true);
 
         Assertions.assertThat(reporter).isNotNull().extracting(Reporter::getStatus, Reporter::getStatusDescription).contains("failed", "SonarQube reported 1 issue, with 1 critical (fail)");
     }
@@ -301,7 +301,7 @@ public class ReporterBuilderTest {
         when(commitFacade.hasFile(inputFile1)).thenReturn(true);
         when(commitFacade.getRevisionForLine(inputFile1, 1)).thenReturn(null);
 
-        Reporter reporter = reporterBuilder.build(null, Collections.singletonList(newIssue), Collections.emptyList(), false);
+        Reporter reporter = reporterBuilder.build(null, Collections.emptyList(), Collections.singletonList(newIssue), true);
 
         Assertions.assertThat(reporter).isNotNull().extracting(Reporter::getStatus, Reporter::getStatusDescription).contains("success", "SonarQube reported 1 issue, with 1 major");
     }
@@ -319,7 +319,7 @@ public class ReporterBuilderTest {
         when(commitFacade.getRevisionForLine(inputFile1, 1)).thenReturn(null);
 
         List<Issue> allIssues = Arrays.asList(newIssue, lineNotVisible);
-        Reporter reporter = reporterBuilder.build(null, allIssues, Collections.emptyList(), false);
+        Reporter reporter = reporterBuilder.build(null, Collections.emptyList(), allIssues, true);
 
         Assertions.assertThat(reporter).isNotNull().extracting(Reporter::getStatus, Reporter::getStatusDescription)
                 .contains("failed", "SonarQube reported 2 issues, with 1 blocker (fail) and 1 critical (fail)");
