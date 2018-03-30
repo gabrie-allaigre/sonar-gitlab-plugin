@@ -54,13 +54,9 @@ public class Reporter {
 
     public void process(Issue issue, @Nullable Rule rule, @Nullable String revision, @Nullable String gitLabUrl, @Nullable String src, String ruleLink, boolean reportedOnDiff) {
         String r = revision != null ? revision : gitLabPluginConfiguration.commitSHA().get(0);
-        ReportIssue reportIssue = ReportIssue.newBuilder().issue(issue).rule(rule).revision(r).url(gitLabUrl).file(src).ruleLink(ruleLink).reportedOnDiff(reportedOnDiff).build();
+        ReportIssue reportIssue = getReportIssue(issue, rule, gitLabUrl, src, ruleLink, reportedOnDiff, r);
         List<ReportIssue> reportIssues = reportIssuesMap.computeIfAbsent(issue.getSeverity(), k -> new ArrayList<>());
         reportIssues.add(reportIssue);
-
-        if (!gitLabPluginConfiguration.jsonMode().equals(JsonMode.NONE)) {
-            jsonIssues.add(reportIssue);
-        }
 
         increment(issue.getSeverity());
         if (!reportedOnDiff) {
@@ -73,6 +69,25 @@ public class Reporter {
             Map<Integer, List<ReportIssue>> issuesByLine = fileLineMap.computeIfAbsent(issue.getFile(), k -> new HashMap<>());
             issuesByLine.computeIfAbsent(issue.getLine(), k -> new ArrayList<>()).add(reportIssue);
         }
+    }
+
+    public void processForJSON(Issue issue, @Nullable Rule rule, @Nullable String revision, @Nullable String gitLabUrl, @Nullable String src, String ruleLink, boolean reportedOnDiff) {
+        String r = revision != null ? revision : gitLabPluginConfiguration.commitSHA().get(0);
+        ReportIssue reportIssue = getReportIssue(issue, rule, gitLabUrl, src, ruleLink, reportedOnDiff, r);
+
+        jsonIssues.add(reportIssue);
+    }
+
+    private ReportIssue getReportIssue(Issue issue, @Nullable Rule rule, @Nullable String gitLabUrl, @Nullable String src, String ruleLink, boolean reportedOnDiff, String revision) {
+        return ReportIssue.newBuilder()
+                .issue(issue)
+                .rule(rule)
+                .revision(revision)
+                .url(gitLabUrl)
+                .file(src)
+                .ruleLink(ruleLink)
+                .reportedOnDiff(reportedOnDiff)
+                .build();
     }
 
     private void increment(Severity severity) {

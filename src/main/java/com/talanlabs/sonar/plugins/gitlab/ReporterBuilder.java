@@ -85,6 +85,15 @@ public class ReporterBuilder {
         }
 
         if (!gitLabPluginConfiguration.jsonMode().equals(JsonMode.NONE)) {
+            List<Issue> jsonIssues;
+            if (!publishMode || gitLabPluginConfiguration.jsonReportAllIssues()) {
+                jsonIssues = allIssues;
+            } else {
+                jsonIssues = newIssues;
+            }
+
+            processIssuesForJSON(report, jsonIssues);
+
             String json = report.buildJson();
             commitFacade.writeJsonFile(json);
         }
@@ -97,7 +106,11 @@ public class ReporterBuilder {
     }
 
     private void processIssues(Reporter report, List<Issue> issues) {
-        getStreamIssue(issues).sorted(ISSUE_COMPARATOR).forEach(i -> processIssue(report, i));
+        getStreamIssue(issues).sorted(ISSUE_COMPARATOR).forEach(i -> processIssue(report, i, false));
+    }
+
+    private void processIssuesForJSON(Reporter report, List<Issue> issues) {
+        getStreamIssue(issues).sorted(ISSUE_COMPARATOR).forEach(i -> processIssue(report, i, true));
     }
 
     private Stream<Issue> getStreamIssue(List<Issue> issues) {
@@ -114,7 +127,7 @@ public class ReporterBuilder {
         return hasFile && issue.getLine() != null && commitFacade.getRevisionForLine(issue.getFile(), issue.getLine()) != null;
     }
 
-    private void processIssue(Reporter report, Issue issue) {
+    private void processIssue(Reporter report, Issue issue, boolean json) {
         boolean reportedInline = false;
 
         String revision = null;
@@ -135,7 +148,11 @@ public class ReporterBuilder {
                 rule = sonarFacade.getRule(issue.getRuleKey());
             }
 
-            report.process(issue, rule, revision, url, src, ruleLink, reportedInline);
+            if (json) {
+                report.processForJSON(issue, rule, revision, url, src, ruleLink, reportedInline);
+            } else {
+                report.process(issue, rule, revision, url, src, ruleLink, reportedInline);
+            }
         }
     }
 
