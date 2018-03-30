@@ -60,15 +60,21 @@ public class ReporterBuilder {
      * Build a reporter for issues
      *
      * @param qualityGate Quality Gate only for publish mode
-     * @param issues      issues
+     * @param allIssues      all issues
+     * @param newIssues      new issues
+     * @param publishMode    whether or not we are executing in publish mode
      * @return a reporter
      */
-    public Reporter build(QualityGate qualityGate, List<Issue> issues) {
+    public Reporter build(QualityGate qualityGate, List<Issue> allIssues, List<Issue> newIssues, boolean publishMode) {
         Reporter report = new Reporter(gitLabPluginConfiguration);
 
         report.setQualityGate(qualityGate);
 
-        processIssues(report, issues);
+        if (publishMode) {
+            processIssues(report, newIssues);
+        } else {
+            processIssues(report, allIssues);
+        }
 
         if (gitLabPluginConfiguration.tryReportIssuesInline() && report.hasFileLine()) {
             updateReviewComments(report);

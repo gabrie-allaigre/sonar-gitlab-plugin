@@ -66,17 +66,17 @@ public class CommitPublishPostJob implements PostJob {
     @Override
     public void execute(PostJobContext context) {
         try {
-            QualityGate qualityGate;
-            List<Issue> issues;
-            if (context.analysisMode().isPublish()) {
+            boolean publishMode = context.analysisMode().isPublish();
+
+            List<Issue> allIssues = toIssues(context.issues());
+            List<Issue> newIssues = sonarFacade.getNewIssues();
+
+            QualityGate qualityGate = null;
+            if (publishMode) {
                 qualityGate = sonarFacade.loadQualityGate();
-                issues = sonarFacade.getNewIssues();
-            } else {
-                qualityGate = null;
-                issues = toIssues(context.issues());
             }
 
-            Reporter report = reporterBuilder.build(qualityGate, issues);
+            Reporter report = reporterBuilder.build(qualityGate, allIssues, newIssues, publishMode);
             notification(report);
         } catch (MessageException e) {
             StatusNotificationsMode i = gitLabPluginConfiguration.statusNotificationsMode();

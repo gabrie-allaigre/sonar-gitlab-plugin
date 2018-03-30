@@ -193,6 +193,10 @@ public class GitLabPluginConfiguration {
         return s != null ? s : JsonMode.NONE;
     }
 
+    public boolean jsonReportAllIssues() {
+        return Boolean.valueOf(configuration.get(GitLabPlugin.GITLAB_JSON_ALL_ISSUES).orElse("false"));
+    }
+
     public int queryMaxRetry() {
         return configuration.getInt(GitLabPlugin.GITLAB_QUERY_MAX_RETRY).orElse(50);
     }
