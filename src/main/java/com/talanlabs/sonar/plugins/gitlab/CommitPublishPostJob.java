@@ -66,14 +66,13 @@ public class CommitPublishPostJob implements PostJob {
     @Override
     public void execute(PostJobContext context) {
         try {
-            boolean publishMode = context.analysisMode().isPublish();
-
-            QualityGate qualityGate = null;
+            QualityGate qualityGate;
             List<Issue> issues;
-            if (publishMode) {
+            if (context.analysisMode().isPublish()) {
                 qualityGate = sonarFacade.loadQualityGate();
                 issues = sonarFacade.getNewIssues();
             } else {
+                qualityGate = null;
                 issues = toIssues(context.issues());
             }
 
