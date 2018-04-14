@@ -60,21 +60,15 @@ public class ReporterBuilder {
      * Build a reporter for issues
      *
      * @param qualityGate Quality Gate only for publish mode
-     * @param allIssues      all issues
-     * @param newIssues      new issues
-     * @param publishMode    whether or not we are executing in publish mode
+     * @param issues      issues
      * @return a reporter
      */
-    public Reporter build(QualityGate qualityGate, List<Issue> allIssues, List<Issue> newIssues, boolean publishMode) {
+    public Reporter build(QualityGate qualityGate, List<Issue> issues) {
         Reporter report = new Reporter(gitLabPluginConfiguration);
 
         report.setQualityGate(qualityGate);
 
-        if (publishMode) {
-            processIssues(report, newIssues);
-        } else {
-            processIssues(report, allIssues);
-        }
+        processIssues(report, issues);
 
         if (gitLabPluginConfiguration.tryReportIssuesInline() && report.hasFileLine()) {
             updateReviewComments(report);
@@ -85,14 +79,7 @@ public class ReporterBuilder {
         }
 
         if (!gitLabPluginConfiguration.jsonMode().equals(JsonMode.NONE)) {
-            List<Issue> jsonIssues;
-            if (!publishMode || gitLabPluginConfiguration.jsonReportAllIssues()) {
-                jsonIssues = allIssues;
-            } else {
-                jsonIssues = newIssues;
-            }
-
-            processIssuesForJSON(report, jsonIssues);
+            processIssuesForJSON(report, issues);
 
             String json = report.buildJson();
             commitFacade.writeJsonFile(json);
@@ -106,15 +93,15 @@ public class ReporterBuilder {
     }
 
     private void processIssues(Reporter report, List<Issue> issues) {
-        getStreamIssue(issues).sorted(ISSUE_COMPARATOR).forEach(i -> processIssue(report, i, false));
+        getStreamIssue(issues, gitLabPluginConfiguration.allIssues()).sorted(ISSUE_COMPARATOR).forEach(i -> processIssue(report, i, false));
     }
 
     private void processIssuesForJSON(Reporter report, List<Issue> issues) {
-        getStreamIssue(issues).sorted(ISSUE_COMPARATOR).forEach(i -> processIssue(report, i, true));
+        getStreamIssue(issues, gitLabPluginConfiguration.jsonReportAllIssues()).sorted(ISSUE_COMPARATOR).forEach(i -> processIssue(report, i, true));
     }
 
-    private Stream<Issue> getStreamIssue(List<Issue> issues) {
-        return issues.stream().filter(p -> gitLabPluginConfiguration.allIssues() || p.isNewIssue()).filter(i -> {
+    private Stream<Issue> getStreamIssue(List<Issue> issues, boolean allIssues) {
+        return issues.stream().filter(p -> allIssues || p.isNewIssue()).filter(i -> {
             if (gitLabPluginConfiguration.onlyIssueFromCommitLine()) {
                 return onlyIssueFromCommitLine(i);
             }

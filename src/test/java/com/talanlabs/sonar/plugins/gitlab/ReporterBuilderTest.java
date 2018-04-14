@@ -80,8 +80,7 @@ public class ReporterBuilderTest {
     public void testCommitAnalysisNoIssue1() {
         settings.setProperty(GitLabPlugin.GITLAB_COMMENT_NO_ISSUE, false);
 
-        List<Issue> emptyList = Collections.emptyList();
-        Reporter reporter = reporterBuilder.build(null, emptyList, emptyList, false);
+        Reporter reporter = reporterBuilder.build(null, Collections.emptyList());
         Mockito.verify(commitFacade, Mockito.never()).addGlobalComment(null);
         Assertions.assertThat(reporter).isNotNull().extracting(Reporter::getStatus, Reporter::getStatusDescription).contains("success", "SonarQube reported no issues");
     }
@@ -90,8 +89,7 @@ public class ReporterBuilderTest {
     public void testCommitAnalysisNoIssue2() {
         settings.setProperty(GitLabPlugin.GITLAB_COMMENT_NO_ISSUE, true);
 
-        List<Issue> emptyList = Collections.emptyList();
-        Reporter reporter = reporterBuilder.build(null, emptyList, emptyList, false);
+        Reporter reporter = reporterBuilder.build(null, Collections.emptyList());
         Mockito.verify(commitFacade).addGlobalComment("SonarQube analysis reported no issues.\n");
         Assertions.assertThat(reporter).isNotNull().extracting(Reporter::getStatus, Reporter::getStatusDescription).contains("success", "SonarQube reported no issues");
     }
@@ -122,8 +120,7 @@ public class ReporterBuilderTest {
         Mockito.when(commitFacade.hasFile(inputFile1)).thenReturn(true);
         Mockito.when(commitFacade.getRevisionForLine(inputFile1, 1)).thenReturn("abc123");
 
-        List<Issue> allIssues = Arrays.asList(newIssue, globalIssue, issueOnProject, issueOnDir, fileNotInPR, lineNotVisible, notNewIssue);
-        Reporter reporter = reporterBuilder.build(null, allIssues, Collections.emptyList(), false);
+        Reporter reporter = reporterBuilder.build(null, Arrays.asList(newIssue, globalIssue, issueOnProject, issueOnDir, fileNotInPR, lineNotVisible, notNewIssue));
         Mockito.verify(commitFacade).addGlobalComment(Mockito.contains("SonarQube analysis reported 6 issues"));
         Mockito.verify(commitFacade).addGlobalComment(Mockito.contains("* :no_entry: 6 blocker"));
         Mockito.verify(commitFacade).addGlobalComment(AdditionalMatchers.not(Mockito.contains("1. [Project")));
@@ -160,8 +157,7 @@ public class ReporterBuilderTest {
         Mockito.when(commitFacade.hasFile(inputFile1)).thenReturn(true);
         Mockito.when(commitFacade.getRevisionForLine(inputFile1, 1)).thenReturn("abc123");
 
-        List<Issue> allIssues = Arrays.asList(newIssue, globalIssue, issueOnProject, issueOnDir, fileNotInPR, lineNotVisible, notNewIssue);
-        Reporter reporter = reporterBuilder.build(null, allIssues, Collections.emptyList(), false);
+        Reporter reporter = reporterBuilder.build(null, Arrays.asList(newIssue, globalIssue, issueOnProject, issueOnDir, fileNotInPR, lineNotVisible, notNewIssue));
         Mockito.verify(commitFacade).addGlobalComment(Mockito.contains("SonarQube analysis reported 5 issues"));
         Mockito.verify(commitFacade).addGlobalComment(Mockito.contains("* :no_entry: 5 blocker"));
         Mockito.verify(commitFacade).addGlobalComment(AdditionalMatchers.not(Mockito.contains("1. [Project")));
@@ -199,8 +195,7 @@ public class ReporterBuilderTest {
         Mockito.when(commitFacade.hasFile(inputFile1)).thenReturn(true);
         Mockito.when(commitFacade.getRevisionForLine(inputFile1, 1)).thenReturn("abc123");
 
-        List<Issue> allIssues = Arrays.asList(newIssue, globalIssue, issueOnProject, issueOnDir, fileNotInPR, lineNotVisible, notNewIssue);
-        Reporter reporter = reporterBuilder.build(null, allIssues, Collections.emptyList(), false);
+        Reporter reporter = reporterBuilder.build(null, Arrays.asList(newIssue, globalIssue, issueOnProject, issueOnDir, fileNotInPR, lineNotVisible, notNewIssue));
         Mockito.verify(commitFacade).addGlobalComment(Mockito.contains("SonarQube analysis reported 1 issue"));
         Mockito.verify(commitFacade).addGlobalComment(Mockito.contains("* :no_entry: 1 blocker"));
         Mockito.verify(commitFacade).addGlobalComment(AdditionalMatchers.not(Mockito.contains("1. [Project")));
@@ -229,8 +224,7 @@ public class ReporterBuilderTest {
         Mockito.when(commitFacade.getRevisionForLine(inputFile1, 1)).thenReturn("abc123");
         Mockito.when(commitFacade.getRevisionForLine(inputFile1, 2)).thenReturn("abc123");
 
-        List<Issue> allIssues = Arrays.asList(newIssue1, newIssue2, newIssue3);
-        reporterBuilder.build(null, allIssues, Collections.emptyList(), false);
+        reporterBuilder.build(null, Arrays.asList(newIssue1, newIssue2, newIssue3));
 
         Mockito.verify(commitFacade).createOrUpdateReviewComment("abc123", inputFile1, 1,
                 ":no_entry: msg1 [:blue_book:](http://myserver/coding_rules#rule_key=repo%3Arule)\n" + ":no_entry: msg2 [:blue_book:](http://myserver/coding_rules#rule_key=repo%3Arule)");
@@ -269,8 +263,7 @@ public class ReporterBuilderTest {
         Mockito.when(commitFacade.hasFile(any(File.class))).thenReturn(true);
         Mockito.when(commitFacade.getRevisionForLine(any(File.class), anyInt())).thenReturn(null);
 
-        List<Issue> allIssues = Arrays.asList(newIssue, globalIssue, issueOnProject, newIssue4, newIssue2, issueInSecondFile, newIssue3);
-        reporterBuilder.build(null, allIssues, Collections.emptyList(), false);
+        reporterBuilder.build(null, Arrays.asList(newIssue, globalIssue, issueOnProject, newIssue4, newIssue2, issueInSecondFile, newIssue3));
 
         Mockito.verify(commitFacade).addGlobalComment(commentCaptor.capture());
 
@@ -287,7 +280,7 @@ public class ReporterBuilderTest {
         when(commitFacade.hasFile(inputFile1)).thenReturn(true);
         when(commitFacade.getRevisionForLine(inputFile1, 1)).thenReturn(null);
 
-        Reporter reporter = reporterBuilder.build(null, Collections.emptyList(), Collections.singletonList(newIssue), true);
+        Reporter reporter = reporterBuilder.build(null, Collections.singletonList(newIssue));
 
         Assertions.assertThat(reporter).isNotNull().extracting(Reporter::getStatus, Reporter::getStatusDescription).contains("failed", "SonarQube reported 1 issue, with 1 critical (fail)");
     }
@@ -301,7 +294,7 @@ public class ReporterBuilderTest {
         when(commitFacade.hasFile(inputFile1)).thenReturn(true);
         when(commitFacade.getRevisionForLine(inputFile1, 1)).thenReturn(null);
 
-        Reporter reporter = reporterBuilder.build(null, Collections.emptyList(), Collections.singletonList(newIssue), true);
+        Reporter reporter = reporterBuilder.build(null, Collections.singletonList(newIssue));
 
         Assertions.assertThat(reporter).isNotNull().extracting(Reporter::getStatus, Reporter::getStatusDescription).contains("success", "SonarQube reported 1 issue, with 1 major");
     }
@@ -318,8 +311,7 @@ public class ReporterBuilderTest {
         when(commitFacade.hasFile(inputFile1)).thenReturn(true);
         when(commitFacade.getRevisionForLine(inputFile1, 1)).thenReturn(null);
 
-        List<Issue> allIssues = Arrays.asList(newIssue, lineNotVisible);
-        Reporter reporter = reporterBuilder.build(null, Collections.emptyList(), allIssues, true);
+        Reporter reporter = reporterBuilder.build(null, Arrays.asList(newIssue, lineNotVisible));
 
         Assertions.assertThat(reporter).isNotNull().extracting(Reporter::getStatus, Reporter::getStatusDescription)
                 .contains("failed", "SonarQube reported 2 issues, with 1 blocker (fail) and 1 critical (fail)");
@@ -330,7 +322,7 @@ public class ReporterBuilderTest {
         settings.setProperty(GitLabPlugin.GITLAB_COMMENT_NO_ISSUE, false);
         settings.setProperty(GitLabPlugin.GITLAB_STATUS_NOTIFICATION_MODE, StatusNotificationsMode.EXIT_CODE.getMeaning());
 
-        reporterBuilder.build(null, Collections.emptyList(), Collections.emptyList(), false);
+        reporterBuilder.build(null, Collections.emptyList());
         Mockito.verify(commitFacade, Mockito.never()).addGlobalComment(null);
         Mockito.verify(commitFacade, Mockito.never()).createOrUpdateSonarQubeStatus("success", "SonarQube reported no issues");
     }
@@ -362,8 +354,7 @@ public class ReporterBuilderTest {
         Mockito.when(commitFacade.hasFile(inputFile1)).thenReturn(true);
         Mockito.when(commitFacade.getRevisionForLine(inputFile1, 1)).thenReturn(null);
 
-        List<Issue> allIssues = Arrays.asList(newIssue, globalIssue, issueOnProject, issueOnDir, fileNotInPR, lineNotVisible, notNewIssue);
-        reporterBuilder.build(null, allIssues, Collections.emptyList(), false);
+        reporterBuilder.build(null, Arrays.asList(newIssue, globalIssue, issueOnProject, issueOnDir, fileNotInPR, lineNotVisible, notNewIssue));
 
         Mockito.verify(commitFacade, Mockito.never()).addGlobalComment(Mockito.contains("SonarQube analysis reported 6 issues"));
         Mockito.verify(commitFacade, Mockito.never()).createOrUpdateSonarQubeStatus("failed", "SonarQube reported 6 issues, with 6 blocker");
@@ -380,7 +371,7 @@ public class ReporterBuilderTest {
         when(commitFacade.hasFile(inputFile1)).thenReturn(true);
         when(commitFacade.getRevisionForLine(inputFile1, 1)).thenReturn(null);
 
-        reporterBuilder.build(null, Collections.singletonList(newIssue), Collections.emptyList(), false);
+        reporterBuilder.build(null, Collections.singletonList(newIssue));
 
         Mockito.verify(commitFacade, Mockito.never()).createOrUpdateSonarQubeStatus("success", "SonarQube reported 1 issue, no criticals or blockers");
     }
@@ -398,8 +389,7 @@ public class ReporterBuilderTest {
         Mockito.when(commitFacade.hasFile(inputFile1)).thenReturn(true);
         Mockito.when(commitFacade.getRevisionForLine(inputFile1, 1)).thenReturn("abc123");
 
-        List<Issue> allIssues = Arrays.asList(newIssue1, newIssue2);
-        reporterBuilder.build(null, allIssues, Collections.emptyList(), false);
+        reporterBuilder.build(null, Arrays.asList(newIssue1, newIssue2));
 
         Mockito.verify(commitFacade).createOrUpdateReviewComment("abc123", inputFile1, 1, ":no_entry: msg1 [:blue_book:](http://myserver/coding_rules#rule_key=repo%3Arule)");
         Mockito.verify(commitFacade).createOrUpdateReviewComment("abc123", inputFile1, 1, ":no_entry: msg2 [:blue_book:](http://myserver/coding_rules#rule_key=repo%3Arule)");
@@ -420,8 +410,7 @@ public class ReporterBuilderTest {
         Mockito.when(commitFacade.hasSameCommitCommentsForFile("abc123", inputFile1, 1, ":no_entry: msg1 [:blue_book:](http://myserver/coding_rules#rule_key=repo%3Arule)")).thenReturn(true);
         Mockito.when(commitFacade.hasSameCommitCommentsForFile("abc123", inputFile1, 1, ":no_entry: msg2 [:blue_book:](http://myserver/coding_rules#rule_key=repo%3Arule)")).thenReturn(false);
 
-        List<Issue> allIssues = Arrays.asList(newIssue1, newIssue2);
-        reporterBuilder.build(null, allIssues, Collections.emptyList(), false);
+        reporterBuilder.build(null, Arrays.asList(newIssue1, newIssue2));
 
         Mockito.verify(commitFacade, never()).createOrUpdateReviewComment("abc123", inputFile1, 1, ":no_entry: msg1 [:blue_book:](http://myserver/coding_rules#rule_key=repo%3Arule)");
         Mockito.verify(commitFacade).createOrUpdateReviewComment("abc123", inputFile1, 1, ":no_entry: msg2 [:blue_book:](http://myserver/coding_rules#rule_key=repo%3Arule)");
@@ -440,7 +429,7 @@ public class ReporterBuilderTest {
         Mockito.when(commitFacade.hasFile(inputFile1)).thenReturn(true);
         Mockito.when(commitFacade.getRevisionForLine(inputFile1, 1)).thenReturn("abc123");
 
-        reporterBuilder.build(null, Collections.singletonList(newIssue1), Collections.emptyList(), false);
+        reporterBuilder.build(null, Collections.singletonList(newIssue1));
 
         Mockito.verify(commitFacade, never()).createOrUpdateReviewComment("abc123", inputFile1, 1, "");
     }
@@ -456,7 +445,7 @@ public class ReporterBuilderTest {
         Mockito.when(commitFacade.hasFile(inputFile1)).thenReturn(true);
         Mockito.when(commitFacade.getRevisionForLine(inputFile1, 1)).thenReturn("abc123");
 
-        reporterBuilder.build(null, Collections.singletonList(newIssue1), Collections.emptyList(), false);
+        reporterBuilder.build(null, Collections.singletonList(newIssue1));
 
         Mockito.verify(commitFacade, never()).addGlobalComment("");
     }
@@ -487,8 +476,7 @@ public class ReporterBuilderTest {
         Mockito.when(commitFacade.hasFile(inputFile1)).thenReturn(true);
         Mockito.when(commitFacade.getRevisionForLine(inputFile1, 1)).thenReturn("abc123");
 
-        List<Issue> allIssues = Arrays.asList(newIssue, globalIssue, issueOnProject, issueOnDir, fileNotInPR, lineNotVisible, notNewIssue);
-        Reporter reporter = reporterBuilder.build(null, allIssues, Collections.emptyList(), false);
+        Reporter reporter = reporterBuilder.build(null, Arrays.asList(newIssue, globalIssue, issueOnProject, issueOnDir, fileNotInPR, lineNotVisible, notNewIssue));
         Mockito.verify(commitFacade).addGlobalComment(Mockito.contains("SonarQube analysis reported 7 issues"));
         Mockito.verify(commitFacade).addGlobalComment(Mockito.contains("* :no_entry: 7 blocker"));
         Mockito.verify(commitFacade).addGlobalComment(AdditionalMatchers.not(Mockito.contains("1. [Project")));
@@ -526,8 +514,7 @@ public class ReporterBuilderTest {
         Mockito.when(commitFacade.hasFile(inputFile1)).thenReturn(true);
         Mockito.when(commitFacade.getRevisionForLine(inputFile1, 1)).thenReturn("abc123");
 
-        List<Issue> allIssues = Arrays.asList(newIssue, globalIssue, issueOnProject, issueOnDir, fileNotInPR, lineNotVisible, notNewIssue);
-        reporterBuilder.build(null, allIssues, Collections.emptyList(), false);
+        reporterBuilder.build(null, Arrays.asList(newIssue, globalIssue, issueOnProject, issueOnDir, fileNotInPR, lineNotVisible, notNewIssue));
 
         Mockito.verify(commitFacade).writeJsonFile(Mockito.contains(
                 "[{\"tool\":\"sonarqube\",\"fingerprint\":\"null\",\"message\":\"msg\",\"file\":\"null\",\"line\":\"0\",\"priority\":\"BLOCKER\",\"solution\":\"http://myserver/coding_rules#rule_key=repo%3Arule\"},{\"tool\":\"sonarqube\",\"fingerprint\":\"null\",\"message\":\"msg4\",\"file\":\"null\",\"line\":\"0\",\"priority\":\"BLOCKER\",\"solution\":\"http://myserver/coding_rules#rule_key=repo%3Arule\"},{\"tool\":\"sonarqube\",\"fingerprint\":\"null\",\"message\":\"msg5\",\"file\":\"null\",\"line\":\"0\",\"priority\":\"BLOCKER\",\"solution\":\"http://myserver/coding_rules#rule_key=repo%3Arule\"},{\"tool\":\"sonarqube\",\"fingerprint\":\"null\",\"message\":\"msg1\",\"file\":\"null\",\"line\":\"1\",\"priority\":\"BLOCKER\",\"solution\":\"http://myserver/coding_rules#rule_key=repo%3Arule\"},{\"tool\":\"sonarqube\",\"fingerprint\":\"null\",\"message\":\"msg2\",\"file\":\"null\",\"line\":\"2\",\"priority\":\"BLOCKER\",\"solution\":\"http://myserver/coding_rules#rule_key=repo%3Arule\"},{\"tool\":\"sonarqube\",\"fingerprint\":\"null\",\"message\":\"msg3\",\"file\":\"null\",\"line\":\"1\",\"priority\":\"BLOCKER\",\"solution\":\"http://myserver/coding_rules#rule_key=repo%3Arule\"}]"));
@@ -561,8 +548,7 @@ public class ReporterBuilderTest {
         Mockito.when(commitFacade.hasFile(inputFile1)).thenReturn(true);
         Mockito.when(commitFacade.getRevisionForLine(inputFile1, 1)).thenReturn("abc123");
 
-        List<Issue> allIssues = Arrays.asList(newIssue, globalIssue, issueOnProject, issueOnDir, fileNotInPR, lineNotVisible, notNewIssue);
-        reporterBuilder.build(null, allIssues, Collections.emptyList(), false);
+        reporterBuilder.build(null, Arrays.asList(newIssue, globalIssue, issueOnProject, issueOnDir, fileNotInPR, lineNotVisible, notNewIssue));
 
         Mockito.verify(commitFacade).writeJsonFile(Mockito.contains(
                 "[{\"fingerprint\":\"null\",\"check_name\":\"msg\",\"location\":{\"path\":\"null\",\"lines\": { \"begin\":0,\"end\":0}}},{\"fingerprint\":\"null\",\"check_name\":\"msg4\",\"location\":{\"path\":\"null\",\"lines\": { \"begin\":0,\"end\":0}}},{\"fingerprint\":\"null\",\"check_name\":\"msg5\",\"location\":{\"path\":\"null\",\"lines\": { \"begin\":0,\"end\":0}}},{\"fingerprint\":\"null\",\"check_name\":\"msg1\",\"location\":{\"path\":\"null\",\"lines\": { \"begin\":1,\"end\":1}}},{\"fingerprint\":\"null\",\"check_name\":\"msg2\",\"location\":{\"path\":\"null\",\"lines\": { \"begin\":2,\"end\":2}}},{\"fingerprint\":\"null\",\"check_name\":\"msg3\",\"location\":{\"path\":\"null\",\"lines\": { \"begin\":1,\"end\":1}}}]"));
@@ -596,8 +582,7 @@ public class ReporterBuilderTest {
         Mockito.when(commitFacade.hasFile(inputFile1)).thenReturn(true);
         Mockito.when(commitFacade.getRevisionForLine(inputFile1, 1)).thenReturn("abc123");
 
-        List<Issue> allIssues = Arrays.asList(newIssue, globalIssue, issueOnProject, issueOnDir, fileNotInPR, lineNotVisible, notNewIssue);
-        reporterBuilder.build(null, allIssues, Collections.emptyList(), false);
+        reporterBuilder.build(null, Arrays.asList(newIssue, globalIssue, issueOnProject, issueOnDir, fileNotInPR, lineNotVisible, notNewIssue));
 
         Mockito.verify(commitFacade, never()).writeJsonFile(any());
     }
@@ -629,8 +614,7 @@ public class ReporterBuilderTest {
         Mockito.when(commitFacade.hasFile(inputFile1)).thenReturn(true);
         Mockito.when(commitFacade.getRevisionForLine(inputFile1, 1)).thenReturn("abc123");
 
-        List<Issue> allIssues = Arrays.asList(newIssue, globalIssue, issueOnProject, issueOnDir, fileNotInPR, lineNotVisible, notNewIssue);
-        Reporter reporter = reporterBuilder.build(null, allIssues, Collections.emptyList(), false);
+        Reporter reporter = reporterBuilder.build(null, Arrays.asList(newIssue, globalIssue, issueOnProject, issueOnDir, fileNotInPR, lineNotVisible, notNewIssue));
         Mockito.verify(commitFacade).addGlobalComment(Mockito.contains("SonarQube analysis reported 4 issues"));
         Mockito.verify(commitFacade).addGlobalComment(Mockito.contains("* :no_entry: 2 blocker"));
         Mockito.verify(commitFacade).addGlobalComment(Mockito.contains("* :no_entry_sign: 2 critical"));
@@ -647,8 +631,7 @@ public class ReporterBuilderTest {
     public void testCommitAnalysisQualityGateNoIssue1() {
         settings.setProperty(GitLabPlugin.GITLAB_COMMENT_NO_ISSUE, false);
 
-        QualityGate qualityGate = QualityGate.newBuilder().status(QualityGate.Status.OK).conditions(Collections.emptyList()).build();
-        Reporter reporter = reporterBuilder.build(qualityGate, Collections.emptyList(), Collections.emptyList(), false);
+        Reporter reporter = reporterBuilder.build(QualityGate.newBuilder().status(QualityGate.Status.OK).conditions(Collections.emptyList()).build(), Collections.emptyList());
         Mockito.verify(commitFacade, Mockito.never()).addGlobalComment(null);
         Assertions.assertThat(reporter).isNotNull().extracting(Reporter::getStatus, Reporter::getStatusDescription).contains("success", "SonarQube reported QualityGate is ok, with no conditions, no issues");
     }
@@ -657,8 +640,7 @@ public class ReporterBuilderTest {
     public void testCommitAnalysisQualityGateNoIssue2() {
         settings.setProperty(GitLabPlugin.GITLAB_COMMENT_NO_ISSUE, true);
 
-        QualityGate qualityGate = QualityGate.newBuilder().status(QualityGate.Status.OK).conditions(Collections.emptyList()).build();
-        Reporter reporter = reporterBuilder.build(qualityGate, Collections.emptyList(), Collections.emptyList(), false);
+        Reporter reporter = reporterBuilder.build(QualityGate.newBuilder().status(QualityGate.Status.OK).conditions(Collections.emptyList()).build(), Collections.emptyList());
         Mockito.verify(commitFacade).addGlobalComment("SonarQube analysis indicates that quality gate is passed.\n\nSonarQube analysis reported no issues.\n");
         Assertions.assertThat(reporter).isNotNull().extracting(Reporter::getStatus, Reporter::getStatusDescription).contains("success", "SonarQube reported QualityGate is ok, with no conditions, no issues");
     }
@@ -674,8 +656,7 @@ public class ReporterBuilderTest {
         conditions.add(QualityGate.Condition.newBuilder().status(QualityGate.Status.WARN).metricKey("toto").metricName("Toto4").actual("14").symbol(">").warning("20").error("30").build());
         conditions.add(QualityGate.Condition.newBuilder().status(QualityGate.Status.WARN).metricKey("toto").metricName("Toto5").actual("15").symbol("=").warning("10").error("").build());
 
-        QualityGate qualityGate = QualityGate.newBuilder().status(QualityGate.Status.WARN).conditions(conditions).build();
-        Reporter reporter = reporterBuilder.build(qualityGate, Collections.emptyList(), Collections.emptyList(), false);
+        Reporter reporter = reporterBuilder.build(QualityGate.newBuilder().status(QualityGate.Status.WARN).conditions(conditions).build(), Collections.emptyList());
         Mockito.verify(commitFacade).addGlobalComment(
                 "SonarQube analysis indicates that quality gate is warning.\n" + "* Toto1 is passed: Actual value 10\n" + "* Toto2 is passed: Actual value 11\n"
                         + "* Toto3 is passed: Actual value 13\n" + "* Toto4 is warning: Actual value 14 > 20\n" + "* Toto5 is warning: Actual value 15 = 10\n" + "\n"
@@ -694,8 +675,7 @@ public class ReporterBuilderTest {
         conditions.add(QualityGate.Condition.newBuilder().status(QualityGate.Status.WARN).metricKey("toto").metricName("Toto4").actual("14").symbol(">").warning("20").error("30").build());
         conditions.add(QualityGate.Condition.newBuilder().status(QualityGate.Status.WARN).metricKey("toto").metricName("Toto5").actual("15").symbol("=").warning("10").error("").build());
 
-        QualityGate qualityGate = QualityGate.newBuilder().status(QualityGate.Status.ERROR).conditions(conditions).build();
-        Reporter reporter = reporterBuilder.build(qualityGate, Collections.emptyList(), Collections.emptyList(), false);
+        Reporter reporter = reporterBuilder.build(QualityGate.newBuilder().status(QualityGate.Status.ERROR).conditions(conditions).build(), Collections.emptyList());
         Mockito.verify(commitFacade).addGlobalComment(
                 "SonarQube analysis indicates that quality gate is failed.\n" + "* Toto1 is failed: Actual value 10 < 0\n" + "* Toto2 is failed: Actual value 11 >= 10\n"
                         + "* Toto3 is passed: Actual value 13\n" + "* Toto4 is warning: Actual value 14 > 20\n" + "* Toto5 is warning: Actual value 15 = 10\n" + "\n"
@@ -736,9 +716,7 @@ public class ReporterBuilderTest {
         conditions.add(QualityGate.Condition.newBuilder().status(QualityGate.Status.WARN).metricKey("toto").metricName("Toto4").actual("14").symbol(">").warning("20").error("30").build());
         conditions.add(QualityGate.Condition.newBuilder().status(QualityGate.Status.WARN).metricKey("toto").metricName("Toto5").actual("15").symbol("=").warning("10").error("").build());
 
-        QualityGate qualityGate = QualityGate.newBuilder().status(QualityGate.Status.OK).conditions(conditions).build();
-        List<Issue> allIssues = Arrays.asList(newIssue, globalIssue, issueOnProject, issueOnDir, fileNotInPR, lineNotVisible, notNewIssue);
-        Reporter reporter = reporterBuilder.build(qualityGate, allIssues, Collections.emptyList(), false);
+        Reporter reporter = reporterBuilder.build(QualityGate.newBuilder().status(QualityGate.Status.OK).conditions(conditions).build(), Arrays.asList(newIssue, globalIssue, issueOnProject, issueOnDir, fileNotInPR, lineNotVisible, notNewIssue));
 
         Mockito.verify(commitFacade).addGlobalComment(
                 "SonarQube analysis indicates that quality gate is passed.\n" + "* Toto1 is failed: Actual value 10 < 0\n" + "* Toto2 is failed: Actual value 11 >= 10\n"
@@ -765,63 +743,10 @@ public class ReporterBuilderTest {
         when(commitFacade.hasFile(inputFile1)).thenReturn(true);
         when(commitFacade.getRevisionForLine(inputFile1, 1)).thenReturn(null);
 
-        Reporter reporter = reporterBuilder.build(null, Collections.singletonList(newIssue), Collections.emptyList(), false);
+        Reporter reporter = reporterBuilder.build(null, Collections.singletonList(newIssue));
 
         Assertions.assertThat(reporter).isNotNull().extracting(Reporter::getStatus, Reporter::getStatusDescription).contains("failed", "SonarQube reported 1 issue, with 1 critical (fail)");
 
         Mockito.verify(sonarFacade).getRule("repo:rule");
-    }
-
-    @Test
-    public void testJsonReportAllIssuesInPublishMode() {
-        settings.setProperty(GitLabPlugin.GITLAB_JSON_MODE, JsonMode.CODECLIMATE.name());
-        settings.setProperty(GitLabPlugin.GITLAB_JSON_ALL_ISSUES, "true");
-
-        File inputFile1 = new File("src/Foo.php");
-        Issue newIssue = Utils.newIssue("foo:src/Foo.php", inputFile1, 1, Severity.BLOCKER, true, "msg1");
-        Mockito.when(commitFacade.getGitLabUrl(null, inputFile1, 1)).thenReturn("http://gitlab/blob/abc123/src/Foo.php#L1");
-        Mockito.when(commitFacade.getRuleLink("repo:rule")).thenReturn("http://myserver/coding_rules#rule_key=repo%3Arule");
-
-        Issue lineNotVisible = Utils.newIssue("foo:src/Foo.php", inputFile1, 2, Severity.BLOCKER, true, "msg2");
-        Mockito.when(commitFacade.getGitLabUrl(null, inputFile1, 2)).thenReturn("http://gitlab/blob/abc123/src/Foo.php#L2");
-
-        Mockito.when(commitFacade.hasFile(inputFile1)).thenReturn(true);
-        Mockito.when(commitFacade.getRevisionForLine(inputFile1, 1)).thenReturn("abc123");
-
-        List<Issue> newIssues = Collections.singletonList(newIssue);
-        List<Issue> allIssues = Arrays.asList(newIssue, lineNotVisible);
-
-        Reporter reporter = reporterBuilder.build(null, allIssues, newIssues, true);
-
-        // verify JSON reports everything (2 issues), and that regular report mentions only 1 issue
-        Assertions.assertThat(reporter).isNotNull().extracting(Reporter::getStatus, Reporter::getStatusDescription).contains("failed", "SonarQube reported 1 issue, with 1 blocker (fail)");
-        Mockito.verify(commitFacade).writeJsonFile(Mockito.eq(
-                "[{\"fingerprint\":\"null\",\"check_name\":\"msg1\",\"location\":{\"path\":\"null\",\"lines\": { \"begin\":1,\"end\":1}}},{\"fingerprint\":\"null\",\"check_name\":\"msg2\",\"location\":{\"path\":\"null\",\"lines\": { \"begin\":2,\"end\":2}}}]"));
-    }
-
-    @Test
-    public void testJsonReportNewIssuesInPublishMode() {
-        settings.setProperty(GitLabPlugin.GITLAB_JSON_MODE, JsonMode.CODECLIMATE.name());
-
-        File inputFile1 = new File("src/Foo.php");
-        Issue newIssue = Utils.newIssue("foo:src/Foo.php", inputFile1, 1, Severity.BLOCKER, true, "msg1");
-        Mockito.when(commitFacade.getGitLabUrl(null, inputFile1, 1)).thenReturn("http://gitlab/blob/abc123/src/Foo.php#L1");
-        Mockito.when(commitFacade.getRuleLink("repo:rule")).thenReturn("http://myserver/coding_rules#rule_key=repo%3Arule");
-
-        Issue lineNotVisible = Utils.newIssue("foo:src/Foo.php", inputFile1, 2, Severity.BLOCKER, true, "msg2");
-        Mockito.when(commitFacade.getGitLabUrl(null, inputFile1, 2)).thenReturn("http://gitlab/blob/abc123/src/Foo.php#L2");
-
-        Mockito.when(commitFacade.hasFile(inputFile1)).thenReturn(true);
-        Mockito.when(commitFacade.getRevisionForLine(inputFile1, 1)).thenReturn("abc123");
-
-        List<Issue> newIssues = Collections.singletonList(newIssue);
-        List<Issue> allIssues = Arrays.asList(newIssue, lineNotVisible);
-
-        Reporter reporter = reporterBuilder.build(null, allIssues, newIssues, true);
-
-        // verify JSON reports new issue only, just like regular report
-        Assertions.assertThat(reporter).isNotNull().extracting(Reporter::getStatus, Reporter::getStatusDescription).contains("failed", "SonarQube reported 1 issue, with 1 blocker (fail)");
-        Mockito.verify(commitFacade).writeJsonFile(Mockito.eq(
-                "[{\"fingerprint\":\"null\",\"check_name\":\"msg1\",\"location\":{\"path\":\"null\",\"lines\": { \"begin\":1,\"end\":1}}}]"));
     }
 }
