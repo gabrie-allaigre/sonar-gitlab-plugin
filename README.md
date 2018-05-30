@@ -612,7 +612,7 @@ mvn --batch-mode verify sonar:sonar
       -Dsonar.host.url=http://<your_sonar_url>:9000
       -Dsonar.login=<your_sonar_login>
       -Dsonar.analysis.mode=preview
-      -Dsonar.gitlab.commit_sha=$CI_COMMIT_REF
+      -Dsonar.gitlab.commit_sha=$CI_COMMIT_SHA
       -Dsonar.gitlab.ref_name=$CI_COMMIT_REF_NAME
       -Dsonar.gitlab.project_id=$CI_PROJECT_ID
       -Dsonar.gitlab.url=http://<your_gitlab_url>
