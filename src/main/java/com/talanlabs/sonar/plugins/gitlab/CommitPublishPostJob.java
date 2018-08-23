@@ -44,6 +44,8 @@ import java.util.stream.StreamSupport;
 public class CommitPublishPostJob implements PostJob {
 
     private static final Logger LOG = Loggers.get(CommitPublishPostJob.class);
+    private static final String SONAR_PROJECT_BASE_DIR = "sonar.projectBaseDir";
+    private static final String SONAR_WORKING_DIRECTORY = "sonar.working.directory";
 
     private final GitLabPluginConfiguration gitLabPluginConfiguration;
     private final SonarFacade sonarFacade;
@@ -60,12 +62,23 @@ public class CommitPublishPostJob implements PostJob {
     @Override
     public void describe(PostJobDescriptor descriptor) {
         descriptor.name("GitLab Commit Issue Publisher")
-                .requireProperty(GitLabPlugin.GITLAB_URL, GitLabPlugin.GITLAB_USER_TOKEN, GitLabPlugin.GITLAB_PROJECT_ID, GitLabPlugin.GITLAB_COMMIT_SHA, GitLabPlugin.GITLAB_REF_NAME);
+                .requireProperty(GitLabPlugin.GITLAB_URL, GitLabPlugin.GITLAB_USER_TOKEN, GitLabPlugin.GITLAB_PROJECT_ID,
+                        GitLabPlugin.GITLAB_COMMIT_SHA, GitLabPlugin.GITLAB_REF_NAME, SONAR_PROJECT_BASE_DIR, SONAR_WORKING_DIRECTORY);
     }
 
     @Override
     public void execute(PostJobContext context) {
         try {
+            if (!gitLabPluginConfiguration.isEnabled()) {
+                return;
+            }
+            File baseDir = fileFromProperty(context, "sonar.projectBaseDir");
+            sonarFacade.init(baseDir, fileFromProperty(context, "sonar.working.directory"));
+            commitFacade.init(baseDir);
+
+            if (StatusNotificationsMode.COMMIT_STATUS.equals(gitLabPluginConfiguration.statusNotificationsMode())) {
+                commitFacade.createOrUpdateSonarQubeStatus(gitLabPluginConfiguration.buildInitState().getMeaning(), "SonarQube analysis in progress");
+            }
             QualityGate qualityGate;
             List<Issue> issues;
             if (context.analysisMode().isPublish()) {
@@ -93,6 +106,11 @@ public class CommitPublishPostJob implements PostJob {
 
             throw MessageException.of(MessageHelper.sonarQubeFailed(e.getMessage()), e);
         }
+    }
+
+    @SuppressWarnings("OptionalGetWithoutIsPresent")
+    private File fileFromProperty(PostJobContext context, String property) {
+        return new File(context.config().get(property).get());
     }
 
     private List<Issue> toIssues(Iterable<PostJobIssue> postJobIssues) {
