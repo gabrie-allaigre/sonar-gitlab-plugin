@@ -413,7 +413,7 @@ Usage : `${name}`
 | MAJOR | Severity | Major |
 | MINOR | Severity | Minor |
 | INFO | Severity | Info |
-| baseUrl | String | Url of SonarQube |
+| sonarUrl | String | Url of SonarQube |
 | publishMode | Boolean | true if publish mode |
 | qualityGate | QualityGate | QualityGate |
 | OK | Status | Passed QualityGate & Condition status only Global Comment |
