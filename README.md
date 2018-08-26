@@ -7,6 +7,11 @@ Inspired by https://github.com/SonarCommunity/sonar-github
 
 # Changelog
 
+## Version 3.1.0-SNAPSHOT
+
+### Fixed
+- Using properties instead of depending on the deprecated, work with SonarQube 7.2 #162 (Thanks dmarin)
+
 ## Version 3.0.1
 
 ### Changed
