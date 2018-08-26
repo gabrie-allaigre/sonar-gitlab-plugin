@@ -20,7 +20,7 @@
     <freemarker.version>2.3.23</freemarker.version>
     <commons-lang3.version>3.5</commons-lang3.version>
 
-    <license.mailto>gabriel.allaigre@talanlabs.com</license.mailto>
+    <license.mailto>gabriel.allaigre@gmail.com</license.mailto>
     <license.owner>Talanlabs</license.owner>
 
     <sonar.version>7.0</sonar.version>
@@ -54,7 +54,7 @@
   <developers>
     <developer>
       <name>Gabriel Allaigre</name>
-      <email>gabriel.allaigre@talan.com</email>
+      <email>gabriel.allaigre@gmail.com</email>
     </developer>
   </developers>
   <contributors>
@@ -79,6 +79,9 @@
     </contributor>
     <contributor>
       <name>Eugene Dubrovka</name>
+    </contributor>
+    <contributor>
+      <name>David Marin Vaquero</name>
     </contributor>
   </contributors>
   <scm>

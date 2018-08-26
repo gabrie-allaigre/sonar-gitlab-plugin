@@ -62,8 +62,8 @@ public class CommitPublishPostJob implements PostJob {
     @Override
     public void describe(PostJobDescriptor descriptor) {
         descriptor.name("GitLab Commit Issue Publisher")
-                .requireProperty(GitLabPlugin.GITLAB_URL, GitLabPlugin.GITLAB_USER_TOKEN, GitLabPlugin.GITLAB_PROJECT_ID,
-                        GitLabPlugin.GITLAB_COMMIT_SHA, GitLabPlugin.GITLAB_REF_NAME, SONAR_PROJECT_BASE_DIR, SONAR_WORKING_DIRECTORY);
+                .requireProperty(GitLabPlugin.GITLAB_URL, GitLabPlugin.GITLAB_USER_TOKEN, GitLabPlugin.GITLAB_PROJECT_ID, GitLabPlugin.GITLAB_COMMIT_SHA, GitLabPlugin.GITLAB_REF_NAME,
+                        SONAR_PROJECT_BASE_DIR, SONAR_WORKING_DIRECTORY);
     }
 
     @Override
@@ -72,8 +72,15 @@ public class CommitPublishPostJob implements PostJob {
             if (!gitLabPluginConfiguration.isEnabled()) {
                 return;
             }
-            File baseDir = fileFromProperty(context, "sonar.projectBaseDir");
-            sonarFacade.init(baseDir, fileFromProperty(context, "sonar.working.directory"));
+            File baseDir = fileFromProperty(context, SONAR_PROJECT_BASE_DIR);
+            if (baseDir == null) {
+                throw MessageException.of("BaseDir is null");
+            }
+            File workDir = fileFromProperty(context, SONAR_WORKING_DIRECTORY);
+            if (workDir == null) {
+                throw MessageException.of("WorkingDir is null");
+            }
+            sonarFacade.init(baseDir, workDir);
             commitFacade.init(baseDir);
 
             if (StatusNotificationsMode.COMMIT_STATUS.equals(gitLabPluginConfiguration.statusNotificationsMode())) {
@@ -108,9 +115,9 @@ public class CommitPublishPostJob implements PostJob {
         }
     }
 
-    @SuppressWarnings("OptionalGetWithoutIsPresent")
     private File fileFromProperty(PostJobContext context, String property) {
-        return new File(context.config().get(property).get());
+        String value = context.config().get(property).orElse(null);
+        return value != null ? new File(value) : null;
     }
 
     private List<Issue> toIssues(Iterable<PostJobIssue> postJobIssues) {
@@ -125,16 +132,8 @@ public class CommitPublishPostJob implements PostJob {
         if (postJobIssue.inputComponent() instanceof InputFile) {
             file = ((InputFile) Objects.requireNonNull(postJobIssue.inputComponent())).file();
         }
-        return Issue.newBuilder()
-                .key(postJobIssue.key())
-                .componentKey(postJobIssue.componentKey())
-                .severity(postJobIssue.severity())
-                .ruleKey(postJobIssue.ruleKey().toString())
-                .message(postJobIssue.message())
-                .line(postJobIssue.line())
-                .file(file)
-                .newIssue(postJobIssue.isNew())
-                .build();
+        return Issue.newBuilder().key(postJobIssue.key()).componentKey(postJobIssue.componentKey()).severity(postJobIssue.severity()).ruleKey(postJobIssue.ruleKey().toString())
+                .message(postJobIssue.message()).line(postJobIssue.line()).file(file).newIssue(postJobIssue.isNew()).build();
     }
 
     private void notification(Reporter report) {
@@ -143,15 +142,15 @@ public class CommitPublishPostJob implements PostJob {
         String message = String.format("Report status=%s, desc=%s", status, statusDescription);
 
         switch (gitLabPluginConfiguration.statusNotificationsMode()) {
-            case COMMIT_STATUS:
-                notificationCommitStatus(status, statusDescription, message);
-                break;
-            case EXIT_CODE:
-                notificationCommitStatus(status, message);
-                break;
-            case NOTHING:
-                LOG.info(message);
-                break;
+        case COMMIT_STATUS:
+            notificationCommitStatus(status, statusDescription, message);
+            break;
+        case EXIT_CODE:
+            notificationCommitStatus(status, message);
+            break;
+        case NOTHING:
+            LOG.info(message);
+            break;
         }
     }
 
