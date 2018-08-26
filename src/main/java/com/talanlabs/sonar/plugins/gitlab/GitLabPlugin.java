@@ -158,6 +158,6 @@ public class GitLabPlugin implements Plugin {
 
     @Override
     public void define(Context context) {
-        context.addExtensions(ReporterBuilder.class, GitLabPluginConfiguration.class, CommitProjectBuilder.class, CommitFacade.class, SonarFacade.class, MarkDownUtils.class, CommitPublishPostJob.class).addExtensions(definitions());
+        context.addExtensions(ReporterBuilder.class, GitLabPluginConfiguration.class, CommitFacade.class, SonarFacade.class, MarkDownUtils.class, CommitPublishPostJob.class).addExtensions(definitions());
     }
 }

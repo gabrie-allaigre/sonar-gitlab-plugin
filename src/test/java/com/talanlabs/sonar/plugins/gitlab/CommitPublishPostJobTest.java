@@ -33,8 +33,10 @@ import org.sonar.api.batch.postjob.PostJobContext;
 import org.sonar.api.batch.postjob.internal.DefaultPostJobDescriptor;
 import org.sonar.api.batch.postjob.issue.PostJobIssue;
 import org.sonar.api.batch.rule.Severity;
+import org.sonar.api.config.Configuration;
 import org.sonar.api.config.PropertyDefinition;
 import org.sonar.api.config.PropertyDefinitions;
+import org.sonar.api.config.internal.ConfigurationBridge;
 import org.sonar.api.config.internal.MapSettings;
 import org.sonar.api.utils.MessageException;
 import org.sonar.api.utils.System2;
@@ -42,6 +44,7 @@ import org.sonar.api.utils.System2;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
@@ -66,6 +69,8 @@ public class CommitPublishPostJobTest {
                 .category(CoreProperties.CATEGORY_GENERAL).defaultValue(CoreProperties.SERVER_BASE_URL_DEFAULT_VALUE).build()).addComponents(GitLabPlugin.definitions()));
         settings.setProperty(CoreProperties.SERVER_BASE_URL, "http://myserver");
         settings.setProperty(GitLabPlugin.GITLAB_COMMIT_SHA, "abc123");
+        settings.setProperty("sonar.projectBaseDir", "projectBaseDir");
+        settings.setProperty("sonar.working.directory", "workingDir");
 
         sonarFacade = Mockito.mock(SonarFacade.class);
 
@@ -77,6 +82,7 @@ public class CommitPublishPostJobTest {
         when(analysisMode.isPublish()).thenReturn(false);
         context = Mockito.mock(PostJobContext.class);
         when(context.analysisMode()).thenReturn(analysisMode);
+        when(context.config()).thenReturn(new ConfigurationBridge(settings));
 
         GitLabPluginConfiguration config = new GitLabPluginConfiguration(settings.asConfig(), new System2());
 
@@ -90,7 +96,8 @@ public class CommitPublishPostJobTest {
 
         Assertions.assertThat(postJobDescriptor.name()).isEqualTo("GitLab Commit Issue Publisher");
         Assertions.assertThat(postJobDescriptor.properties())
-                .containsExactly(GitLabPlugin.GITLAB_URL, GitLabPlugin.GITLAB_USER_TOKEN, GitLabPlugin.GITLAB_PROJECT_ID, GitLabPlugin.GITLAB_COMMIT_SHA, GitLabPlugin.GITLAB_REF_NAME);
+                .containsExactly(GitLabPlugin.GITLAB_URL, GitLabPlugin.GITLAB_USER_TOKEN, GitLabPlugin.GITLAB_PROJECT_ID,
+                        GitLabPlugin.GITLAB_COMMIT_SHA, GitLabPlugin.GITLAB_REF_NAME, "sonar.projectBaseDir", "sonar.working.directory");
     }
 
     @Test
