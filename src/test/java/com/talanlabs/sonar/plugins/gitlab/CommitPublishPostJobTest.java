@@ -40,6 +40,7 @@ import org.sonar.api.config.internal.MapSettings;
 import org.sonar.api.utils.MessageException;
 import org.sonar.api.utils.System2;
 
+import java.io.File;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -99,6 +100,29 @@ public class CommitPublishPostJobTest {
     }
 
     @Test
+    public void testNotEnabled() {
+        settings.removeProperty(GitLabPlugin.GITLAB_COMMIT_SHA);
+
+        commitPublishPostJob.execute(context);
+        Mockito.verify(reporterBuilder, never()).build(eq(null), any());
+        Mockito.verify(commitFacade, never()).createOrUpdateSonarQubeStatus("success", "SonarQube reported no issues");
+    }
+
+    @Test
+    public void testBaseDirNotFound() {
+        settings.removeProperty("sonar.projectBaseDir");
+
+        Assertions.assertThatThrownBy(() -> commitPublishPostJob.execute(context)).isInstanceOf(MessageException.class).hasMessage("SonarQube failed because sonar.projectBaseDir is null");
+    }
+
+    @Test
+    public void testWorkingDirectoryNotFound() {
+        settings.removeProperty("sonar.working.directory");
+
+        Assertions.assertThatThrownBy(() -> commitPublishPostJob.execute(context)).isInstanceOf(MessageException.class).hasMessage("SonarQube failed because sonar.working.directory is null");
+    }
+
+    @Test
     public void testUnexpectedException() {
         when(analysisMode.isIssues()).thenReturn(true);
         when(analysisMode.isPreview()).thenReturn(true);
@@ -109,9 +133,24 @@ public class CommitPublishPostJobTest {
     }
 
     @Test
+    public void testPreviewModeEmpty() {
+        Reporter reporter = Mockito.mock(Reporter.class);
+        when(reporter.getStatus()).thenReturn("success");
+        when(reporter.getStatusDescription()).thenReturn("SonarQube reported no issues");
+
+        when(analysisMode.isPreview()).thenReturn(true);
+        when(context.issues()).thenReturn(null);
+        when(reporterBuilder.build(eq(null), any())).thenReturn(reporter);
+
+        commitPublishPostJob.execute(context);
+        Mockito.verify(reporterBuilder).build(eq(null), any());
+        Mockito.verify(commitFacade).createOrUpdateSonarQubeStatus("success", "SonarQube reported no issues");
+    }
+
+    @Test
     public void testPreviewMode() {
-        PostJobIssue issue1 = Utils.newMockedPostJobIssue("foo:src", Severity.BLOCKER, true, "msg4");
-        PostJobIssue issue2 = Utils.newMockedPostJobIssue("foo", Severity.BLOCKER, true, "msg");
+        PostJobIssue issue1 = Utils.newMockedPostJobIssue("foo:src", Severity.BLOCKER, true, "msg4", Utils.newMockedInputComponent("toto"), 0);
+        PostJobIssue issue2 = Utils.newMockedPostJobIssue("foo", Severity.BLOCKER, true, "msg", Utils.newMockedInputFile(new File("toto.java")), 0);
         Iterable<PostJobIssue> issues = Arrays.asList(issue1, issue2);
 
         Reporter reporter = Mockito.mock(Reporter.class);

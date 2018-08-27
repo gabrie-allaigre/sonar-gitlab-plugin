@@ -21,6 +21,8 @@ package com.talanlabs.sonar.plugins.gitlab;
 
 import com.talanlabs.sonar.plugins.gitlab.models.Issue;
 import org.mockito.Mockito;
+import org.sonar.api.batch.fs.InputComponent;
+import org.sonar.api.batch.fs.InputFile;
 import org.sonar.api.batch.postjob.issue.PostJobIssue;
 import org.sonar.api.batch.rule.Severity;
 import org.sonar.api.rule.RuleKey;
@@ -38,15 +40,34 @@ public class Utils {
     }
 
     public static PostJobIssue newMockedPostJobIssue(String componentKey, Severity severity, boolean isNew, String message) {
+        return newMockedPostJobIssue(componentKey, severity, isNew, message, null, null);
+    }
+
+    public static PostJobIssue newMockedPostJobIssue(String componentKey, Severity severity, boolean isNew, String message, InputComponent inputComponent, Integer line) {
         PostJobIssue issue = Mockito.mock(PostJobIssue.class);
-        Mockito.when(issue.inputComponent()).thenReturn(null);
+        Mockito.when(issue.inputComponent()).thenReturn(inputComponent);
         Mockito.when(issue.componentKey()).thenReturn(componentKey);
-        Mockito.when(issue.line()).thenReturn(null);
+        Mockito.when(issue.line()).thenReturn(line);
         Mockito.when(issue.ruleKey()).thenReturn(RuleKey.of("repo", "rule"));
         Mockito.when(issue.severity()).thenReturn(severity);
         Mockito.when(issue.isNew()).thenReturn(isNew);
         Mockito.when(issue.message()).thenReturn(message);
         return issue;
+    }
+
+    public static InputComponent newMockedInputComponent(String key) {
+        InputComponent inputComponent = Mockito.mock(InputComponent.class);
+        Mockito.when(inputComponent.key()).thenReturn(key);
+        Mockito.when(inputComponent.isFile()).thenReturn(false);
+        return inputComponent;
+    }
+
+    public static InputFile newMockedInputFile(File file) {
+        InputFile inputFile = Mockito.mock(InputFile.class);
+        Mockito.when(inputFile.key()).thenReturn(file.getPath());
+        Mockito.when(inputFile.isFile()).thenReturn(true);
+        Mockito.when(inputFile.uri()).thenReturn(file.toURI());
+        return inputFile;
     }
 
     public static Issue newIssue(String componentKey, Severity severity, boolean isNew, String message) {

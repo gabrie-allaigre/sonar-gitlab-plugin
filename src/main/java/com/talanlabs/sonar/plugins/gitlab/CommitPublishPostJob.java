@@ -70,15 +70,16 @@ public class CommitPublishPostJob implements PostJob {
     public void execute(PostJobContext context) {
         try {
             if (!gitLabPluginConfiguration.isEnabled()) {
+                LOG.info("GitLab plugin is disabled");
                 return;
             }
             File baseDir = fileFromProperty(context, SONAR_PROJECT_BASE_DIR);
             if (baseDir == null) {
-                throw MessageException.of("BaseDir is null");
+                throw MessageException.of("SonarQube failed because sonar.projectBaseDir is null");
             }
             File workDir = fileFromProperty(context, SONAR_WORKING_DIRECTORY);
             if (workDir == null) {
-                throw MessageException.of("WorkingDir is null");
+                throw MessageException.of("SonarQube failed because sonar.working.directory is null");
             }
             sonarFacade.init(baseDir, workDir);
             commitFacade.init(baseDir);
