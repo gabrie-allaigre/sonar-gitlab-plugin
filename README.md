@@ -7,7 +7,7 @@ Inspired by https://github.com/SonarCommunity/sonar-github
 
 # Changelog
 
-## Version 4.0.0-beta1
+## Version 4.0.0-rc1
 
 ### Changed
 - Update to sonarqube 7.0 plugin version
@@ -16,7 +16,7 @@ Inspired by https://github.com/SonarCommunity/sonar-github
 - Using properties instead of depending on the deprecated, work with SonarQube 7.2 #162 (Thanks dmarin)
 - Fix others deprecated
 
-**[Download 4.0.0](https://github.com/gabrie-allaigre/sonar-gitlab-plugin/releases/download/4.0.0-beta1/sonar-gitlab-plugin-4.0.0-beta1.jar)**
+**[Download 4.0.0-rc1](https://github.com/gabrie-allaigre/sonar-gitlab-plugin/releases/download/4.0.0-rc1/sonar-gitlab-plugin-4.0.0-rc1.jar)**
 
 ## Version 3.0.1
 
@@ -138,7 +138,7 @@ For SonarQube >= 5.6 and < 7.0:
 
 For SonarQube >= 7.0:
 
-- Download last version https://github.com/gabrie-allaigre/sonar-gitlab-plugin/releases/download/4.0.0-beta1/sonar-gitlab-plugin-4.0.0-beta1.jar
+- Download last version https://github.com/gabrie-allaigre/sonar-gitlab-plugin/releases/download/4.0.0-rc1/sonar-gitlab-plugin-4.0.0-rc1.jar
 - Copy file in extensions directory `SONARQUBE_HOME/extensions/plugins`
 - Restart SonarQube
 
