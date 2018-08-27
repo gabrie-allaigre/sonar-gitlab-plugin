@@ -130,7 +130,8 @@ public class CommitPublishPostJob implements PostJob {
     private Issue toIssue(PostJobIssue postJobIssue) {
         File file = null;
         if (postJobIssue.inputComponent() instanceof InputFile) {
-            file = ((InputFile) Objects.requireNonNull(postJobIssue.inputComponent())).file();
+            InputFile inputFile = (InputFile) Objects.requireNonNull(postJobIssue.inputComponent());
+            file = new File(inputFile.uri());
         }
         return Issue.newBuilder().key(postJobIssue.key()).componentKey(postJobIssue.componentKey()).severity(postJobIssue.severity()).ruleKey(postJobIssue.ruleKey().toString())
                 .message(postJobIssue.message()).line(postJobIssue.line()).file(file).newIssue(postJobIssue.isNew()).build();
@@ -142,15 +143,15 @@ public class CommitPublishPostJob implements PostJob {
         String message = String.format("Report status=%s, desc=%s", status, statusDescription);
 
         switch (gitLabPluginConfiguration.statusNotificationsMode()) {
-        case COMMIT_STATUS:
-            notificationCommitStatus(status, statusDescription, message);
-            break;
-        case EXIT_CODE:
-            notificationCommitStatus(status, message);
-            break;
-        case NOTHING:
-            LOG.info(message);
-            break;
+            case COMMIT_STATUS:
+                notificationCommitStatus(status, statusDescription, message);
+                break;
+            case EXIT_CODE:
+                notificationCommitStatus(status, message);
+                break;
+            case NOTHING:
+                LOG.info(message);
+                break;
         }
     }
 

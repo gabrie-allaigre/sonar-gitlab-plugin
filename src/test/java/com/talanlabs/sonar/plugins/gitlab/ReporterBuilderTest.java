@@ -62,7 +62,7 @@ public class ReporterBuilderTest {
         commitFacade = Mockito.mock(CommitFacade.class);
         settings = new MapSettings(new PropertyDefinitions(PropertyDefinition.builder(CoreProperties.SERVER_BASE_URL).name("Server base URL")
                 .description("HTTP URL of this SonarQube server, such as <i>http://yourhost.yourdomain/sonar</i>. This value is used i.e. to create links in emails.")
-                .category(CoreProperties.CATEGORY_GENERAL).defaultValue(CoreProperties.SERVER_BASE_URL_DEFAULT_VALUE).build()).addComponents(GitLabPlugin.definitions()));
+                .category(CoreProperties.CATEGORY_GENERAL).defaultValue("http://localhost:9000").build()).addComponents(GitLabPlugin.definitions()));
         settings.setProperty(CoreProperties.SERVER_BASE_URL, "http://myserver");
         settings.setProperty(GitLabPlugin.GITLAB_COMMIT_SHA, "abc123");
 

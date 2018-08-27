@@ -88,7 +88,7 @@ public class GitLabPlugin implements Plugin {
                                 .description("The unique id, path with namespace, name with namespace, web url, ssh url or http url of the current project that GitLab.").category(CATEGORY)
                                 .subCategory(SUBCATEGORY).index(5).onlyOnQualifiers(Qualifiers.PROJECT).build(),
                         PropertyDefinition.builder(GITLAB_COMMIT_SHA).name("GitLab Commit SHA").description("The commit revision for which project is built.").category(CATEGORY)
-                                .subCategory(SUBCATEGORY).index(6).hidden().build(),
+                                .subCategory(SUBCATEGORY).index(6).hidden().multiValues(true).build(),
                         PropertyDefinition.builder(GITLAB_REF_NAME).name("GitLab Ref Name").description("The commit revision for which project is built.").category(CATEGORY).subCategory(SUBCATEGORY)
                                 .index(7).hidden().build(),
                         PropertyDefinition.builder(GITLAB_MAX_BLOCKER_ISSUES_GATE).name("Max Blocker Issues Gate").description("Max blocker issues to make the status fail.").category(CATEGORY)

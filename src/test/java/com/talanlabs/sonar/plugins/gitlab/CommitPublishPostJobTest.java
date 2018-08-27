@@ -33,7 +33,6 @@ import org.sonar.api.batch.postjob.PostJobContext;
 import org.sonar.api.batch.postjob.internal.DefaultPostJobDescriptor;
 import org.sonar.api.batch.postjob.issue.PostJobIssue;
 import org.sonar.api.batch.rule.Severity;
-import org.sonar.api.config.Configuration;
 import org.sonar.api.config.PropertyDefinition;
 import org.sonar.api.config.PropertyDefinitions;
 import org.sonar.api.config.internal.ConfigurationBridge;
@@ -44,7 +43,6 @@ import org.sonar.api.utils.System2;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
 
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
@@ -66,7 +64,7 @@ public class CommitPublishPostJobTest {
         commitFacade = Mockito.mock(CommitFacade.class);
         settings = new MapSettings(new PropertyDefinitions(PropertyDefinition.builder(CoreProperties.SERVER_BASE_URL).name("Server base URL")
                 .description("HTTP URL of this SonarQube server, such as <i>http://yourhost.yourdomain/sonar</i>. This value is used i.e. to create links in emails.")
-                .category(CoreProperties.CATEGORY_GENERAL).defaultValue(CoreProperties.SERVER_BASE_URL_DEFAULT_VALUE).build()).addComponents(GitLabPlugin.definitions()));
+                .category(CoreProperties.CATEGORY_GENERAL).defaultValue("http://localhost:9000").build()).addComponents(GitLabPlugin.definitions()));
         settings.setProperty(CoreProperties.SERVER_BASE_URL, "http://myserver");
         settings.setProperty(GitLabPlugin.GITLAB_COMMIT_SHA, "abc123");
         settings.setProperty("sonar.projectBaseDir", "projectBaseDir");

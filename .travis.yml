@@ -3,4 +3,5 @@ sudo: false
 jdk:
   - oraclejdk8
 
-script: mvn clean verify
+script:
+  - mvn --batch-mode clean verify org.sonarsource.scanner.maven:sonar-maven-plugin:3.4.0.905:sonar -Dsonar.host.url=$SONAR_URL -Dsonar.login=$SONAR_LOGIN -Dsonar.branch=$TRAVIS_BRANCH
