@@ -349,11 +349,11 @@ https://docs.gitlab.com/ce/ci/variables/#9-0-renaming
 | sonar.gitlab.commit_sha | SHA of the commit comment | Variable | >= 1.6.6 |
 | sonar.gitlab.ref | Branch name or reference of the commit | Variable | < 3.0.0 |
 | sonar.gitlab.ref_name | Branch name or reference of the commit | Variable | >= 1.6.6 |
-| sonar.gitlab.max_blocker_issues_gate | Max blocker issue for build failed (default 0) | Project, Variable | >= 2.0.0 |
-| sonar.gitlab.max_critical_issues_gate | Max critical issues for build failed (default 0) | Project, Variable | >= 2.0.0 |
-| sonar.gitlab.max_major_issues_gate | Max major issues for build failed (default -1 no fail) | Project, Variable | >= 2.0.0 |
-| sonar.gitlab.max_minor_issues_gate | Max minor issues for build failed (default -1 no fail) | Project, Variable | >= 2.0.0 |
-| sonar.gitlab.max_info_issues_gate | Max info issues for build failed (default -1 no fail) | Project, Variable | >= 2.0.0 |
+| sonar.gitlab.max_blocker_issues_gate | Max blocker issue for build failed (default 0). Note: only for preview mode | Project, Variable | >= 2.0.0 |
+| sonar.gitlab.max_critical_issues_gate | Max critical issues for build failed (default 0). Note: only for preview mode | Project, Variable | >= 2.0.0 |
+| sonar.gitlab.max_major_issues_gate | Max major issues for build failed (default -1 no fail). Note: only for preview mode | Project, Variable | >= 2.0.0 |
+| sonar.gitlab.max_minor_issues_gate | Max minor issues for build failed (default -1 no fail). Note: only for preview mode | Project, Variable | >= 2.0.0 |
+| sonar.gitlab.max_info_issues_gate | Max info issues for build failed (default -1 no fail). Note: only for preview mode | Project, Variable | >= 2.0.0 |
 | sonar.gitlab.ignore_certificate | Ignore Certificate for access GitLab, use for auto-signing cert (default false) | Administration, Variable | >= 2.0.0 |
 | sonar.gitlab.comment_no_issue | Add a comment even when there is no new issue (default false) | Administration, Variable | >= 2.0.0 |
 | sonar.gitlab.disable_inline_comments | Disable issue reporting as inline comments (default false) | Administration, Variable | >= 2.0.0 |
