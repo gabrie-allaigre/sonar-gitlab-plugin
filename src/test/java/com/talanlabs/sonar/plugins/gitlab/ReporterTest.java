@@ -120,7 +120,7 @@ public class ReporterTest {
     public void oneIssueSast() {
         settings.setProperty(GitLabPlugin.GITLAB_JSON_MODE, JsonMode.SAST.name());
 
-        reporter.process(Utils.newIssue("123", "component", null, 10, Severity.INFO, true, "Issue \"NULL\"", "rule"), null, null, GITLAB_URL, "file", "http://myserver", true);
+        reporter.processForJSON(Utils.newIssue("123", "component", null, 10, Severity.INFO, true, "Issue \"NULL\"", "rule"), null, null, GITLAB_URL, "file", "http://myserver", true);
 
         Assertions.assertThat(reporter.buildJson()).isEqualTo("[{\"tool\":\"sonarqube\",\"fingerprint\":\"123\",\"message\":\"Issue \\\"NULL\\\"\",\"file\":\"file\",\"line\":\"10\",\"priority\":\"INFO\",\"solution\":\"http://myserver\"}]");
     }
@@ -129,7 +129,7 @@ public class ReporterTest {
     public void oneIssueCodeClimate() {
         settings.setProperty(GitLabPlugin.GITLAB_JSON_MODE, JsonMode.CODECLIMATE.name());
 
-        reporter.process(Utils.newIssue("456", "component", null, 20, Severity.INFO, true, "Issue \"NULL\"", "rule"), null, null, GITLAB_URL, "file", "http://myserver", true);
+        reporter.processForJSON(Utils.newIssue("456", "component", null, 20, Severity.INFO, true, "Issue \"NULL\"", "rule"), null, null, GITLAB_URL, "file", "http://myserver", true);
 
         Assertions.assertThat(reporter.buildJson()).isEqualTo("[{\"fingerprint\":\"456\",\"check_name\":\"Issue \\\"NULL\\\"\",\"location\":{\"path\":\"file\",\"lines\": { \"begin\":20,\"end\":20}}}]");
     }
@@ -139,7 +139,7 @@ public class ReporterTest {
         settings.setProperty(GitLabPlugin.GITLAB_JSON_MODE, JsonMode.SAST.name());
 
         for (int i = 0; i < 5; i++) {
-            reporter.process(Utils.newIssue("toto_" + i, "component", null, null, Severity.INFO, true, "Issue", "rule" + i), null, null, GITLAB_URL, "file", "http://myserver/rule" + i, true);
+            reporter.processForJSON(Utils.newIssue("toto_" + i, "component", null, null, Severity.INFO, true, "Issue", "rule" + i), null, null, GITLAB_URL, "file", "http://myserver/rule" + i, true);
         }
 
         Assertions.assertThat(reporter.buildJson()).isEqualTo("[{\"tool\":\"sonarqube\",\"fingerprint\":\"toto_0\",\"message\":\"Issue\",\"file\":\"file\",\"line\":\"0\",\"priority\":\"INFO\",\"solution\":\"http://myserver/rule0\"},{\"tool\":\"sonarqube\",\"fingerprint\":\"toto_1\",\"message\":\"Issue\",\"file\":\"file\",\"line\":\"0\",\"priority\":\"INFO\",\"solution\":\"http://myserver/rule1\"},{\"tool\":\"sonarqube\",\"fingerprint\":\"toto_2\",\"message\":\"Issue\",\"file\":\"file\",\"line\":\"0\",\"priority\":\"INFO\",\"solution\":\"http://myserver/rule2\"},{\"tool\":\"sonarqube\",\"fingerprint\":\"toto_3\",\"message\":\"Issue\",\"file\":\"file\",\"line\":\"0\",\"priority\":\"INFO\",\"solution\":\"http://myserver/rule3\"},{\"tool\":\"sonarqube\",\"fingerprint\":\"toto_4\",\"message\":\"Issue\",\"file\":\"file\",\"line\":\"0\",\"priority\":\"INFO\",\"solution\":\"http://myserver/rule4\"}]");
@@ -150,7 +150,7 @@ public class ReporterTest {
         settings.setProperty(GitLabPlugin.GITLAB_JSON_MODE, JsonMode.CODECLIMATE.name());
 
         for (int i = 0; i < 5; i++) {
-            reporter.process(Utils.newIssue("tata_" + i, "component", null, null, Severity.INFO, true, "Issue", "rule" + i), null, null, GITLAB_URL, "file", "http://myserver/rule" + i, true);
+            reporter.processForJSON(Utils.newIssue("tata_" + i, "component", null, null, Severity.INFO, true, "Issue", "rule" + i), null, null, GITLAB_URL, "file", "http://myserver/rule" + i, true);
         }
 
         Assertions.assertThat(reporter.buildJson()).isEqualTo("[{\"fingerprint\":\"tata_0\",\"check_name\":\"Issue\",\"location\":{\"path\":\"file\",\"lines\": { \"begin\":0,\"end\":0}}},{\"fingerprint\":\"tata_1\",\"check_name\":\"Issue\",\"location\":{\"path\":\"file\",\"lines\": { \"begin\":0,\"end\":0}}},{\"fingerprint\":\"tata_2\",\"check_name\":\"Issue\",\"location\":{\"path\":\"file\",\"lines\": { \"begin\":0,\"end\":0}}},{\"fingerprint\":\"tata_3\",\"check_name\":\"Issue\",\"location\":{\"path\":\"file\",\"lines\": { \"begin\":0,\"end\":0}}},{\"fingerprint\":\"tata_4\",\"check_name\":\"Issue\",\"location\":{\"path\":\"file\",\"lines\": { \"begin\":0,\"end\":0}}}]");

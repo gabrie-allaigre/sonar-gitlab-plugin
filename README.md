@@ -369,6 +369,7 @@ https://docs.gitlab.com/ce/ci/variables/#9-0-renaming
 | sonar.gitlab.api_version | GitLab API version (default `v4` or `v3`) | Administration, Variable | >= 2.1.0 |
 | sonar.gitlab.all_issues | All issues new and old (default false, only new) | Administration, Variable | >= 2.1.0 |
 | sonar.gitlab.json_mode | Create a json report in root for GitLab EE (codeclimate.json or gl-sast-report.json) | Project, Variable | >= 3.0.0 |
+| sonar.gitlab.json_all_issues | Always report all issues in JSON report regardless of analysis mode | Project, Variable | >= 3.1.0-SNAPSHOT |
 | sonar.gitlab.query_max_retry | Max retry for wait finish analyse for publish mode | Administration, Variable | >= 3.0.0 |
 | sonar.gitlab.query_wait | Max retry for wait finish analyse for publish mode | Administration, Variable | >= 3.0.0 |
 | sonar.gitlab.quality_gate_fail_mode | Quality gate fail mode: error or warn (default error) | Administration, Variable | >= 3.0.0 |

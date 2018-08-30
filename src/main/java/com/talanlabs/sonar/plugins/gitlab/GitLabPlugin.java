@@ -60,6 +60,7 @@ public class GitLabPlugin implements Plugin {
     public static final String GITLAB_API_VERSION = "sonar.gitlab.api_version";
     public static final String GITLAB_ALL_ISSUES = "sonar.gitlab.all_issues";
     public static final String GITLAB_JSON_MODE = "sonar.gitlab.json_mode";
+    public static final String GITLAB_JSON_ALL_ISSUES = "sonar.gitlab.json_all_issues";
     public static final String GITLAB_QUERY_MAX_RETRY = "sonar.gitlab.query_max_retry";
     public static final String GITLAB_QUERY_WAIT = "sonar.gitlab.query_wait";
     public static final String GITLAB_QUALITY_GATE_FAIL_MODE = "sonar.gitlab.quality_gate_fail_mode";
@@ -135,23 +136,25 @@ public class GitLabPlugin implements Plugin {
                                 .type(PropertyType.BOOLEAN).defaultValue(String.valueOf(false)).index(26).build(),
                         PropertyDefinition.builder(GITLAB_JSON_MODE).name("Generate json report").description("Create a json report in root for GitLab EE").category(CATEGORY).subCategory(SUBCATEGORY)
                                 .type(PropertyType.SINGLE_SELECT_LIST).options(JsonMode.NONE.name(), JsonMode.CODECLIMATE.name(), JsonMode.SAST.name()).defaultValue(JsonMode.NONE.name()).onlyOnQualifiers(Qualifiers.PROJECT).index(27).build(),
+                        PropertyDefinition.builder(GITLAB_JSON_ALL_ISSUES).name("JSON report all issues").description("JSON report should always report all issues").category(CATEGORY).subCategory(SUBCATEGORY)
+                                .type(PropertyType.BOOLEAN).defaultValue(Boolean.FALSE.toString()).onlyOnQualifiers(Qualifiers.PROJECT).index(28).build(),
                         PropertyDefinition.builder(GITLAB_QUERY_MAX_RETRY).name("Query max retry").description("Max retry for wait finish analyse for publish mode").category(CATEGORY).subCategory(SUBCATEGORY)
-                                .type(PropertyType.INTEGER).defaultValue(String.valueOf(50)).index(28).build(),
+                                .type(PropertyType.INTEGER).defaultValue(String.valueOf(50)).index(29).build(),
                         PropertyDefinition.builder(GITLAB_QUERY_WAIT).name("Query waiting between retry").description("Max retry for wait finish analyse for publish mode (millisecond)").category(CATEGORY).subCategory(SUBCATEGORY)
-                                .type(PropertyType.INTEGER).defaultValue(String.valueOf(1000)).index(29).build(),
+                                .type(PropertyType.INTEGER).defaultValue(String.valueOf(1000)).index(30).build(),
                         PropertyDefinition.builder(GITLAB_QUALITY_GATE_FAIL_MODE).name("Quality Gate fail mode").description("Quality gate fail mode: error or warn")
                                 .category(CATEGORY).subCategory(SUBCATEGORY).type(PropertyType.SINGLE_SELECT_LIST)
                                 .options(QualityGateFailMode.WARN.getMeaning(), QualityGateFailMode.ERROR.getMeaning()).defaultValue(QualityGateFailMode.ERROR.getMeaning())
-                                .index(30).build(),
+                                .index(31).build(),
                         PropertyDefinition.builder(GITLAB_ISSUE_FILTER).name("Issue filter").description("Filter on issue, if MAJOR then show only MAJOR, CRITICAL and BLOCKER")
                                 .category(CATEGORY).subCategory(SUBCATEGORY).type(PropertyType.SINGLE_SELECT_LIST)
                                 .options(Severity.INFO.name(), Severity.MINOR.name(), Severity.MAJOR.name(), Severity.CRITICAL.name(), Severity.BLOCKER.name())
                                 .defaultValue(Severity.INFO.name())
-                                .index(31).build(),
+                                .index(32).build(),
                         PropertyDefinition.builder(GITLAB_LOAD_RULES).name("Load rules information").description("Load rule for all issues")
                                 .category(CATEGORY).subCategory(SUBCATEGORY).type(PropertyType.BOOLEAN)
                                 .defaultValue(String.valueOf(false))
-                                .index(32).build()
+                                .index(33).build()
 
                 );
     }
