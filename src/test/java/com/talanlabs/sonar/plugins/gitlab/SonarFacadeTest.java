@@ -268,6 +268,24 @@ public class SonarFacadeTest {
     }
 
     @Test
+    public void test10000NewIssue() throws IOException {
+        Issues.SearchWsResponse.Builder builder = Issues.SearchWsResponse.newBuilder().setTotal(20000).setPs(100);
+        for (int i = 0; i < 100; i++) {
+            builder.addIssues(Issues.Issue.newBuilder().build());
+        }
+        Issues.SearchWsResponse searchWsResponse = builder.build();
+        for (int i = 0; i < 100; i++) {
+            sonar.enqueue(new MockResponse().setResponseCode(200).addHeader("Content-Type", "application/x-protobuf").setBody(toBuffer(searchWsResponse)));
+        }
+        sonar.enqueue(new MockResponse().setResponseCode(400).setBody("{\"errors\":[{\"msg\":\"Can return only the first 10000 results. 10100th result asked.\"}]}"));
+
+        createReportTaskFile();
+
+        List<Issue> issues = sonarFacade.getNewIssues();
+        Assertions.assertThat(issues).isNotNull().hasSize(10000);
+    }
+
+    @Test
     public void tesFullPageGetNewIssue() throws IOException {
         tesFullPageGetNewIssueForQualifier(Qualifiers.FILE);
     }

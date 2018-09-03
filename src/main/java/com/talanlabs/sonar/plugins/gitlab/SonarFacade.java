@@ -58,6 +58,7 @@ public class SonarFacade {
 
     private static final Logger LOG = Loggers.get(SonarFacade.class);
     private static final String LOG_MSG = "{}: {} {} {}";
+    private static final int MAX_SEARCH_ISSUES = 10000;
     private final GitLabPluginConfiguration gitLabPluginConfiguration;
     private final WsClient wsClient;
     private File projectBaseDir;
@@ -226,7 +227,6 @@ public class SonarFacade {
         while (nbPage == null || page <= nbPage) {
             Issues.SearchWsResponse searchWsResponse = searchIssues(projectKey, refName, page);
             nbPage = computeNbPage(searchWsResponse.getTotal(), searchWsResponse.getPs());
-
             issues.addAll(toIssues(searchWsResponse, refName));
 
             page++;
@@ -252,7 +252,9 @@ public class SonarFacade {
     }
 
     private int computeNbPage(long total, int pageSize) {
-        return (int) (total / (long) (pageSize + 1)) + 1;
+        int maxPage = (int) (MAX_SEARCH_ISSUES / (long) (pageSize + 1)) + 1;
+        int nbPage = (int) (total / (long) (pageSize + 1)) + 1;
+        return Math.min(nbPage, maxPage);
     }
 
     private List<Issue> toIssues(Issues.SearchWsResponse issuesSearchWsResponse, String branch) {
