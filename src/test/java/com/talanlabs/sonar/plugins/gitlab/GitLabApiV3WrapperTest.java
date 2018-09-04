@@ -33,7 +33,7 @@ import static org.mockito.Mockito.*;
 public class GitLabApiV3WrapperTest {
 
     @Test
-    public void testGetGitLabUrl() throws Exception {
+    public void testGetGitLabUrl() {
         GitLabPluginConfiguration gitLabPluginConfiguration = mock(GitLabPluginConfiguration.class);
         when(gitLabPluginConfiguration.commitSHA()).thenReturn(Collections.singletonList("abc123"));
 

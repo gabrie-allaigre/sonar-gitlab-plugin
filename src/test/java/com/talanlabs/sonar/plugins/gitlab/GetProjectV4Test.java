@@ -21,8 +21,8 @@ package com.talanlabs.sonar.plugins.gitlab;
 
 import com.squareup.okhttp.mockwebserver.MockResponse;
 import com.squareup.okhttp.mockwebserver.MockWebServer;
-import com.talanlabs.gitlab.api.v3.GitLabAPI;
-import com.talanlabs.gitlab.api.v3.models.projects.GitLabProject;
+import com.talanlabs.gitlab.api.v4.GitLabAPI;
+import com.talanlabs.gitlab.api.v4.models.projects.GitLabProject;
 import org.assertj.core.api.Assertions;
 import org.junit.Before;
 import org.junit.Rule;
@@ -495,7 +495,7 @@ public class GetProjectV4Test {
                 "]"));
 
 
-        GitLabApiV3Wrapper facade = new GitLabApiV3Wrapper(gitLabPluginConfiguration);
+        GitLabApiV4Wrapper facade = new GitLabApiV4Wrapper(gitLabPluginConfiguration);
         facade.setGitLabAPI(GitLabAPI.connect(gitLabPluginConfiguration.url(), gitLabPluginConfiguration.userToken()));
         GitLabProject gitLabProject = Mockito.mock(GitLabProject.class);
         Mockito.when(gitLabProject.getId()).thenReturn(1);
@@ -549,7 +549,7 @@ public class GetProjectV4Test {
                 "]"));
 
 
-        GitLabApiV3Wrapper facade = new GitLabApiV3Wrapper(gitLabPluginConfiguration);
+        GitLabApiV4Wrapper facade = new GitLabApiV4Wrapper(gitLabPluginConfiguration);
         facade.setGitLabAPI(GitLabAPI.connect(gitLabPluginConfiguration.url(), gitLabPluginConfiguration.userToken()));
         GitLabProject gitLabProject = Mockito.mock(GitLabProject.class);
         Mockito.when(gitLabProject.getId()).thenReturn(1);
@@ -605,7 +605,7 @@ public class GetProjectV4Test {
                 "]"));
 
 
-        GitLabApiV3Wrapper facade = new GitLabApiV3Wrapper(gitLabPluginConfiguration);
+        GitLabApiV4Wrapper facade = new GitLabApiV4Wrapper(gitLabPluginConfiguration);
         facade.setGitLabAPI(GitLabAPI.connect(gitLabPluginConfiguration.url(), gitLabPluginConfiguration.userToken()));
         GitLabProject gitLabProject = Mockito.mock(GitLabProject.class);
         Mockito.when(gitLabProject.getId()).thenReturn(1);

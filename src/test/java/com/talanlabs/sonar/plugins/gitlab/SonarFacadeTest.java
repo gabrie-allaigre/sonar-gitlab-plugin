@@ -512,10 +512,29 @@ public class SonarFacadeTest {
 
     @Test
     public void testSuccessRule() throws IOException {
-        Rules.ShowResponse showResponse = Rules.ShowResponse.newBuilder().setRule(Rules.Rule.newBuilder().setType(Common.RuleType.VULNERABILITY).build()).build();
+        Rules.ShowResponse showResponse = Rules.ShowResponse.newBuilder().setRule(Rules.Rule.newBuilder().setKey("toto").setRepo("repo").setName("Toto").setMdDesc("Hello").setType(Common.RuleType.VULNERABILITY).setDebtRemFnType("rien").setRemFnBaseEffort("ici").build()).build();
 
         sonar.enqueue(new MockResponse().setResponseCode(200).addHeader("Content-Type", "application/x-protobuf").setBody(toBuffer(showResponse)));
 
-        Assertions.assertThat(sonarFacade.getRule("toto")).isNotNull().extracting(com.talanlabs.sonar.plugins.gitlab.models.Rule::getType).contains(com.talanlabs.sonar.plugins.gitlab.models.Rule.Type.VULNERABILITY);
+        Assertions.assertThat(sonarFacade.getRule("toto")).isNotNull()
+                .extracting(
+                        com.talanlabs.sonar.plugins.gitlab.models.Rule::getKey,
+                        com.talanlabs.sonar.plugins.gitlab.models.Rule::getRepo,
+                        com.talanlabs.sonar.plugins.gitlab.models.Rule::getName,
+                        com.talanlabs.sonar.plugins.gitlab.models.Rule::getDescription,
+                        com.talanlabs.sonar.plugins.gitlab.models.Rule::getType,
+                        com.talanlabs.sonar.plugins.gitlab.models.Rule::getDebtRemFnBaseEffort,
+                        com.talanlabs.sonar.plugins.gitlab.models.Rule::getDebtRemFnType
+                ).containsExactly(
+                "toto", "repo", "Toto", "Hello",
+                com.talanlabs.sonar.plugins.gitlab.models.Rule.Type.VULNERABILITY,
+                "ici", "rien"
+        );
+    }
+
+    @Test
+    public void testMetricNameFailed() {
+        Assertions.assertThat(sonarFacade.getMetricName("toto")).isEqualTo("toto");
+        Assertions.assertThat(sonarFacade.getMetricName("security_rating")).isEqualTo("Security Rating");
     }
 }

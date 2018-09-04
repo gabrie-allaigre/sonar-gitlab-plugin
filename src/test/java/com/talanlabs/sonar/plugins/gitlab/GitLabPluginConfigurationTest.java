@@ -52,6 +52,21 @@ public class GitLabPluginConfigurationTest {
     }
 
     @Test
+    public void testBaseUrl() {
+        Assertions.assertThat(config.baseUrl()).isEqualTo("http://myserver/");
+
+        settings.removeProperty(CoreProperties.SERVER_BASE_URL);
+        settings.setProperty("sonar.host.url", "http://myserver2/");
+        config = new GitLabPluginConfiguration(settings.asConfig(), new System2());
+        Assertions.assertThat(config.baseUrl()).isEqualTo("http://myserver2/");
+
+        settings.removeProperty(CoreProperties.SERVER_BASE_URL);
+        settings.removeProperty("sonar.host.url");
+        config = new GitLabPluginConfiguration(settings.asConfig(), new System2());
+        Assertions.assertThat(config.baseUrl()).isEqualTo("http://localhost:9000/");
+    }
+
+    @Test
     public void testGlobal() {
         Assertions.assertThat(config.url()).isEqualTo("https://gitlab.com");
         settings.setProperty(GitLabPlugin.GITLAB_URL, "https://gitlab.talanlabs.com/api");
@@ -63,8 +78,6 @@ public class GitLabPluginConfigurationTest {
 
         settings.setProperty(GitLabPlugin.GITLAB_USER_TOKEN, "123465");
         Assertions.assertThat(config.userToken()).isEqualTo("123465");
-
-        Assertions.assertThat(config.baseUrl()).isEqualTo("http://myserver/");
     }
 
     @Test
@@ -119,6 +132,8 @@ public class GitLabPluginConfigurationTest {
         Assertions.assertThat(config.qualityGateFailMode()).isEqualTo(QualityGateFailMode.ERROR);
         settings.setProperty(GitLabPlugin.GITLAB_QUALITY_GATE_FAIL_MODE, QualityGateFailMode.WARN.getMeaning());
         Assertions.assertThat(config.qualityGateFailMode()).isEqualTo(QualityGateFailMode.WARN);
+        settings.setProperty(GitLabPlugin.GITLAB_QUALITY_GATE_FAIL_MODE, "error");
+        Assertions.assertThat(config.qualityGateFailMode()).isEqualTo(QualityGateFailMode.ERROR);
 
         Assertions.assertThat(config.globalTemplate()).isNull();
         settings.setProperty(GitLabPlugin.GITLAB_GLOBAL_TEMPLATE, "# Test");
@@ -160,6 +175,8 @@ public class GitLabPluginConfigurationTest {
         settings.setProperty(GitLabPlugin.GITLAB_ISSUE_FILTER, Severity.MAJOR.name());
         Assertions.assertThat(config.issueFilter()).isEqualTo(Severity.MAJOR);
         settings.setProperty(GitLabPlugin.GITLAB_ISSUE_FILTER, "TOTO");
+        Assertions.assertThat(config.issueFilter()).isEqualTo(Severity.INFO);
+        settings.removeProperty(GitLabPlugin.GITLAB_ISSUE_FILTER);
         Assertions.assertThat(config.issueFilter()).isEqualTo(Severity.INFO);
 
         Assertions.assertThat(config.loadRule()).isFalse();
@@ -204,12 +221,31 @@ public class GitLabPluginConfigurationTest {
         config = new GitLabPluginConfiguration(settings.asConfig(), system2);
         Assertions.assertThat(config.isProxyConnectionEnabled()).isFalse();
         Mockito.when(system2.property("http.proxyHost")).thenReturn("foo");
+        Mockito.when(system2.property("http.proxyPort")).thenReturn("3810");
         Assertions.assertThat(config.isProxyConnectionEnabled()).isTrue();
+        Assertions.assertThat(config.getHttpProxy()).isNotEqualTo(Proxy.NO_PROXY);
         Mockito.when(system2.property("https.proxyHost")).thenReturn("bar");
-        Assertions.assertThat(config.getHttpProxy()).isEqualTo(Proxy.NO_PROXY);
-
+        Mockito.when(system2.property("https.proxyPort")).thenReturn("3920");
+        Mockito.when(system2.property("http.proxyUser")).thenReturn("user");
+        Mockito.when(system2.property("http.proxyPassword")).thenReturn("password");
+        Assertions.assertThat(config.getHttpProxy()).isNotEqualTo(Proxy.NO_PROXY);
         settings.setProperty(GitLabPlugin.GITLAB_URL, "wrong url");
         thrown.expect(IllegalArgumentException.class);
         config.getHttpProxy();
+    }
+
+    @Test
+    public void testDisableProxyConfiguration() {
+        System2 system2 = Mockito.mock(System2.class);
+        config = new GitLabPluginConfiguration(settings.asConfig(), system2);
+
+        Assertions.assertThat(config.isProxyConnectionEnabled()).isFalse();
+
+        Mockito.when(system2.property("http.proxyHost")).thenReturn("foo");
+        Mockito.when(system2.property("http.proxyPort")).thenReturn("3810");
+        Assertions.assertThat(config.isProxyConnectionEnabled()).isTrue();
+
+        settings.setProperty(GitLabPlugin.GITLAB_DISABLE_PROXY, true);
+        Assertions.assertThat(config.isProxyConnectionEnabled()).isFalse();
     }
 }

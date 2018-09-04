@@ -19,6 +19,7 @@
  */
 package com.talanlabs.sonar.plugins.gitlab;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.io.Files;
@@ -187,7 +188,8 @@ public class SonarFacade {
         }
     }
 
-    private String getMetricName(String metricKey) {
+    @VisibleForTesting
+    String getMetricName(String metricKey) {
         try {
             Metric metric = CoreMetrics.getMetric(metricKey);
             return metric.getName();

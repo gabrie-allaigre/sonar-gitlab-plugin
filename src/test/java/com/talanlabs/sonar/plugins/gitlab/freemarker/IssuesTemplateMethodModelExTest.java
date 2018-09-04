@@ -21,6 +21,7 @@ package com.talanlabs.sonar.plugins.gitlab.freemarker;
 
 import com.talanlabs.sonar.plugins.gitlab.Utils;
 import com.talanlabs.sonar.plugins.gitlab.models.ReportIssue;
+import com.talanlabs.sonar.plugins.gitlab.models.Rule;
 import freemarker.template.SimpleScalar;
 import freemarker.template.TemplateBooleanModel;
 import freemarker.template.TemplateModelException;
@@ -55,7 +56,7 @@ public class IssuesTemplateMethodModelExTest {
     @Test
     public void testSuccess() {
         List<ReportIssue> reportIssues = new ArrayList<>();
-        reportIssues.add(ReportIssue.newBuilder().issue(Utils.newIssue("foo:src/Foo.php", null, 1, Severity.BLOCKER, true, "msg1")).revision("123").url("url").file("file").ruleLink("ruleLink").reportedOnDiff(true).build());
+        reportIssues.add(ReportIssue.newBuilder().issue(Utils.newIssue("foo:src/Foo.php", null, 1, Severity.BLOCKER, true, "msg1")).revision("123").url("url").file("file").ruleLink("ruleLink").reportedOnDiff(true).rule(Rule.newBuilder().key("toto").name("Toto").build()).build());
         reportIssues.add(ReportIssue.newBuilder().issue(Utils.newIssue("foo:src/Foo.php", null, 1, Severity.BLOCKER, true, "msg1")).revision("123").url("url").file("file").ruleLink("ruleLink").reportedOnDiff(false).build());
         reportIssues.add(ReportIssue.newBuilder().issue(Utils.newIssue("foo:src/Foo.php", null, 1, Severity.BLOCKER, true, "msg1")).revision("123").url("url").file("file").ruleLink("ruleLink").reportedOnDiff(false).build());
 

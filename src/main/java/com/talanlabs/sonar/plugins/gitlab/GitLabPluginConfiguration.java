@@ -60,7 +60,7 @@ public class GitLabPluginConfiguration {
 
         String tempBaseUrl = configuration.hasKey(CoreProperties.SERVER_BASE_URL) ? configuration.get(CoreProperties.SERVER_BASE_URL).orElse(null) : configuration.get("sonar.host.url").orElse(null);
         if (tempBaseUrl == null) {
-            tempBaseUrl = "http://localhost:9090";
+            tempBaseUrl = "http://localhost:9000";
         }
         if (!tempBaseUrl.endsWith("/")) {
             tempBaseUrl += "/";
@@ -224,7 +224,10 @@ public class GitLabPluginConfiguration {
      * @return True iff a proxy was configured to be used in the plugin.
      */
     public boolean isProxyConnectionEnabled() {
-        return system2.property(HTTP_PROXY_HOSTNAME) != null || system2.property(HTTPS_PROXY_HOSTNAME) != null || system2.property(PROXY_SOCKS_HOSTNAME) != null;
+        if (configuration.getBoolean(GitLabPlugin.GITLAB_DISABLE_PROXY).orElse(false)) {
+            return false;
+        }
+        return (system2.property(HTTP_PROXY_HOSTNAME) != null || system2.property(HTTPS_PROXY_HOSTNAME) != null || system2.property(PROXY_SOCKS_HOSTNAME) != null);
     }
 
     public Proxy getHttpProxy() {

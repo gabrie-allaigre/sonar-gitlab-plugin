@@ -19,6 +19,7 @@
  */
 package com.talanlabs.sonar.plugins.gitlab;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.talanlabs.sonar.plugins.gitlab.models.JsonMode;
 import org.sonar.api.batch.InstantiationStrategy;
 import org.sonar.api.batch.ScannerSide;
@@ -65,6 +66,11 @@ public class CommitFacade {
         } else if (GitLabPlugin.V4_API_VERSION.equals(gitLabPluginConfiguration.apiVersion())) {
             this.gitLabWrapper = new GitLabApiV4Wrapper(gitLabPluginConfiguration);
         }
+    }
+
+    @VisibleForTesting
+    void setGitLabWrapper(IGitLabApiWrapper gitLabWrapper) {
+        this.gitLabWrapper = gitLabWrapper;
     }
 
     public static String encodeForUrl(String url) {

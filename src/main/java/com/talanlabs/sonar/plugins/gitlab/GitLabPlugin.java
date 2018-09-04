@@ -65,6 +65,7 @@ public class GitLabPlugin implements Plugin {
     public static final String GITLAB_QUALITY_GATE_FAIL_MODE = "sonar.gitlab.quality_gate_fail_mode";
     public static final String GITLAB_ISSUE_FILTER = "sonar.gitlab.issue_filter";
     public static final String GITLAB_LOAD_RULES = "sonar.gitlab.load_rules";
+    public static final String GITLAB_DISABLE_PROXY = "sonar.gitlab.disable_proxy";
 
     public static final String CATEGORY = "gitlab";
     public static final String SUBCATEGORY = "reporting";
@@ -151,7 +152,11 @@ public class GitLabPlugin implements Plugin {
                         PropertyDefinition.builder(GITLAB_LOAD_RULES).name("Load rules information").description("Load rule for all issues")
                                 .category(CATEGORY).subCategory(SUBCATEGORY).type(PropertyType.BOOLEAN)
                                 .defaultValue(String.valueOf(false))
-                                .index(32).build()
+                                .index(32).build(),
+                        PropertyDefinition.builder(GITLAB_DISABLE_PROXY).name("Disable proxy").description("Disable proxy if system contains proxy config")
+                                .category(CATEGORY).subCategory(SUBCATEGORY).type(PropertyType.BOOLEAN)
+                                .defaultValue(String.valueOf(false))
+                                .index(33).build()
 
                 );
     }
