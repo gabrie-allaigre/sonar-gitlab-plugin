@@ -494,7 +494,7 @@ public class SonarFacadeTest {
 
     @Test
     public void testSuccessRule() throws IOException {
-        Rules.ShowResponse showResponse = Rules.ShowResponse.newBuilder().setRule(Rules.Rule.newBuilder().setType(Common.RuleType.VULNERABILITY).build()).build();
+        Rules.ShowResponse showResponse = Rules.ShowResponse.newBuilder().setRule(Rules.Rule.newBuilder().setKey("toto").setRepo("repo").setName("Toto").setMdDesc("Hello").setType(Common.RuleType.VULNERABILITY).setDebtRemFnType("rien").setRemFnBaseEffort("ici").build()).build();
 
         sonar.enqueue(new MockResponse().setResponseCode(200).addHeader("Content-Type", "application/x-protobuf").setBody(toBuffer(showResponse)));
 
