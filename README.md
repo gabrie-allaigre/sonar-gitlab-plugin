@@ -16,6 +16,7 @@ Inspired by https://github.com/SonarCommunity/sonar-github
 
 ### Fixed
 - Fix bug with QualityGate status NONE #107
+- Fix sonar issues limit 10000 [#140](https://github.com/gabrie-allaigre/sonar-gitlab-plugin/issues/140)
 - Add test for covorage
 
 **[Download 3.0.2-RC1](https://github.com/gabrie-allaigre/sonar-gitlab-plugin/releases/download/3.0.2-rc1/sonar-gitlab-plugin-3.0.2-rc1.jar)** 
