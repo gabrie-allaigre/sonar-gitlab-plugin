@@ -1,7 +1,7 @@
 /*
  * SonarQube :: GitLab Plugin
  * Copyright (C) 2016-2017 Talanlabs
- * gabriel.allaigre@talanlabs.com
+ * gabriel.allaigre@gmail.com
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -19,6 +19,7 @@
  */
 package com.talanlabs.sonar.plugins.gitlab;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.talanlabs.sonar.plugins.gitlab.models.JsonMode;
 import org.sonar.api.batch.BatchSide;
 import org.sonar.api.batch.InstantiationStrategy;
@@ -65,6 +66,11 @@ public class CommitFacade {
         } else if (GitLabPlugin.V4_API_VERSION.equals(gitLabPluginConfiguration.apiVersion())) {
             this.gitLabWrapper = new GitLabApiV4Wrapper(gitLabPluginConfiguration);
         }
+    }
+
+    @VisibleForTesting
+    void setGitLabWrapper(IGitLabApiWrapper gitLabWrapper) {
+        this.gitLabWrapper = gitLabWrapper;
     }
 
     public static String encodeForUrl(String url) {

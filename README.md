@@ -7,16 +7,18 @@ Inspired by https://github.com/SonarCommunity/sonar-github
 
 # Changelog
 
-## Version 3.0.1-RC2
+## Version 3.0.2-RC1
 
 ### Changed
+- Only for SonarQube 6.7
 - Support unit test sources #104
 - Show user token in project config #89
 
 ### Fixed
 - Fix bug with QualityGate status NONE #107
+- Add test for covorage
 
-**[Download 3.0.1-RC2](https://github.com/gabrie-allaigre/sonar-gitlab-plugin/releases/download/3.0.1-rc2/sonar-gitlab-plugin-3.0.1-rc2.jar)** 
+**[Download 3.0.2-RC1](https://github.com/gabrie-allaigre/sonar-gitlab-plugin/releases/download/3.0.2-rc1/sonar-gitlab-plugin-3.0.2-rc1.jar)** 
 
 ## Version 3.0.0
 
