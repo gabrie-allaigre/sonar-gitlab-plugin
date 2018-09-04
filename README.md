@@ -20,7 +20,7 @@ Inspired by https://github.com/SonarCommunity/sonar-github
 
 **[Download 4.0.0-rc3](https://github.com/gabrie-allaigre/sonar-gitlab-plugin/releases/download/4.0.0-rc3/sonar-gitlab-plugin-4.0.0-rc3.jar)**
 
-## Version 3.0.2-RC1
+## Version 3.0.2-rc1
 
 ### Changed
 - Only for SonarQube 6.7
@@ -29,7 +29,7 @@ Inspired by https://github.com/SonarCommunity/sonar-github
 - Fix sonar issues limit 10000 [#140](https://github.com/gabrie-allaigre/sonar-gitlab-plugin/issues/140)
 - Add test for covorage
 
-**[Download 3.0.2-RC1](https://github.com/gabrie-allaigre/sonar-gitlab-plugin/releases/download/3.0.2-rc1/sonar-gitlab-plugin-3.0.2-rc1.jar)** 
+**[Download 3.0.2-rc1](https://github.com/gabrie-allaigre/sonar-gitlab-plugin/releases/download/3.0.2-rc1/sonar-gitlab-plugin-3.0.2-rc1.jar)** 
 
 ## Version 3.0.1
 
@@ -157,7 +157,7 @@ For SonarQube >= 6.7 and < 7:
 
 For SonarQube >= 7.0:
 
-- Download last version https://github.com/gabrie-allaigre/sonar-gitlab-plugin/releases/download/4.0.0-rc1/sonar-gitlab-plugin-4.0.0-rc1.jar
+- Download last version https://github.com/gabrie-allaigre/sonar-gitlab-plugin/releases/download/4.0.0-rc3/sonar-gitlab-plugin-4.0.0-rc3.jar
 - Copy file in extensions directory `SONARQUBE_HOME/extensions/plugins`
 - Restart SonarQube
 
