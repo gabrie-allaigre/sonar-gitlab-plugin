@@ -18,7 +18,7 @@ Inspired by https://github.com/SonarCommunity/sonar-github
 - Fix sonar issues limit 10000 [#140](https://github.com/gabrie-allaigre/sonar-gitlab-plugin/issues/140)
 - Fix disable proxy if proxy is enable in system [#168](https://github.com/gabrie-allaigre/sonar-gitlab-plugin/issues/168)
 
-**[Download 4.0.0-rc3](https://github.com/gabrie-allaigre/sonar-gitlab-plugin/releases/download/4.0.0-rc2/sonar-gitlab-plugin-4.0.0-rc3.jar)**
+**[Download 4.0.0-rc3](https://github.com/gabrie-allaigre/sonar-gitlab-plugin/releases/download/4.0.0-rc3/sonar-gitlab-plugin-4.0.0-rc3.jar)**
 
 ## Version 3.0.1
 
