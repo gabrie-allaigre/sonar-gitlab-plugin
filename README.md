@@ -7,7 +7,7 @@ Inspired by https://github.com/SonarCommunity/sonar-github
 
 # Changelog
 
-## Version 4.0.0-rc2
+## Version 4.0.0-rc3
 
 ### Changed
 - Update to sonarqube 7.0 plugin version
@@ -16,8 +16,9 @@ Inspired by https://github.com/SonarCommunity/sonar-github
 - Using properties instead of depending on the deprecated, work with SonarQube 7.2 [#164](https://github.com/gabrie-allaigre/sonar-gitlab-plugin/pull/164) (Thanks dmarin)
 - Fix others deprecated
 - Fix sonar issues limit 10000 [#140](https://github.com/gabrie-allaigre/sonar-gitlab-plugin/issues/140)
+- Fix disable proxy if proxy is enable in system [#168](https://github.com/gabrie-allaigre/sonar-gitlab-plugin/issues/168)
 
-**[Download 4.0.0-rc2](https://github.com/gabrie-allaigre/sonar-gitlab-plugin/releases/download/4.0.0-rc2/sonar-gitlab-plugin-4.0.0-rc2.jar)**
+**[Download 4.0.0-rc3](https://github.com/gabrie-allaigre/sonar-gitlab-plugin/releases/download/4.0.0-rc2/sonar-gitlab-plugin-4.0.0-rc3.jar)**
 
 ## Version 3.0.1
 
