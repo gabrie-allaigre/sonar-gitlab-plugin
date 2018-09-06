@@ -7,7 +7,7 @@ Inspired by https://github.com/SonarCommunity/sonar-github
 
 # Changelog
 
-## Version 4.0.0-rc3
+## Version 4.0.0
 
 ### Changed
 - Update to sonarqube 7.0 plugin version
@@ -18,7 +18,7 @@ Inspired by https://github.com/SonarCommunity/sonar-github
 - Fix sonar issues limit 10000 [#140](https://github.com/gabrie-allaigre/sonar-gitlab-plugin/issues/140)
 - Fix disable proxy if proxy is enable in system [#168](https://github.com/gabrie-allaigre/sonar-gitlab-plugin/issues/168)
 
-**[Download 4.0.0-rc3](https://github.com/gabrie-allaigre/sonar-gitlab-plugin/releases/download/4.0.0-rc3/sonar-gitlab-plugin-4.0.0-rc3.jar)**
+**[Download 4.0.0](https://github.com/gabrie-allaigre/sonar-gitlab-plugin/releases/download/4.0.0/sonar-gitlab-plugin-4.0.0.jar)**
 
 ## Version 3.0.2-rc1
 
@@ -157,7 +157,7 @@ For SonarQube >= 6.7 and < 7:
 
 For SonarQube >= 7.0:
 
-- Download last version https://github.com/gabrie-allaigre/sonar-gitlab-plugin/releases/download/4.0.0-rc3/sonar-gitlab-plugin-4.0.0-rc3.jar
+- Download last version https://github.com/gabrie-allaigre/sonar-gitlab-plugin/releases/download/4.0.0/sonar-gitlab-plugin-4.0.0.jar
 - Copy file in extensions directory `SONARQUBE_HOME/extensions/plugins`
 - Restart SonarQube
 
