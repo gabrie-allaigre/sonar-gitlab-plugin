@@ -1,13 +1,13 @@
 Sonar GitLab Plugin
 ===================
 
-[![Build Status](https://travis-ci.org/gabrie-allaigre/sonar-gitlab-plugin.svg?branch=master)](https://travis-ci.org/gabrie-allaigre/sonar-gitlab-plugin)
+[![Build Status](https://travis-ci.org/gabrie-allaigre/sonar-gitlab-plugin.svg?branch=master-6.7)](https://travis-ci.org/gabrie-allaigre/sonar-gitlab-plugin)
 
 Inspired by https://github.com/SonarCommunity/sonar-github
 
 # Changelog
 
-## Version 3.0.2-RC1
+## Version 3.0.2
 
 ### Changed
 - Only for SonarQube 6.7
@@ -19,7 +19,7 @@ Inspired by https://github.com/SonarCommunity/sonar-github
 - Fix sonar issues limit 10000 [#140](https://github.com/gabrie-allaigre/sonar-gitlab-plugin/issues/140)
 - Add test for covorage
 
-**[Download 3.0.2-RC1](https://github.com/gabrie-allaigre/sonar-gitlab-plugin/releases/download/3.0.2-rc1/sonar-gitlab-plugin-3.0.2-rc1.jar)** 
+**[Download 3.0.2](https://github.com/gabrie-allaigre/sonar-gitlab-plugin/releases/download/3.0.2/sonar-gitlab-plugin-3.0.2.jar)** 
 
 ## Version 3.0.0
 
@@ -122,9 +122,15 @@ For SonarQube >= 5.4 and < 5.6:
 - Copy file in extensions directory `SONARQUBE_HOME/extensions/plugins`
 - Restart SonarQube
 
-For SonarQube >= 5.6:
+For SonarQube >= 5.6 and < 6.7:
 
 - Download last version https://github.com/gabrie-allaigre/sonar-gitlab-plugin/releases/download/2.1.0/sonar-gitlab-plugin-2.1.0.jar
+- Copy file in extensions directory `SONARQUBE_HOME/extensions/plugins`
+- Restart SonarQube
+
+For SonarQube >= 6.7 and < 7.0:
+
+- Download last version https://github.com/gabrie-allaigre/sonar-gitlab-plugin/releases/download/3.0.2/sonar-gitlab-plugin-3.0.2.jar
 - Copy file in extensions directory `SONARQUBE_HOME/extensions/plugins`
 - Restart SonarQube
 
