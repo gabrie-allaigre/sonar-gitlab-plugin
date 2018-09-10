@@ -10,7 +10,7 @@
   </parent>
   <groupId>com.talanlabs</groupId>
   <artifactId>sonar-gitlab-plugin</artifactId>
-  <version>3.0.2</version>
+  <version>3.0.3-SNAPSHOT</version>
   <name>SonarQube :: GitLab Plugin</name>
   <description>GitLab Plugin for Reporting</description>
   <packaging>sonar-plugin</packaging>
