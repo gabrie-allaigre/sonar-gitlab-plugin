@@ -9,6 +9,8 @@ Inspired by https://github.com/SonarCommunity/sonar-github
 
 ## Version 4.0.0
 
+**This version is directly in the SonarQube update center, only SonarQube >= 7.0**
+
 ### Changed
 - Update to sonarqube 7.0 plugin version
 
@@ -21,6 +23,8 @@ Inspired by https://github.com/SonarCommunity/sonar-github
 **[Download 4.0.0](https://github.com/gabrie-allaigre/sonar-gitlab-plugin/releases/download/4.0.0/sonar-gitlab-plugin-4.0.0.jar)**
 
 ## Version 3.0.2
+
+**This version is directly in the SonarQube update center, only SonarQube 6.7**
 
 ### Changed
 - Only for SonarQube 6.7
@@ -44,7 +48,7 @@ Inspired by https://github.com/SonarCommunity/sonar-github
 
 ## Version 3.0.0
 
-**This version is directly in the SonarQube update center**
+**This version is directly in the SonarQube update center, only SonarQube < 6.7**
 
 ### Changed
 - Api v4 is now default value
