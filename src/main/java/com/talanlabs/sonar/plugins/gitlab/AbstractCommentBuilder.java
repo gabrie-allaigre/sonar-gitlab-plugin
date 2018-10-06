@@ -36,6 +36,7 @@ import org.sonar.api.batch.rule.Severity;
 import org.sonar.api.utils.MessageException;
 import org.sonar.api.utils.log.Logger;
 import org.sonar.api.utils.log.Loggers;
+import org.sonarqube.ws.Common;
 
 import java.io.IOException;
 import java.io.StringWriter;
@@ -119,6 +120,7 @@ public abstract class AbstractCommentBuilder {
         root.put("emojiSeverity", new EmojiSeverityTemplateMethodModelEx(markDownUtils));
         root.put("imageSeverity", new ImageSeverityTemplateMethodModelEx(markDownUtils));
         root.put("ruleLink", new RuleLinkTemplateMethodModelEx(gitLabPluginConfiguration));
+        Arrays.stream(Common.RuleType.values()).forEach(type -> root.put(type.name(), type.name()));
         return root;
     }
 
