@@ -69,7 +69,8 @@ public class Rule {
 
         CODE_SMELL,
         BUG,
-        VULNERABILITY
+        VULNERABILITY,
+        SECURITY_HOTSPOT
 
     }
 
