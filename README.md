@@ -7,6 +7,12 @@ Inspired by https://github.com/SonarCommunity/sonar-github
 
 # Changelog
 
+## Version 4.0.1-SNAPSHOT
+
+### Fixed
+- Fix new line in json [#181](https://github.com/gabrie-allaigre/sonar-gitlab-plugin/pull/181)
+- Fix new rule type [#183](https://github.com/gabrie-allaigre/sonar-gitlab-plugin/pull/183)
+
 ## Version 4.0.0
 
 **This version is directly in the SonarQube update center, only SonarQube >= 7.0**
@@ -455,9 +461,6 @@ Usage : `${name}`
 | OK | Status | Passed QualityGate & Condition status only Global Comment |
 | WARN | Status | Warning QualityGate & Condition status only Global Comment |
 | ERROR | Status | Failed QualityGate & Condition status only Global Comment |
-| CODE_SMELL | Rule Type | Code smell |
-| BUG | Rule Type | Bug |
-| VULNERABILITY | Rule Type | Vulnerability |
 
 ## Functions
 
@@ -514,7 +517,7 @@ Usage : `${Issue.rule.name}`
 | repo | String | Rule repository |
 | name | String | Name of rule |
 | description | String | Description of rule |
-| type | Type | CODE_SMELL, BUG, VULNERABILITY |
+| type | String | CODE_SMELL, BUG, VULNERABILITY, SECURITY_HOTSPOT |
 | debtRemFnType | String | Debt type |
 | debtRemFnBaseEffort | String | Debt effort |
 

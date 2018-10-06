@@ -25,7 +25,7 @@ public class Rule {
     private String repo;
     private String name;
     private String description;
-    private Type type;
+    private String type;
     private String debtRemFnType;
     private String debtRemFnBaseEffort;
 
@@ -53,7 +53,7 @@ public class Rule {
         return description;
     }
 
-    public Type getType() {
+    public String getType() {
         return type;
     }
 
@@ -63,15 +63,6 @@ public class Rule {
 
     public String getDebtRemFnBaseEffort() {
         return debtRemFnBaseEffort;
-    }
-
-    public enum Type {
-
-        CODE_SMELL,
-        BUG,
-        VULNERABILITY,
-        SECURITY_HOTSPOT
-
     }
 
     public static class Builder {
@@ -102,7 +93,7 @@ public class Rule {
             return this;
         }
 
-        public Builder type(Type type) {
+        public Builder type(String type) {
             this.rule.type = type;
             return this;
         }

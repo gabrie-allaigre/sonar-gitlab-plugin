@@ -155,4 +155,13 @@ public class ReporterTest {
 
         Assertions.assertThat(reporter.buildJson()).isEqualTo("[{\"fingerprint\":\"tata_0\",\"check_name\":\"Issue\",\"location\":{\"path\":\"file\",\"lines\": { \"begin\":0,\"end\":0}}},{\"fingerprint\":\"tata_1\",\"check_name\":\"Issue\",\"location\":{\"path\":\"file\",\"lines\": { \"begin\":0,\"end\":0}}},{\"fingerprint\":\"tata_2\",\"check_name\":\"Issue\",\"location\":{\"path\":\"file\",\"lines\": { \"begin\":0,\"end\":0}}},{\"fingerprint\":\"tata_3\",\"check_name\":\"Issue\",\"location\":{\"path\":\"file\",\"lines\": { \"begin\":0,\"end\":0}}},{\"fingerprint\":\"tata_4\",\"check_name\":\"Issue\",\"location\":{\"path\":\"file\",\"lines\": { \"begin\":0,\"end\":0}}}]");
     }
+
+    @Test
+    public void issuesJsonLine() {
+        settings.setProperty(GitLabPlugin.GITLAB_JSON_MODE, JsonMode.SAST.name());
+
+            reporter.process(Utils.newIssue("toto", "component", null, null, Severity.INFO, true, "Issue\nline1\n\rline2", "rule"), null, null, GITLAB_URL, "file", "http://myserver/rule", true);
+
+        Assertions.assertThat(reporter.buildJson()).isEqualTo("[{\"tool\":\"sonarqube\",\"fingerprint\":\"toto\",\"message\":\"Issue line1  line2\",\"file\":\"file\",\"line\":\"0\",\"priority\":\"INFO\",\"solution\":\"http://myserver/rule\"}]");
+    }
 }

@@ -260,6 +260,7 @@ public class Reporter {
     }
 
     private String prepareMessageJson(String message) {
-        return message.replaceAll("\"", "\\\\\"");
+        String tmp1 = message.replaceAll("\"", "\\\\\"");
+        return tmp1.replaceAll("[\n\r]"," ");
     }
 }

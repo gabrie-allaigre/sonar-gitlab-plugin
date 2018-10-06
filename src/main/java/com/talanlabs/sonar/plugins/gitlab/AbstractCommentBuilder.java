@@ -19,9 +19,13 @@
  */
 package com.talanlabs.sonar.plugins.gitlab;
 
-import com.talanlabs.sonar.plugins.gitlab.freemarker.*;
+import com.talanlabs.sonar.plugins.gitlab.freemarker.EmojiSeverityTemplateMethodModelEx;
+import com.talanlabs.sonar.plugins.gitlab.freemarker.ImageSeverityTemplateMethodModelEx;
+import com.talanlabs.sonar.plugins.gitlab.freemarker.IssueCountTemplateMethodModelEx;
+import com.talanlabs.sonar.plugins.gitlab.freemarker.IssuesTemplateMethodModelEx;
+import com.talanlabs.sonar.plugins.gitlab.freemarker.PrintTemplateMethodModelEx;
+import com.talanlabs.sonar.plugins.gitlab.freemarker.RuleLinkTemplateMethodModelEx;
 import com.talanlabs.sonar.plugins.gitlab.models.ReportIssue;
-import com.talanlabs.sonar.plugins.gitlab.models.Rule;
 import freemarker.template.Configuration;
 import freemarker.template.Template;
 import freemarker.template.TemplateException;
@@ -115,7 +119,6 @@ public abstract class AbstractCommentBuilder {
         root.put("emojiSeverity", new EmojiSeverityTemplateMethodModelEx(markDownUtils));
         root.put("imageSeverity", new ImageSeverityTemplateMethodModelEx(markDownUtils));
         root.put("ruleLink", new RuleLinkTemplateMethodModelEx(gitLabPluginConfiguration));
-        Arrays.stream(Rule.Type.values()).forEach(type -> root.put(type.name(), type));
         return root;
     }
 

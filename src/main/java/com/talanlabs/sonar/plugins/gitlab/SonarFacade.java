@@ -354,7 +354,7 @@ public class SonarFacade {
                 .repo(rule.getRepo())
                 .name(rule.getName())
                 .description(rule.getMdDesc())
-                .type(rule.getType() != null ? Rule.Type.valueOf(rule.getType().name()) : null)
+                .type(rule.getType() != null ? rule.getType().name() : null)
                 .debtRemFnType(rule.getDebtRemFnType())
                 .debtRemFnBaseEffort(rule.getRemFnBaseEffort())
                 .build();

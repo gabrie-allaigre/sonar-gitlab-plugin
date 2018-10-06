@@ -527,7 +527,7 @@ public class SonarFacadeTest {
                         com.talanlabs.sonar.plugins.gitlab.models.Rule::getDebtRemFnType
                 ).containsExactly(
                 "toto", "repo", "Toto", "Hello",
-                com.talanlabs.sonar.plugins.gitlab.models.Rule.Type.VULNERABILITY,
+                "VULNERABILITY",
                 "ici", "rien"
         );
     }
