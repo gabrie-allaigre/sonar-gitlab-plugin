@@ -89,7 +89,7 @@ public class GitLabApiV3Wrapper implements IGitLabApiWrapper {
 
         Paged<GitLabProject> paged = gitLabAPIV3.getGitLabAPIProjects().getProjects(null, null, null, null, null, null);
         if (paged == null) {
-            throw new IllegalStateException("Unable to find project ID " + config.projectId() + " Either the project ID is incorrect or you don't have access to this project. Verify the configurations sonar.gitlab.project_id or sonar.gitlab.user_token");
+            throw new IllegalStateException("Unable to find project ID " + config.projectId() + ". Either the project ID is incorrect or you don't have access to this project. Verify the configurations sonar.gitlab.project_id or sonar.gitlab.user_token");
         }
         List<GitLabProject> projects = new ArrayList<>();
         do {
@@ -99,7 +99,7 @@ public class GitLabApiV3Wrapper implements IGitLabApiWrapper {
         } while ((paged = paged.nextPage()) != null);
 
         if (projects.isEmpty()) {
-            throw new IllegalStateException("Unable to find project ID " + config.projectId() + " Either the project ID is incorrect or you don't have access to this project. Verify the configurations sonar.gitlab.project_id or sonar.gitlab.user_token");
+            throw new IllegalStateException("Unable to find project ID " + config.projectId() + ". Either the project ID is incorrect or you don't have access to this project. Verify the configurations sonar.gitlab.project_id or sonar.gitlab.user_token");
         }
         if (projects.size() > 1) {
             throw new IllegalStateException("Multiple found projects for " + config.projectId());

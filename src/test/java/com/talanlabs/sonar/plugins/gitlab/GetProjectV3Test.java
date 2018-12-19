@@ -87,7 +87,7 @@ public class GetProjectV3Test {
                 "}]"));
 
         CommitFacade facade = new CommitFacade(gitLabPluginConfiguration);
-        Assertions.assertThatThrownBy(() -> facade.init(gitBasedir)).isInstanceOf(IllegalStateException.class).hasMessageContaining("Unable to find project ID 123 Either the project ID is incorrect or you don't have access to this project. Verify the configurations sonar.gitlab.project_id or sonar.gitlab.user_token");
+        Assertions.assertThatThrownBy(() -> facade.init(gitBasedir)).isInstanceOf(IllegalStateException.class).hasMessageContaining("Unable to find project ID 123. Either the project ID is incorrect or you don't have access to this project. Verify the configurations sonar.gitlab.project_id or sonar.gitlab.user_token");
     }
 
     @Test
@@ -100,7 +100,7 @@ public class GetProjectV3Test {
         gitlab.enqueue(new MockResponse().setResponseCode(200).setBody("[]"));
 
         CommitFacade facade = new CommitFacade(gitLabPluginConfiguration);
-        Assertions.assertThatThrownBy(() -> facade.init(gitBasedir)).isInstanceOf(IllegalStateException.class).hasMessageContaining("Unable to find project ID 123 Either the project ID is incorrect or you don't have access to this project. Verify the configurations sonar.gitlab.project_id or sonar.gitlab.user_token");
+        Assertions.assertThatThrownBy(() -> facade.init(gitBasedir)).isInstanceOf(IllegalStateException.class).hasMessageContaining("Unable to find project ID 123. Either the project ID is incorrect or you don't have access to this project. Verify the configurations sonar.gitlab.project_id or sonar.gitlab.user_token");
     }
 
     @Test
