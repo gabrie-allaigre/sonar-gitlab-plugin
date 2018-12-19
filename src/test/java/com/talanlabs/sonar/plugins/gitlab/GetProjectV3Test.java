@@ -62,7 +62,7 @@ public class GetProjectV3Test {
         when(gitLabPluginConfiguration.projectId()).thenReturn(null);
 
         CommitFacade facade = new CommitFacade(gitLabPluginConfiguration);
-        Assertions.assertThatThrownBy(() -> facade.init(gitBasedir)).isInstanceOf(IllegalStateException.class).hasMessageContaining("Unable to find project ID null. Either the project ID is incorrect or you don't have access to this project. Set Configuration sonar.gitlab.project_id");
+        Assertions.assertThatThrownBy(() -> facade.init(gitBasedir)).isInstanceOf(IllegalStateException.class).hasMessageContaining("Unable to find project ID null. Set the property sonar.gitlab.project_id");
     }
 
     @Test

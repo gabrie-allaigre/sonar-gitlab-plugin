@@ -75,7 +75,7 @@ public class GitLabApiV4Wrapper implements IGitLabApiWrapper {
 
     private GitLabProject getGitLabProject() throws IOException {
         if (config.projectId() == null) {
-            throw new IllegalStateException("Unable to find project ID null. Either the project ID is incorrect or you don't have access to this project. Set Configuration sonar.gitlab.project_id");
+            throw new IllegalStateException("Unable to find project ID null. Set the property sonar.gitlab.project_id");
         }
 
         try {
