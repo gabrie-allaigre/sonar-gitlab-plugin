@@ -20,6 +20,7 @@
 package com.talanlabs.sonar.plugins.gitlab;
 
 import com.talanlabs.sonar.plugins.gitlab.models.*;
+import org.apache.commons.lang3.StringEscapeUtils;
 import org.sonar.api.batch.rule.Severity;
 
 import javax.annotation.Nullable;
@@ -260,7 +261,6 @@ public class Reporter {
     }
 
     private String prepareMessageJson(String message) {
-        String tmp1 = message.replaceAll("\"", "\\\\\"");
-        return tmp1.replaceAll("[\n\r]"," ");
+        return StringEscapeUtils.escapeJson(message);
     }
 }
