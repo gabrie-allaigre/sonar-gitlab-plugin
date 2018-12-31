@@ -162,6 +162,6 @@ public class ReporterTest {
 
             reporter.process(Utils.newIssue("toto", "component", null, null, Severity.INFO, true, "Issue\nline1\n\rline2", "rule"), null, null, GITLAB_URL, "file", "http://myserver/rule", true);
 
-        Assertions.assertThat(reporter.buildJson()).isEqualTo("[{\"tool\":\"sonarqube\",\"fingerprint\":\"toto\",\"message\":\"Issue line1  line2\",\"file\":\"file\",\"line\":\"0\",\"priority\":\"INFO\",\"solution\":\"http://myserver/rule\"}]");
+        Assertions.assertThat(reporter.buildJson()).isEqualTo("[{\"tool\":\"sonarqube\",\"fingerprint\":\"toto\",\"message\":\"Issue\\nline1\\n\\rline2\",\"file\":\"file\",\"line\":\"0\",\"priority\":\"INFO\",\"solution\":\"http://myserver/rule\"}]");
     }
 }
