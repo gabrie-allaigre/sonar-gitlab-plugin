@@ -62,7 +62,7 @@ public class GetProjectV4Test {
         when(gitLabPluginConfiguration.projectId()).thenReturn(null);
 
         CommitFacade facade = new CommitFacade(gitLabPluginConfiguration);
-        Assertions.assertThatThrownBy(() -> facade.init(gitBasedir)).isInstanceOf(IllegalStateException.class).hasMessageContaining("Unable found project for null project name. Set Configuration sonar.gitlab.project_id");
+        Assertions.assertThatThrownBy(() -> facade.init(gitBasedir)).isInstanceOf(IllegalStateException.class).hasMessageContaining("Unable to find project ID null. Set the property sonar.gitlab.project_id");
     }
 
     @Test
@@ -87,7 +87,7 @@ public class GetProjectV4Test {
                 "}]"));
 
         CommitFacade facade = new CommitFacade(gitLabPluginConfiguration);
-        Assertions.assertThatThrownBy(() -> facade.init(gitBasedir)).isInstanceOf(IllegalStateException.class).hasMessageContaining("Unable found project for 123 Verify Configuration sonar.gitlab.project_id or sonar.gitlab.user_token access project");
+        Assertions.assertThatThrownBy(() -> facade.init(gitBasedir)).isInstanceOf(IllegalStateException.class).hasMessageContaining("Unable to find project ID 123. Either the project ID is incorrect or you don't have access to this project. Verify the configurations sonar.gitlab.project_id or sonar.gitlab.user_token");
     }
 
     @Test
@@ -100,7 +100,7 @@ public class GetProjectV4Test {
         gitlab.enqueue(new MockResponse().setResponseCode(200).setBody("[]"));
 
         CommitFacade facade = new CommitFacade(gitLabPluginConfiguration);
-        Assertions.assertThatThrownBy(() -> facade.init(gitBasedir)).isInstanceOf(IllegalStateException.class).hasMessageContaining("Unable found project for 123 Verify Configuration sonar.gitlab.project_id or sonar.gitlab.user_token access project");
+        Assertions.assertThatThrownBy(() -> facade.init(gitBasedir)).isInstanceOf(IllegalStateException.class).hasMessageContaining("Unable to find project ID 123. Either the project ID is incorrect or you don't have access to this project. Verify the configurations sonar.gitlab.project_id or sonar.gitlab.user_token");
     }
 
     @Test

@@ -39,7 +39,7 @@ Inspired by https://github.com/SonarCommunity/sonar-github
 - Fix sonar issues limit 10000 [#140](https://github.com/gabrie-allaigre/sonar-gitlab-plugin/issues/140)
 - Add test for covorage
 
-**[Download 3.0.2](https://github.com/gabrie-allaigre/sonar-gitlab-plugin/releases/download/3.0.2/sonar-gitlab-plugin-3.0.2.jar)** 
+**[Download 3.0.2](https://github.com/gabrie-allaigre/sonar-gitlab-plugin/releases/download/3.0.2/sonar-gitlab-plugin-3.0.2.jar)**
 
 ## Version 3.0.1
 
@@ -50,7 +50,7 @@ Inspired by https://github.com/SonarCommunity/sonar-github
 ### Fixed
 - Fix bug with QualityGate status NONE #107
 
-**[Download 3.0.1](https://github.com/gabrie-allaigre/sonar-gitlab-plugin/releases/download/3.0.1/sonar-gitlab-plugin-3.0.1.jar)** 
+**[Download 3.0.1](https://github.com/gabrie-allaigre/sonar-gitlab-plugin/releases/download/3.0.1/sonar-gitlab-plugin-3.0.1.jar)**
 
 ## Version 3.0.0
 
@@ -68,7 +68,7 @@ Inspired by https://github.com/SonarCommunity/sonar-github
 ### Removed
 - Plugin property sonar.gitlab.ref. The property is replaced by sonar.gitlab.ref_name
 
-**[Download 3.0.0](https://github.com/gabrie-allaigre/sonar-gitlab-plugin/releases/download/3.0.0/sonar-gitlab-plugin-3.0.0.jar)** 
+**[Download 3.0.0](https://github.com/gabrie-allaigre/sonar-gitlab-plugin/releases/download/3.0.0/sonar-gitlab-plugin-3.0.0.jar)**
 
 ## Version 2.1.0
 
@@ -97,7 +97,7 @@ Inspired by https://github.com/SonarCommunity/sonar-github
 - Disable reporting in global comments
 - Disable reporting in inline comments
 - Add support Proxy
-- Ignore certficate if auto-signed 
+- Ignore certficate if auto-signed
 - Custom global comment (Template)
 - Custom inline comment (Template)
 - Get multi SHA for comment inline all commits
@@ -145,7 +145,7 @@ For SonarQube < 5.4:
 
 - Download last version https://github.com/gabrie-allaigre/sonar-gitlab-plugin/releases/download/1.6.6/sonar-gitlab-plugin-1.6.6.jar
 - Copy file in extensions directory `SONARQUBE_HOME/extensions/plugins`
-- Restart SonarQube 
+- Restart SonarQube
 
 For SonarQube >= 5.4 and < 5.6:
 
@@ -177,7 +177,7 @@ For SonarQube >= 7.0:
 
 Example:
 
-### Issues mode (Preview) 
+### Issues mode (Preview)
 
 With Maven
 
@@ -188,7 +188,7 @@ mvn --batch-mode verify sonar:sonar -Dsonar.host.url=$SONAR_URL -Dsonar.login=$S
 or for comment inline in all commits of branch:
 
 ```shell
-mvn --batch-mode verify sonar:sonar -Dsonar.host.url=$SONAR_URL -Dsonar.login=$SONAR_LOGIN -Dsonar.analysis.mode=preview -Dsonar.gitlab.commit_sha=$(git log --pretty=format:%H origin/master..$CI_COMMIT_SHA | tr '\n' ',') -Dsonar.gitlab.ref_name=$CI_COMMIT_REF_NAME -Dsonar.gitlab.project_id=$CI_PROJECT_ID -Dsonar.gitlab.unique_issue_per_inline=true 
+mvn --batch-mode verify sonar:sonar -Dsonar.host.url=$SONAR_URL -Dsonar.login=$SONAR_LOGIN -Dsonar.analysis.mode=preview -Dsonar.gitlab.commit_sha=$(git log --pretty=format:%H origin/master..$CI_COMMIT_SHA | tr '\n' ',') -Dsonar.gitlab.ref_name=$CI_COMMIT_REF_NAME -Dsonar.gitlab.project_id=$CI_PROJECT_ID -Dsonar.gitlab.unique_issue_per_inline=true
 ```
 
 With SonarScanner
@@ -298,7 +298,7 @@ sonarqube_master_job:
   only:
     - master
   script:
-    - mvn --batch-mode verify sonar:sonar -Dsonar.host.url=$SONAR_URL -Dsonar.login=$SONAR_LOGIN -Dsonar.gitlab.project_id=$CI_PROJECT_PATH -Dsonar.gitlab.commit_sha=$CI_COMMIT_SHA -Dsonar.gitlab.ref_name=$CI_COMMIT_REF_NAME -Dsonar.gitlab.json_mode=CODECLIMATE -Dsonar.gitlab.failure_notification_mode=commit-status  
+    - mvn --batch-mode verify sonar:sonar -Dsonar.host.url=$SONAR_URL -Dsonar.login=$SONAR_LOGIN -Dsonar.gitlab.project_id=$CI_PROJECT_PATH -Dsonar.gitlab.commit_sha=$CI_COMMIT_SHA -Dsonar.gitlab.ref_name=$CI_COMMIT_REF_NAME -Dsonar.gitlab.json_mode=CODECLIMATE -Dsonar.gitlab.failure_notification_mode=commit-status
   artifacts:
     expire_in: 1 day
     paths:
@@ -490,7 +490,7 @@ Usage : `${qualityGate.name(arg1,arg2,...)}`
 | conditionCount | Function none argument | Integer | Get size of all conditions |
 | conditionCount | Function Status argument | Integer | Get size conditions with Status|
 
-### Types 
+### Types
 
 Usage : `${Issue.name}`
 
@@ -646,9 +646,9 @@ Import it into your JRE cacerts (you can check from the "System Info" page in th
 Restart your SonarQube instance.
 
 ## Make it works with a private project
-- On a private project, with the provided command line upper in this document, you'll got an "IllegalStateException: Unable found project for" Exception.
-- It's necessary to create a "Personal Access Tokens". It needs a user with the "developper" right in the project. The token can be created in the profile menu, check the api checkbox. 
-- Then, use the following command line to run sonar thought gitlab-ci 
+- On a private project, with the provided command line upper in this document, you'll got an "IllegalStateException: Unable to find project ID" Exception.
+- It's necessary to create a "Personal Access Tokens". It needs a user with the "developer" right in the project. The token can be created in the profile menu, check the api checkbox.
+- Then, use the following command line to run sonar thought gitlab-ci
 
 ``` batch
 mvn --batch-mode verify sonar:sonar
