@@ -22,6 +22,7 @@ package com.talanlabs.sonar.plugins.gitlab;
 import com.talanlabs.sonar.plugins.gitlab.models.Issue;
 import com.talanlabs.sonar.plugins.gitlab.models.JsonMode;
 import com.talanlabs.sonar.plugins.gitlab.models.QualityGate;
+import com.talanlabs.sonar.plugins.gitlab.models.QualityGateFailMode;
 import com.talanlabs.sonar.plugins.gitlab.models.StatusNotificationsMode;
 import org.assertj.core.api.Assertions;
 import org.junit.Before;
@@ -681,6 +682,46 @@ public class ReporterBuilderTest {
                         + "* Toto3 is passed: Actual value 13\n" + "* Toto4 is warning: Actual value 14 > 20\n" + "* Toto5 is warning: Actual value 15 = 10\n" + "\n"
                         + "SonarQube analysis reported no issues.\n");
         Assertions.assertThat(reporter).isNotNull().extracting(Reporter::getStatus, Reporter::getStatusDescription).contains("failed", "SonarQube reported QualityGate is error, with 2 error and 2 warn and 1 ok, no issues");
+    }
+
+    @Test
+    public void testCommitAnalysisQualityGateFailModeWarning() {
+        settings.setProperty(GitLabPlugin.GITLAB_COMMENT_NO_ISSUE, false);
+        settings.setProperty(GitLabPlugin.GITLAB_QUALITY_GATE_FAIL_MODE, QualityGateFailMode.WARN.getMeaning());
+
+        List<QualityGate.Condition> conditions = new ArrayList<>();
+        conditions.add(QualityGate.Condition.newBuilder().status(QualityGate.Status.OK).metricKey("toto").metricName("Toto1").actual("10").symbol("<").warning("").error("0").build());
+        conditions.add(QualityGate.Condition.newBuilder().status(QualityGate.Status.OK).metricKey("toto").metricName("Toto2").actual("11").symbol(">=").warning("").error("").build());
+        conditions.add(QualityGate.Condition.newBuilder().status(QualityGate.Status.OK).metricKey("toto").metricName("Toto3").actual("13").symbol("<=").warning("").error("").build());
+        conditions.add(QualityGate.Condition.newBuilder().status(QualityGate.Status.WARN).metricKey("toto").metricName("Toto4").actual("14").symbol(">").warning("20").error("30").build());
+        conditions.add(QualityGate.Condition.newBuilder().status(QualityGate.Status.WARN).metricKey("toto").metricName("Toto5").actual("15").symbol("=").warning("10").error("").build());
+
+        Reporter reporter = reporterBuilder.build(QualityGate.newBuilder().status(QualityGate.Status.WARN).conditions(conditions).build(), Collections.emptyList());
+        Mockito.verify(commitFacade).addGlobalComment(
+            "SonarQube analysis indicates that quality gate is warning.\n" + "* Toto1 is passed: Actual value 10\n" + "* Toto2 is passed: Actual value 11\n"
+                + "* Toto3 is passed: Actual value 13\n" + "* Toto4 is warning: Actual value 14 > 20\n" + "* Toto5 is warning: Actual value 15 = 10\n" + "\n"
+                + "SonarQube analysis reported no issues.\n");
+        Assertions.assertThat(reporter).isNotNull().extracting(Reporter::getStatus, Reporter::getStatusDescription).contains("failed", "SonarQube reported QualityGate is warn, with 2 warn and 3 ok, no issues");
+    }
+
+    @Test
+    public void testCommitAnalysisQualityGateFailModeNone() {
+        settings.setProperty(GitLabPlugin.GITLAB_COMMENT_NO_ISSUE, false);
+        settings.setProperty(GitLabPlugin.GITLAB_QUALITY_GATE_FAIL_MODE, QualityGateFailMode.NONE.getMeaning());
+
+        List<QualityGate.Condition> conditions = new ArrayList<>();
+        conditions.add(QualityGate.Condition.newBuilder().status(QualityGate.Status.ERROR).metricKey("toto").metricName("Toto1").actual("10").symbol("<").warning("").error("0").build());
+        conditions.add(QualityGate.Condition.newBuilder().status(QualityGate.Status.ERROR).metricKey("toto").metricName("Toto2").actual("11").symbol(">=").warning("").error("10").build());
+        conditions.add(QualityGate.Condition.newBuilder().status(QualityGate.Status.OK).metricKey("toto").metricName("Toto3").actual("13").symbol("<=").warning("").error("").build());
+        conditions.add(QualityGate.Condition.newBuilder().status(QualityGate.Status.WARN).metricKey("toto").metricName("Toto4").actual("14").symbol(">").warning("20").error("30").build());
+        conditions.add(QualityGate.Condition.newBuilder().status(QualityGate.Status.WARN).metricKey("toto").metricName("Toto5").actual("15").symbol("=").warning("10").error("").build());
+
+        Reporter reporter = reporterBuilder.build(QualityGate.newBuilder().status(QualityGate.Status.ERROR).conditions(conditions).build(), Collections.emptyList());
+        Mockito.verify(commitFacade).addGlobalComment(
+            "SonarQube analysis indicates that quality gate is failed.\n" + "* Toto1 is failed: Actual value 10 < 0\n" + "* Toto2 is failed: Actual value 11 >= 10\n"
+                + "* Toto3 is passed: Actual value 13\n" + "* Toto4 is warning: Actual value 14 > 20\n" + "* Toto5 is warning: Actual value 15 = 10\n" + "\n"
+                + "SonarQube analysis reported no issues.\n");
+        Assertions.assertThat(reporter).isNotNull().extracting(Reporter::getStatus, Reporter::getStatusDescription).contains("success", "SonarQube reported QualityGate is error, with 2 error and 2 warn and 1 ok, no issues");
     }
 
     @Test
