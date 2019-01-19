@@ -229,7 +229,7 @@ public class Reporter {
 
         StringJoiner sj = new StringJoiner(",", "{", "}");
         sj.add("\"fingerprint\":\"" + issue.getKey() + "\"");
-        sj.add("\"check_name\":\"" + prepareMessageJson(issue.getMessage()) + "\"");
+        sj.add("\"description\":\"" + prepareMessageJson(issue.getMessage()) + "\"");
         sj.add("\"location\":" + buildLocationCodeQualityJson(reportIssue));
         return sj.toString();
     }
