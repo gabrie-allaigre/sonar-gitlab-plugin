@@ -19,13 +19,18 @@
  */
 package com.talanlabs.sonar.plugins.gitlab;
 
+import com.talanlabs.gitlab.api.Paged;
 import com.talanlabs.gitlab.api.v4.GitLabAPI;
-import com.talanlabs.gitlab.api.v4.Paged;
+import com.talanlabs.gitlab.api.v4.GitlabMergeRequestDiff;
+import com.talanlabs.gitlab.api.v4.models.GitlabMergeRequest;
+import com.talanlabs.gitlab.api.v4.models.GitlabPosition;
 import com.talanlabs.gitlab.api.v4.models.commits.GitLabCommit;
 import com.talanlabs.gitlab.api.v4.models.commits.GitLabCommitComments;
 import com.talanlabs.gitlab.api.v4.models.commits.GitLabCommitDiff;
+import com.talanlabs.gitlab.api.v4.models.discussion.GitlabDiscussion;
 import com.talanlabs.gitlab.api.v4.models.projects.GitLabProject;
 import com.talanlabs.gitlab.api.v4.models.users.GitLabUser;
+import org.apache.commons.lang3.StringUtils;
 import org.sonar.api.utils.log.Logger;
 import org.sonar.api.utils.log.Loggers;
 
@@ -267,10 +272,57 @@ public class GitLabApiV4Wrapper implements IGitLabApiWrapper {
     @Override
     public void createOrUpdateReviewComment(String revision, String fullPath, Integer line, String body) {
         try {
-            gitLabAPIV4.getGitLabAPICommits().postCommitComments(gitLabProject.getId(), revision != null ? revision : getFirstCommitSHA(), body, fullPath, line, "new");
+            if (config.isMergeRequestDiscussion()) {
+                createReviewDiscussion(revision, fullPath, line, body);
+            } else {
+                gitLabAPIV4.getGitLabAPICommits().postCommitComments(gitLabProject.getId(), revision != null ? revision : getFirstCommitSHA(), body, fullPath, line, "new");
+            }
         } catch (IOException e) {
             throw new IllegalStateException("Unable to create or update review comment in file " + fullPath + " at line " + line, e);
         }
+    }
+
+    private void createReviewDiscussion(String revision, String fullPath, Integer line, String body) throws IOException {
+        Integer projectId = gitLabProject.getId();
+        String branch = config.refName();
+        String commitSha = revision != null ? revision : getFirstCommitSHA();
+
+        checkArgument(StringUtils.isNotBlank(branch), "The branch name (ref name) can not be empty.");
+
+        LOG.trace("Request Merge Request for project with id {} on the {} branch including the commit sha {}.", projectId, branch, commitSha);
+
+        Paged<GitlabMergeRequest> mergeRequests = gitLabAPIV4.getGitLabAPIMergeRequest()
+                .getAllProjectMergeRequestsBySourceBranchAndCommitShaWithStateOpen(projectId, branch, commitSha, null);
+
+        checkArgument(mergeRequests.getResults() != null && !mergeRequests.getResults().isEmpty(), "There are no merge requests.");
+
+        GitlabMergeRequest mergeRequest = mergeRequests.getResults().get(0);
+        Paged<GitlabMergeRequestDiff> mergeRequestDiffs = gitLabAPIV4
+                .getGitLabAPIMergeRequestDiff().getMergeRequestDiff(projectId, mergeRequest.getIid());
+
+        checkArgument(mergeRequestDiffs.getResults() != null && !mergeRequestDiffs.getResults().isEmpty(), "There are no merge request diffs.");
+
+        GitlabMergeRequestDiff mergeRequestDiff = mergeRequestDiffs.getResults().get(0);
+
+        GitlabDiscussion discussion = createMergeRequestDiscussion(mergeRequestDiff, fullPath, line, body);
+
+        gitLabAPIV4.getGitLabAPIMergeRequestDiscussion().createDiscussion(projectId, mergeRequest.getIid(), discussion);
+    }
+
+    private GitlabDiscussion createMergeRequestDiscussion(GitlabMergeRequestDiff mergeRequestDiff, String fullPath, Integer line, String body) {
+        GitlabPosition position = new GitlabPosition();
+        position.setBaseSha(mergeRequestDiff.getBaseCommitSha());
+        position.setStartSha(mergeRequestDiff.getStartCommitSha());
+        position.setHeadSha(mergeRequestDiff.getHeadCommitSha());
+        position.setPositionType(GitlabPosition.PositionType.TEXT);
+        position.setOldPath(fullPath);
+        position.setNewPath(fullPath);
+        position.setNewLine(line);
+
+        GitlabDiscussion discussion = new GitlabDiscussion();
+        discussion.setBody(body);
+        discussion.setPosition(position);
+        return discussion;
     }
 
     @Override
@@ -284,6 +336,12 @@ public class GitLabApiV4Wrapper implements IGitLabApiWrapper {
 
     private String getFirstCommitSHA() {
         return config.commitSHA() != null && !config.commitSHA().isEmpty() ? config.commitSHA().get(0) : null;
+    }
+
+    public static void checkArgument(boolean expression, @Nullable Object errorMessage) {
+        if (!expression) {
+            throw new IllegalArgumentException(String.valueOf(errorMessage));
+        }
     }
 
 }

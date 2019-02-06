@@ -404,6 +404,7 @@ https://docs.gitlab.com/ce/ci/variables/#9-0-renaming
 | sonar.gitlab.issue_filter | Filter on issue, if MAJOR then show only MAJOR, CRITICAL and BLOCKER (default INFO) | Administration, Variable | >= 3.0.0 |
 | sonar.gitlab.load_rules | Load rules for all issues (default false) | Administration, Variable | >= 3.0.0 |
 | sonar.gitlab.disable_proxy | Disable proxy if system contains proxy config (default false) | Administration, Variable | >= 4.0.0 |
+| sonar.gitlab.merge_request_discussion | Allows to post the comments as discussions (default false) | Project, Variable | >= 4.0.0 |
 
 - Administration : **Settings** globals in SonarQube
 - Project : **Settings** of project in SonarQube

@@ -19,8 +19,8 @@
  */
 package com.talanlabs.sonar.plugins.gitlab;
 
+import com.talanlabs.gitlab.api.Paged;
 import com.talanlabs.gitlab.api.v3.GitLabAPI;
-import com.talanlabs.gitlab.api.v3.Paged;
 import com.talanlabs.gitlab.api.v3.models.commits.GitLabCommit;
 import com.talanlabs.gitlab.api.v3.models.commits.GitLabCommitComments;
 import com.talanlabs.gitlab.api.v3.models.commits.GitLabCommitDiff;

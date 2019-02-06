@@ -265,4 +265,8 @@ public class GitLabPluginConfiguration {
     public String baseUrl() {
         return baseUrl;
     }
+
+    public boolean isMergeRequestDiscussion() {
+        return configuration.getBoolean(GitLabPlugin.GITLAB_MERGE_REQUEST_DISCUSSION).orElse(false);
+    }
 }

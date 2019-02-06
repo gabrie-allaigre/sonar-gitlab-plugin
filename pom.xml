@@ -16,7 +16,7 @@
   <packaging>sonar-plugin</packaging>
   <url>https://github.com/gabrie-allaigre/sonar-gitlab-plugin</url>
   <properties>
-    <java-gitlab-api.version>1.3.0</java-gitlab-api.version>
+    <java-gitlab-api.version>1.4.0</java-gitlab-api.version>
     <freemarker.version>2.3.23</freemarker.version>
     <commons-lang3.version>3.5</commons-lang3.version>
 
