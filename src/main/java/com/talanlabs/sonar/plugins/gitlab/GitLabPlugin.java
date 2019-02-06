@@ -66,6 +66,7 @@ public class GitLabPlugin implements Plugin {
     public static final String GITLAB_ISSUE_FILTER = "sonar.gitlab.issue_filter";
     public static final String GITLAB_LOAD_RULES = "sonar.gitlab.load_rules";
     public static final String GITLAB_DISABLE_PROXY = "sonar.gitlab.disable_proxy";
+    public static final String GITLAB_MERGE_REQUEST_DISCUSSION = "sonar.gitlab.merge_request_discussion";
 
     public static final String CATEGORY = "gitlab";
     public static final String SUBCATEGORY = "reporting";
@@ -156,7 +157,11 @@ public class GitLabPlugin implements Plugin {
                         PropertyDefinition.builder(GITLAB_DISABLE_PROXY).name("Disable proxy").description("Disable proxy if system contains proxy config")
                                 .category(CATEGORY).subCategory(SUBCATEGORY).type(PropertyType.BOOLEAN)
                                 .defaultValue(String.valueOf(false))
-                                .index(33).build()
+                                .index(33).build(),
+                        PropertyDefinition.builder(GITLAB_MERGE_REQUEST_DISCUSSION).name("Enable merge request discussion").description("Allows to post discussions instead of comments on merge request")
+                                .category(CATEGORY).subCategory(SUBCATEGORY).type(PropertyType.BOOLEAN)
+                                .defaultValue(String.valueOf(false))
+                                .index(34).build()
 
                 );
     }
