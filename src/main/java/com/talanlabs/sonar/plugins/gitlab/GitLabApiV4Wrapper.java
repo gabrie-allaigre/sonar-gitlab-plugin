@@ -213,7 +213,8 @@ public class GitLabApiV4Wrapper implements IGitLabApiWrapper {
     @Override
     public void createOrUpdateSonarQubeStatus(String status, String statusDescription) {
         try {
-            gitLabAPIV4.getGitLabAPICommits().postCommitStatus(gitLabProject.getId(), getFirstCommitSHA(), status, config.refName(), COMMIT_CONTEXT, null, statusDescription);
+            gitLabAPIV4.getGitLabAPICommits()
+                    .postCommitStatus(gitLabProject.getId(), getFirstCommitSHA(), status, config.refName(), COMMIT_CONTEXT, null, statusDescription);
         } catch (IOException e) {
             // Workaround for https://gitlab.com/gitlab-org/gitlab-ce/issues/25807
             if (e.getMessage() != null && e.getMessage().contains("Cannot transition status")) {
@@ -272,8 +273,8 @@ public class GitLabApiV4Wrapper implements IGitLabApiWrapper {
     @Override
     public void createOrUpdateReviewComment(String revision, String fullPath, Integer line, String body) {
         try {
-            if (config.isMergeRequestDiscussion()) {
-                createReviewDiscussion(revision, fullPath, line, body);
+            if (config.isMergeRequestDiscussionEnabled()) {
+                createReviewDiscussion(fullPath, line, body);
             } else {
                 gitLabAPIV4.getGitLabAPICommits().postCommitComments(gitLabProject.getId(), revision != null ? revision : getFirstCommitSHA(), body, fullPath, line, "new");
             }
@@ -282,31 +283,22 @@ public class GitLabApiV4Wrapper implements IGitLabApiWrapper {
         }
     }
 
-    private void createReviewDiscussion(String revision, String fullPath, Integer line, String body) throws IOException {
+    private void createReviewDiscussion(String fullPath, Integer lineNumber, String body) throws IOException {
         Integer projectId = gitLabProject.getId();
-        String branch = config.refName();
-        String commitSha = revision != null ? revision : getFirstCommitSHA();
+        int mergeRequestIid = config.mergeRequestIid();
 
-        checkArgument(StringUtils.isNotBlank(branch), "The branch name (ref name) can not be empty.");
+        checkArgument(mergeRequestIid != -1, "The merge request iid must be provided.");
 
-        LOG.trace("Request Merge Request for project with id {} on the {} branch including the commit sha {}.", projectId, branch, commitSha);
-
-        Paged<GitlabMergeRequest> mergeRequests = gitLabAPIV4.getGitLabAPIMergeRequest()
-                .getAllProjectMergeRequestsBySourceBranchAndCommitShaWithStateOpen(projectId, branch, commitSha, null);
-
-        checkArgument(mergeRequests.getResults() != null && !mergeRequests.getResults().isEmpty(), "There are no merge requests.");
-
-        GitlabMergeRequest mergeRequest = mergeRequests.getResults().get(0);
         Paged<GitlabMergeRequestDiff> mergeRequestDiffs = gitLabAPIV4
-                .getGitLabAPIMergeRequestDiff().getMergeRequestDiff(projectId, mergeRequest.getIid());
+                .getGitLabAPIMergeRequestDiff().getMergeRequestDiff(projectId, mergeRequestIid);
 
         checkArgument(mergeRequestDiffs.getResults() != null && !mergeRequestDiffs.getResults().isEmpty(), "There are no merge request diffs.");
 
         GitlabMergeRequestDiff mergeRequestDiff = mergeRequestDiffs.getResults().get(0);
 
-        GitlabDiscussion discussion = createMergeRequestDiscussion(mergeRequestDiff, fullPath, line, body);
+        GitlabDiscussion discussion = createMergeRequestDiscussion(mergeRequestDiff, fullPath, lineNumber, body);
 
-        gitLabAPIV4.getGitLabAPIMergeRequestDiscussion().createDiscussion(projectId, mergeRequest.getIid(), discussion);
+        gitLabAPIV4.getGitLabAPIMergeRequestDiscussion().createDiscussion(projectId, mergeRequestIid, discussion);
     }
 
     private GitlabDiscussion createMergeRequestDiscussion(GitlabMergeRequestDiff mergeRequestDiff, String fullPath, Integer line, String body) {
