@@ -22,7 +22,7 @@ package com.talanlabs.sonar.plugins.gitlab;
 import com.talanlabs.sonar.plugins.gitlab.models.*;
 import org.sonar.api.ExtensionPoint;
 import org.sonar.api.batch.AnalysisMode;
-import org.sonar.api.batch.ScannerSide;
+import org.sonar.api.scanner.ScannerSide;
 import org.sonar.api.batch.rule.Severity;
 import org.sonar.api.utils.log.Logger;
 import org.sonar.api.utils.log.Loggers;

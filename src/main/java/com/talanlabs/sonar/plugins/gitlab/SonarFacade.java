@@ -28,7 +28,7 @@ import com.talanlabs.sonar.plugins.gitlab.models.QualityGate;
 import com.talanlabs.sonar.plugins.gitlab.models.Rule;
 import org.sonar.api.CoreProperties;
 import org.sonar.api.batch.InstantiationStrategy;
-import org.sonar.api.batch.ScannerSide;
+import org.sonar.api.scanner.ScannerSide;
 import org.sonar.api.batch.rule.Severity;
 import org.sonar.api.config.Configuration;
 import org.sonar.api.measures.CoreMetrics;
@@ -53,7 +53,7 @@ import java.util.stream.Collectors;
 /**
  * Facade for all WS interaction with Sonar
  */
-@InstantiationStrategy(InstantiationStrategy.PER_BATCH)
+@InstantiationStrategy(InstantiationStrategy.PER_PROJECT)
 @ScannerSide
 public class SonarFacade {
 

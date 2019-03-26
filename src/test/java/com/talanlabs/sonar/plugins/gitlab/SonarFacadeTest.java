@@ -374,7 +374,7 @@ public class SonarFacadeTest {
 
         createReportTaskFile();
         Assertions.assertThatThrownBy(() -> sonarFacade.getNewIssues()).isInstanceOf(HttpException.class)
-                .hasMessage("Error 404 on http://" + sonar.getHostName() + ":" + sonar.getPort() + "/api/issues/search?componentKeys=com.talanlabs:avatar-generator-parent&p=1&resolved=false : Not Found");
+                .hasMessage("Error 404 on http://" + sonar.getHostName() + ":" + sonar.getPort() + "/api/issues/search?componentKeys=com.talanlabs%3Aavatar-generator-parent&p=1&resolved=false : Not Found");
     }
 
     @Test
