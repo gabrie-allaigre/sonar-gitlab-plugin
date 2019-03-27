@@ -93,6 +93,10 @@ public class Reporter {
     }
 
     private boolean aboveQualityGate() {
+        if (QualityGateFailMode.NONE.equals(gitLabPluginConfiguration.qualityGateFailMode())) {
+            return false;
+        }
+
         return qualityGate != null && (QualityGate.Status.ERROR.equals(qualityGate.getStatus()) || (QualityGateFailMode.WARN.equals(gitLabPluginConfiguration.qualityGateFailMode())
                 && QualityGate.Status.WARN.equals(qualityGate.getStatus())));
     }

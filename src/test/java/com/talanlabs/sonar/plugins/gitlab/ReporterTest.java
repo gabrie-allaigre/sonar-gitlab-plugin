@@ -20,6 +20,8 @@
 package com.talanlabs.sonar.plugins.gitlab;
 
 import com.talanlabs.sonar.plugins.gitlab.models.JsonMode;
+import com.talanlabs.sonar.plugins.gitlab.models.QualityGate;
+import com.talanlabs.sonar.plugins.gitlab.models.QualityGateFailMode;
 import org.assertj.core.api.Assertions;
 import org.junit.Before;
 import org.junit.Test;
@@ -160,8 +162,112 @@ public class ReporterTest {
     public void issuesJsonLine() {
         settings.setProperty(GitLabPlugin.GITLAB_JSON_MODE, JsonMode.SAST.name());
 
-            reporter.process(Utils.newIssue("toto", "component", null, null, Severity.INFO, true, "Issue\nline1\n\rline2", "rule"), null, null, GITLAB_URL, "file", "http://myserver/rule", true);
+        reporter.process(Utils.newIssue("toto", "component", null, null, Severity.INFO, true, "Issue\nline1\n\rline2", "rule"), null, null, GITLAB_URL, "file", "http://myserver/rule", true);
 
         Assertions.assertThat(reporter.buildJson()).isEqualTo("[{\"tool\":\"sonarqube\",\"fingerprint\":\"toto\",\"message\":\"Issue\\nline1\\n\\rline2\",\"file\":\"file\",\"line\":\"0\",\"priority\":\"INFO\",\"solution\":\"http://myserver/rule\"}]");
+    }
+
+    @Test
+    public void reportSucceedsIfQualityGateIsNone() {
+        QualityGate qualityGate = QualityGate.newBuilder().status(QualityGate.Status.OK).build();
+        reporter.setQualityGate(qualityGate);
+
+        Assertions.assertThat(reporter.getStatus()).isEqualTo(MessageHelper.SUCCESS_GITLAB_STATUS);
+    }
+
+    @Test
+    public void reportSucceedsIfQualityGateIsOk() {
+        QualityGate qualityGate = QualityGate.newBuilder().status(QualityGate.Status.OK).build();
+        reporter.setQualityGate(qualityGate);
+
+        Assertions.assertThat(reporter.getStatus()).isEqualTo(MessageHelper.SUCCESS_GITLAB_STATUS);
+    }
+
+    @Test
+    public void reportSucceedsIfQualityGateIsWarn() {
+        QualityGate qualityGate = QualityGate.newBuilder().status(QualityGate.Status.WARN).build();
+        reporter.setQualityGate(qualityGate);
+
+        Assertions.assertThat(reporter.getStatus()).isEqualTo(MessageHelper.SUCCESS_GITLAB_STATUS);
+    }
+
+    @Test
+    public void reportFailsIfQualityGateIsError() {
+        QualityGate qualityGate = QualityGate.newBuilder().status(QualityGate.Status.ERROR).build();
+        reporter.setQualityGate(qualityGate);
+
+        Assertions.assertThat(reporter.getStatus()).isEqualTo(MessageHelper.FAILED_GITLAB_STATUS);
+    }
+
+    @Test
+    public void reportSucceedsIfQualityGateIsNoneAndFailModeIsWarn() {
+        QualityGate qualityGate = QualityGate.newBuilder().status(QualityGate.Status.NONE).build();
+        reporter.setQualityGate(qualityGate);
+        settings.setProperty(GitLabPlugin.GITLAB_QUALITY_GATE_FAIL_MODE, QualityGateFailMode.WARN.getMeaning());
+
+        Assertions.assertThat(reporter.getStatus()).isEqualTo(MessageHelper.SUCCESS_GITLAB_STATUS);
+    }
+
+    @Test
+    public void reportSucceedsIfQualityGateIsOkAndFailModeIsWarn() {
+        QualityGate qualityGate = QualityGate.newBuilder().status(QualityGate.Status.OK).build();
+        reporter.setQualityGate(qualityGate);
+        settings.setProperty(GitLabPlugin.GITLAB_QUALITY_GATE_FAIL_MODE, QualityGateFailMode.WARN.getMeaning());
+
+        Assertions.assertThat(reporter.getStatus()).isEqualTo(MessageHelper.SUCCESS_GITLAB_STATUS);
+    }
+
+    @Test
+    public void reportFailsIfQualityGateIsWarnAndFailModeIsWarn() {
+        QualityGate qualityGate = QualityGate.newBuilder().status(QualityGate.Status.WARN).build();
+        reporter.setQualityGate(qualityGate);
+        settings.setProperty(GitLabPlugin.GITLAB_QUALITY_GATE_FAIL_MODE, QualityGateFailMode.WARN.getMeaning());
+
+        Assertions.assertThat(reporter.getStatus()).isEqualTo(MessageHelper.FAILED_GITLAB_STATUS);
+    }
+
+    @Test
+    public void reportFailsIfQualityGateIsErrorAndFailModeIsWarn() {
+        QualityGate qualityGate = QualityGate.newBuilder().status(QualityGate.Status.ERROR).build();
+        reporter.setQualityGate(qualityGate);
+        settings.setProperty(GitLabPlugin.GITLAB_QUALITY_GATE_FAIL_MODE, QualityGateFailMode.WARN.getMeaning());
+
+        Assertions.assertThat(reporter.getStatus()).isEqualTo(MessageHelper.FAILED_GITLAB_STATUS);
+    }
+
+    @Test
+    public void reportSucceedsIfQualityGateIsNoneAndFailModeIsNone() {
+        QualityGate qualityGate = QualityGate.newBuilder().status(QualityGate.Status.NONE).build();
+        reporter.setQualityGate(qualityGate);
+        settings.setProperty(GitLabPlugin.GITLAB_QUALITY_GATE_FAIL_MODE, QualityGateFailMode.NONE.getMeaning());
+
+        Assertions.assertThat(reporter.getStatus()).isEqualTo(MessageHelper.SUCCESS_GITLAB_STATUS);
+    }
+
+    @Test
+    public void reportSucceedsIfQualityGateIsOkAndFailModeIsNone() {
+        QualityGate qualityGate = QualityGate.newBuilder().status(QualityGate.Status.OK).build();
+        reporter.setQualityGate(qualityGate);
+        settings.setProperty(GitLabPlugin.GITLAB_QUALITY_GATE_FAIL_MODE, QualityGateFailMode.NONE.getMeaning());
+
+        Assertions.assertThat(reporter.getStatus()).isEqualTo(MessageHelper.SUCCESS_GITLAB_STATUS);
+    }
+
+    @Test
+    public void reportSucceedsIfQualityGateIsWarnAndFailModeIsNone() {
+        QualityGate qualityGate = QualityGate.newBuilder().status(QualityGate.Status.WARN).build();
+        reporter.setQualityGate(qualityGate);
+        settings.setProperty(GitLabPlugin.GITLAB_QUALITY_GATE_FAIL_MODE, QualityGateFailMode.NONE.getMeaning());
+
+        Assertions.assertThat(reporter.getStatus()).isEqualTo(MessageHelper.SUCCESS_GITLAB_STATUS);
+    }
+
+    @Test
+    public void reportSucceedsIfQualityGateIsErrorAndFailModeIsNone() {
+        QualityGate qualityGate = QualityGate.newBuilder().status(QualityGate.Status.ERROR).build();
+        reporter.setQualityGate(qualityGate);
+        settings.setProperty(GitLabPlugin.GITLAB_QUALITY_GATE_FAIL_MODE, QualityGateFailMode.NONE.getMeaning());
+
+        Assertions.assertThat(reporter.getStatus()).isEqualTo(MessageHelper.SUCCESS_GITLAB_STATUS);
     }
 }
