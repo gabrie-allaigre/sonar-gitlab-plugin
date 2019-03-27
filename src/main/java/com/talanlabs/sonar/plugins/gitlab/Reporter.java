@@ -93,6 +93,10 @@ public class Reporter {
     }
 
     private boolean aboveQualityGate() {
+        if (QualityGateFailMode.NONE.equals(gitLabPluginConfiguration.qualityGateFailMode())) {
+            return false;
+        }
+
         return qualityGate != null && (QualityGate.Status.ERROR.equals(qualityGate.getStatus()) || (QualityGateFailMode.WARN.equals(gitLabPluginConfiguration.qualityGateFailMode())
                 && QualityGate.Status.WARN.equals(qualityGate.getStatus())));
     }
@@ -229,7 +233,7 @@ public class Reporter {
 
         StringJoiner sj = new StringJoiner(",", "{", "}");
         sj.add("\"fingerprint\":\"" + issue.getKey() + "\"");
-        sj.add("\"check_name\":\"" + prepareMessageJson(issue.getMessage()) + "\"");
+        sj.add("\"description\":\"" + prepareMessageJson(issue.getMessage()) + "\"");
         sj.add("\"location\":" + buildLocationCodeQualityJson(reportIssue));
         return sj.toString();
     }

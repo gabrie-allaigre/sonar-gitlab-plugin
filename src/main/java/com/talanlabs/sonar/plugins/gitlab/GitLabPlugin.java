@@ -140,9 +140,9 @@ public class GitLabPlugin implements Plugin {
                                 .type(PropertyType.INTEGER).defaultValue(String.valueOf(50)).index(28).build(),
                         PropertyDefinition.builder(GITLAB_QUERY_WAIT).name("Query waiting between retry").description("Max retry for wait finish analyse for publish mode (millisecond)").category(CATEGORY).subCategory(SUBCATEGORY)
                                 .type(PropertyType.INTEGER).defaultValue(String.valueOf(1000)).index(29).build(),
-                        PropertyDefinition.builder(GITLAB_QUALITY_GATE_FAIL_MODE).name("Quality Gate fail mode").description("Quality gate fail mode: error or warn")
+                        PropertyDefinition.builder(GITLAB_QUALITY_GATE_FAIL_MODE).name("Quality Gate fail mode").description("Quality gate fail mode: error, warn or none")
                                 .category(CATEGORY).subCategory(SUBCATEGORY).type(PropertyType.SINGLE_SELECT_LIST)
-                                .options(QualityGateFailMode.WARN.getMeaning(), QualityGateFailMode.ERROR.getMeaning()).defaultValue(QualityGateFailMode.ERROR.getMeaning())
+                                .options(QualityGateFailMode.NONE.getMeaning(), QualityGateFailMode.WARN.getMeaning(), QualityGateFailMode.ERROR.getMeaning()).defaultValue(QualityGateFailMode.ERROR.getMeaning())
                                 .index(30).build(),
                         PropertyDefinition.builder(GITLAB_ISSUE_FILTER).name("Issue filter").description("Filter on issue, if MAJOR then show only MAJOR, CRITICAL and BLOCKER")
                                 .category(CATEGORY).subCategory(SUBCATEGORY).type(PropertyType.SINGLE_SELECT_LIST)

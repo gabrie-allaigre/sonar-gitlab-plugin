@@ -132,6 +132,8 @@ public class GitLabPluginConfigurationTest {
         Assertions.assertThat(config.qualityGateFailMode()).isEqualTo(QualityGateFailMode.ERROR);
         settings.setProperty(GitLabPlugin.GITLAB_QUALITY_GATE_FAIL_MODE, QualityGateFailMode.WARN.getMeaning());
         Assertions.assertThat(config.qualityGateFailMode()).isEqualTo(QualityGateFailMode.WARN);
+        settings.setProperty(GitLabPlugin.GITLAB_QUALITY_GATE_FAIL_MODE, QualityGateFailMode.NONE.getMeaning());
+        Assertions.assertThat(config.qualityGateFailMode()).isEqualTo(QualityGateFailMode.NONE);
         settings.setProperty(GitLabPlugin.GITLAB_QUALITY_GATE_FAIL_MODE, "error");
         Assertions.assertThat(config.qualityGateFailMode()).isEqualTo(QualityGateFailMode.ERROR);
 

@@ -21,7 +21,7 @@ package com.talanlabs.sonar.plugins.gitlab.models;
 
 public enum QualityGateFailMode {
 
-    ERROR("ERROR"), WARN("WARN");
+    ERROR("ERROR"), WARN("WARN"), NONE("NONE");
 
     private final String meaning;
 
