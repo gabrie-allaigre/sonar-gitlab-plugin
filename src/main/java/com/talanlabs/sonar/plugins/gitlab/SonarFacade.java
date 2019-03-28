@@ -193,7 +193,7 @@ public class SonarFacade {
         }
     }
 
-    private boolean isPluginInstalled(String pluginKey) {
+    public boolean isPluginInstalled(String pluginKey) {
         String response = wsClient.plugins().installed(new InstalledRequest());
         JsonElement json = new JsonParser().parse(response);
         if (json.isJsonObject()) {
