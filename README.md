@@ -17,7 +17,7 @@ Inspired by https://github.com/SonarCommunity/sonar-github
 - Adding support for NONE in QualityGateFailMode [#206](https://github.com/gabrie-allaigre/sonar-gitlab-plugin/pull/206)
 - Code Quality Descriptions [#208](https://github.com/gabrie-allaigre/sonar-gitlab-plugin/pull/208)
 - Make sure that ReporterBuilder is available during batch [#214](https://github.com/gabrie-allaigre/sonar-gitlab-plugin/pull/214)
-- Fix issues retrieval for SonarQube Community Edition [#227](https://github.com/gabrie-allaigre/sonar-gitlab-plugin/pull/214)
+- Fix issues retrieval for SonarQube Community Edition [#227](https://github.com/gabrie-allaigre/sonar-gitlab-plugin/pull/227)
 
 **[Download 4.1.0-SNAPSHOT](https://github.com/gabrie-allaigre/sonar-gitlab-plugin/releases/download/4.1.0-SNAPSHOT/sonar-gitlab-plugin-4.1.0-SNAPSHOT.jar)**
 
