@@ -7,11 +7,14 @@ Inspired by https://github.com/SonarCommunity/sonar-github
 
 # Changelog
 
-## Version 4.0.1-SNAPSHOT
+## Version 4.1.0-SNAPSHOT
 
 ### Fixed
 - Fix new line in json [#181](https://github.com/gabrie-allaigre/sonar-gitlab-plugin/pull/181)
 - Fix new rule type [#183](https://github.com/gabrie-allaigre/sonar-gitlab-plugin/pull/183)
+- Adding support for NONE in QualityGateFailMode [#206](https://github.com/gabrie-allaigre/sonar-gitlab-plugin/pull/206)
+- Code Quality Descriptions [#208](https://github.com/gabrie-allaigre/sonar-gitlab-plugin/pull/208)
+- Make sure that ReporterBuilder is available during batch [#214](https://github.com/gabrie-allaigre/sonar-gitlab-plugin/pull/214)
 
 ## Version 4.0.0
 
