@@ -537,4 +537,18 @@ public class SonarFacadeTest {
         Assertions.assertThat(sonarFacade.getMetricName("toto")).isEqualTo("toto");
         Assertions.assertThat(sonarFacade.getMetricName("security_rating")).isEqualTo("Security Rating");
     }
+
+    @Test
+    public void testIsPluginInstalled() {
+        String pluginsResponse = "{\"plugins\":[{\"key\":\"my-plugin-1\"},{\"key\":\"my-plugin-2\"}]}";
+        for (int j = 0; j < 4; j++) {
+            sonar.enqueue(new MockResponse().setResponseCode(200).addHeader("Content-Type", "application/x-protobuf").setBody(pluginsResponse));
+        }
+
+        Assertions.assertThat(sonarFacade.isPluginInstalled("my-plugin-1")).isEqualTo(true);
+        Assertions.assertThat(sonarFacade.isPluginInstalled("my-plugin-2")).isEqualTo(true);
+        Assertions.assertThat(sonarFacade.isPluginInstalled("my-plugin-3")).isEqualTo(false);
+        Assertions.assertThat(sonarFacade.isPluginInstalled(null)).isEqualTo(false);
+    }
+
 }

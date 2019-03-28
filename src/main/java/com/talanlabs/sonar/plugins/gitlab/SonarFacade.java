@@ -23,6 +23,10 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.io.Files;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import com.talanlabs.sonar.plugins.gitlab.models.Issue;
 import com.talanlabs.sonar.plugins.gitlab.models.QualityGate;
 import com.talanlabs.sonar.plugins.gitlab.models.Rule;
@@ -41,6 +45,7 @@ import org.sonarqube.ws.client.*;
 import org.sonarqube.ws.client.ce.TaskRequest;
 import org.sonarqube.ws.client.components.ShowRequest;
 import org.sonarqube.ws.client.issues.SearchRequest;
+import org.sonarqube.ws.client.plugins.InstalledRequest;
 import org.sonarqube.ws.client.qualitygates.ProjectStatusRequest;
 
 import java.io.File;
@@ -188,6 +193,33 @@ public class SonarFacade {
         }
     }
 
+    public boolean isPluginInstalled(String pluginKey) {
+        String response = wsClient.plugins().installed(new InstalledRequest());
+        JsonElement json = new JsonParser().parse(response);
+        if (json.isJsonObject()) {
+            JsonObject root = json.getAsJsonObject();
+            json = root.get("plugins");
+            if (json.isJsonArray()) {
+                JsonArray plugins = json.getAsJsonArray();
+                Set<String> keys = new HashSet<>();
+                plugins.forEach(j -> {
+                    if (j.isJsonObject()) {
+                        j = j.getAsJsonObject().get("key");
+                        if (j.isJsonPrimitive()) {
+                            keys.add(j.getAsString());
+                        }
+                    }
+                });
+
+                if (keys.contains(pluginKey)) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
     @VisibleForTesting
     String getMetricName(String metricKey) {
         try {
@@ -238,7 +270,7 @@ public class SonarFacade {
 
     private Issues.SearchWsResponse searchIssues(String componentKey, String branch, int page) {
         SearchRequest searchRequest = new SearchRequest().setComponentKeys(Collections.singletonList(componentKey)).setP(String.valueOf(page)).setResolved("false");
-        if (isNotBlankAndNotEmpty(branch)) {
+        if (isNotBlankAndNotEmpty(branch) && isPluginInstalled("branch")) {
             searchRequest.setBranch(branch);
         }
         return wsClient.issues().search(searchRequest);
@@ -292,7 +324,7 @@ public class SonarFacade {
 
     private File toFile(Issues.Component component, String branch) {
         ShowRequest showRequest = new ShowRequest().setComponent(component.getKey());
-        if (isNotBlankAndNotEmpty(branch)) {
+        if (isNotBlankAndNotEmpty(branch) && isPluginInstalled("branch")) {
             showRequest.setBranch(branch);
         }
 
