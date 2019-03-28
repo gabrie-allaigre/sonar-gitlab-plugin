@@ -16,6 +16,8 @@ Inspired by https://github.com/SonarCommunity/sonar-github
 - Code Quality Descriptions [#208](https://github.com/gabrie-allaigre/sonar-gitlab-plugin/pull/208)
 - Make sure that ReporterBuilder is available during batch [#214](https://github.com/gabrie-allaigre/sonar-gitlab-plugin/pull/214)
 
+**[Download 4.1.0-SNAPSHOT](https://github.com/gabrie-allaigre/sonar-gitlab-plugin/releases/download/4.1.0-SNAPSHOT/sonar-gitlab-plugin-4.1.0-SNAPSHOT.jar)**
+
 ## Version 4.0.0
 
 **This version is directly in the SonarQube update center, only SonarQube >= 7.0**
