@@ -228,7 +228,7 @@ public class ReporterBuilderTest {
         reporterBuilder.build(null, Arrays.asList(newIssue1, newIssue2, newIssue3));
 
         Mockito.verify(commitFacade).createOrUpdateReviewComment("abc123", inputFile1, 1,
-                ":no_entry: msg1 [:blue_book:](http://myserver/coding_rules#rule_key=repo%3Arule)\n" + ":no_entry: msg2 [:blue_book:](http://myserver/coding_rules#rule_key=repo%3Arule)");
+                "* :no_entry: msg1 [:blue_book:](http://myserver/coding_rules#rule_key=repo%3Arule)\n" + "* :no_entry: msg2 [:blue_book:](http://myserver/coding_rules#rule_key=repo%3Arule)");
         Mockito.verify(commitFacade).createOrUpdateReviewComment("abc123", inputFile1, 2, ":no_entry: msg3 [:blue_book:](http://myserver/coding_rules#rule_key=repo%3Arule)");
     }
 

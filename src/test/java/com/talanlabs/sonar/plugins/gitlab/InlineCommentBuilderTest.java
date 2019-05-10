@@ -102,16 +102,16 @@ public class InlineCommentBuilderTest {
                         .ruleLink("http://myserver/coding_rules#rule_key=repo%3Arule").reportedOnDiff(true).build()).collect(Collectors.toList());
 
         Assertions.assertThat(new InlineCommentBuilder(config, "123", null, 1, ris, new MarkDownUtils(), analysisMode).buildForMarkdown()).isEqualTo(
-                ":information_source: Issue [:blue_book:](http://myserver/coding_rules#rule_key=repo%3Arule)\n"
-                        + ":information_source: Issue [:blue_book:](http://myserver/coding_rules#rule_key=repo%3Arule)\n"
-                        + ":information_source: Issue [:blue_book:](http://myserver/coding_rules#rule_key=repo%3Arule)\n"
-                        + ":information_source: Issue [:blue_book:](http://myserver/coding_rules#rule_key=repo%3Arule)\n"
-                        + ":information_source: Issue [:blue_book:](http://myserver/coding_rules#rule_key=repo%3Arule)\n"
-                        + ":information_source: Issue [:blue_book:](http://myserver/coding_rules#rule_key=repo%3Arule)\n"
-                        + ":information_source: Issue [:blue_book:](http://myserver/coding_rules#rule_key=repo%3Arule)\n"
-                        + ":information_source: Issue [:blue_book:](http://myserver/coding_rules#rule_key=repo%3Arule)\n"
-                        + ":information_source: Issue [:blue_book:](http://myserver/coding_rules#rule_key=repo%3Arule)\n"
-                        + ":information_source: Issue [:blue_book:](http://myserver/coding_rules#rule_key=repo%3Arule)");
+                "* :information_source: Issue [:blue_book:](http://myserver/coding_rules#rule_key=repo%3Arule)\n"
+                        + "* :information_source: Issue [:blue_book:](http://myserver/coding_rules#rule_key=repo%3Arule)\n"
+                        + "* :information_source: Issue [:blue_book:](http://myserver/coding_rules#rule_key=repo%3Arule)\n"
+                        + "* :information_source: Issue [:blue_book:](http://myserver/coding_rules#rule_key=repo%3Arule)\n"
+                        + "* :information_source: Issue [:blue_book:](http://myserver/coding_rules#rule_key=repo%3Arule)\n"
+                        + "* :information_source: Issue [:blue_book:](http://myserver/coding_rules#rule_key=repo%3Arule)\n"
+                        + "* :information_source: Issue [:blue_book:](http://myserver/coding_rules#rule_key=repo%3Arule)\n"
+                        + "* :information_source: Issue [:blue_book:](http://myserver/coding_rules#rule_key=repo%3Arule)\n"
+                        + "* :information_source: Issue [:blue_book:](http://myserver/coding_rules#rule_key=repo%3Arule)\n"
+                        + "* :information_source: Issue [:blue_book:](http://myserver/coding_rules#rule_key=repo%3Arule)");
     }
 
     @Test
