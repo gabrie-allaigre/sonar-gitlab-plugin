@@ -274,6 +274,25 @@ sast:
       - gl-sast-report.json
 ```
 
+To enable discussions instead of comments
+
+NOTE: This CI variable `CI_MERGE_REQUEST_IID` is available from version 11.6 on.
+
+```yml
+mvn --batch-mode verify sonar:sonar \
+    -Dsonar.host.url=$SONAR_URL
+    -Dsonar.login=$SONAR_LOGIN \
+    -Dsonar.analysis.mode=preview \
+    -Dsonar.gitlab.api_version=v4 \
+    -Dsonar.gitlab.project_id=$CI_PROJECT_PATH \
+    -Dsonar.gitlab.commit_sha=$CI_COMMIT_SHA \
+    -Dsonar.gitlab.ref_name=$CI_COMMIT_REF_NAME \
+    -Dsonar.gitlab.user_token=<your_user_token> \
+    -Dsonar.gitlab.url=http://<your_gitlab_url> \
+    -Dsonar.gitlab.ci_merge_request_iid=$CI_MERGE_REQUEST_IID \
+    -Dsonar.gitlab.merge_request_discussion=true
+```
+
 | GitLab 8.x name | GitLab 9.x name |
 | -------- | ----------- |
 | CI_BUILD_REF | CI_COMMIT_SHA |
@@ -318,6 +337,8 @@ https://docs.gitlab.com/ce/ci/variables/#9-0-renaming
 | sonar.gitlab.issue_filter | Filter on issue, if MAJOR then show only MAJOR, CRITICAL and BLOCKER (default INFO) | Administration, Variable | >= 3.0.0 |
 | sonar.gitlab.load_rules | Load rules for all issues (default false) | Administration, Variable | >= 3.0.0 |
 | sonar.gitlab.disable_proxy | Disable proxy if system contains proxy config (default false) | Administration, Variable | >= 4.0.0 |
+| sonar.gitlab.merge_request_discussion | Allows to post the comments as discussions (default false) | Project, Variable | >= 4.0.0 |
+| sonar.gitlab.ci_merge_request_iid | The IID of the merge request if it’s pipelines for merge requests | Project, Variable | >= 4.0.0 |
 
 - Administration : **Settings** globals in SonarQube
 - Project : **Settings** of project in SonarQube
