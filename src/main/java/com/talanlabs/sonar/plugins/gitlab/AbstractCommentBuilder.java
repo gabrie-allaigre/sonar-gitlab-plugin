@@ -31,7 +31,6 @@ import freemarker.template.Template;
 import freemarker.template.TemplateException;
 import freemarker.template.TemplateExceptionHandler;
 import org.apache.commons.lang3.StringEscapeUtils;
-import org.sonar.api.batch.AnalysisMode;
 import org.sonar.api.batch.rule.Severity;
 import org.sonar.api.utils.MessageException;
 import org.sonar.api.utils.log.Logger;
@@ -53,11 +52,10 @@ public abstract class AbstractCommentBuilder {
     protected final String revision;
     protected final List<ReportIssue> reportIssues;
     protected final MarkDownUtils markDownUtils;
-    protected final AnalysisMode analysisMode;
     private final String templateName;
     private final String template;
 
-    AbstractCommentBuilder(GitLabPluginConfiguration gitLabPluginConfiguration, String revision, List<ReportIssue> reportIssues, MarkDownUtils markDownUtils, AnalysisMode analysisMode,
+    AbstractCommentBuilder(GitLabPluginConfiguration gitLabPluginConfiguration, String revision, List<ReportIssue> reportIssues, MarkDownUtils markDownUtils,
                            String templateName, String template) {
         super();
 
@@ -65,7 +63,6 @@ public abstract class AbstractCommentBuilder {
         this.revision = revision;
         this.reportIssues = reportIssues;
         this.markDownUtils = markDownUtils;
-        this.analysisMode = analysisMode;
         this.templateName = templateName;
         this.template = template;
     }
@@ -110,7 +107,7 @@ public abstract class AbstractCommentBuilder {
         root.put("onlyIssueFromCommitFile", gitLabPluginConfiguration.onlyIssueFromCommitFile());
         root.put("commentNoIssue", gitLabPluginConfiguration.commentNoIssue());
         root.put("sonarUrl", gitLabPluginConfiguration.baseUrl());
-        root.put("publishMode", analysisMode.isPublish());
+        root.put("publishMode", true);
         // Report
         root.put("revision", revision);
         Arrays.stream(Severity.values()).forEach(severity -> root.put(severity.name(), severity));

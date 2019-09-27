@@ -28,7 +28,6 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
 import org.sonar.api.CoreProperties;
-import org.sonar.api.batch.AnalysisMode;
 import org.sonar.api.batch.postjob.PostJobContext;
 import org.sonar.api.batch.postjob.internal.DefaultPostJobDescriptor;
 import org.sonar.api.batch.postjob.issue.PostJobIssue;
@@ -58,7 +57,6 @@ public class CommitPublishPostJobTest {
     private SonarFacade sonarFacade;
     private CommitPublishPostJob commitPublishPostJob;
     private PostJobContext context;
-    private AnalysisMode analysisMode;
 
     @Before
     public void prepare() {
@@ -75,12 +73,7 @@ public class CommitPublishPostJobTest {
 
         reporterBuilder = Mockito.mock(ReporterBuilder.class);
 
-        analysisMode = Mockito.mock(AnalysisMode.class);
-        when(analysisMode.isIssues()).thenReturn(false);
-        when(analysisMode.isPreview()).thenReturn(false);
-        when(analysisMode.isPublish()).thenReturn(false);
         context = Mockito.mock(PostJobContext.class);
-        when(context.analysisMode()).thenReturn(analysisMode);
         when(context.config()).thenReturn(new ConfigurationBridge(settings));
 
         GitLabPluginConfiguration config = new GitLabPluginConfiguration(settings.asConfig(), new System2());
@@ -124,10 +117,6 @@ public class CommitPublishPostJobTest {
 
     @Test
     public void testUnexpectedException() {
-        when(analysisMode.isIssues()).thenReturn(true);
-        when(analysisMode.isPreview()).thenReturn(true);
-        // not really realistic unexpected error, but good enough for this test
-        when(context.issues()).thenThrow(new IllegalStateException());
 
         Assertions.assertThatThrownBy(() -> commitPublishPostJob.execute(context)).isInstanceOf(MessageException.class).hasMessage("SonarQube failed to complete the review of this commit: null");
     }
@@ -138,8 +127,6 @@ public class CommitPublishPostJobTest {
         when(reporter.getStatus()).thenReturn("success");
         when(reporter.getStatusDescription()).thenReturn("SonarQube reported no issues");
 
-        when(analysisMode.isPreview()).thenReturn(true);
-        when(context.issues()).thenReturn(null);
         when(reporterBuilder.build(eq(null), any())).thenReturn(reporter);
 
         commitPublishPostJob.execute(context);
@@ -157,8 +144,6 @@ public class CommitPublishPostJobTest {
         when(reporter.getStatus()).thenReturn("success");
         when(reporter.getStatusDescription()).thenReturn("SonarQube reported no issues");
 
-        when(analysisMode.isPreview()).thenReturn(true);
-        when(context.issues()).thenReturn(issues);
         when(reporterBuilder.build(eq(null), any())).thenReturn(reporter);
 
         commitPublishPostJob.execute(context);
@@ -176,8 +161,6 @@ public class CommitPublishPostJobTest {
         when(reporter.getStatus()).thenReturn("failed");
         when(reporter.getStatusDescription()).thenReturn("SonarQube reported 2 issues");
 
-        when(analysisMode.isIssues()).thenReturn(true);
-        when(context.issues()).thenReturn(issues);
         when(reporterBuilder.build(eq(null), any())).thenReturn(reporter);
 
         commitPublishPostJob.execute(context);
@@ -195,9 +178,6 @@ public class CommitPublishPostJobTest {
         when(reporter.getStatus()).thenReturn("success");
         when(reporter.getStatusDescription()).thenReturn("SonarQube reported no issues");
 
-        when(analysisMode.isPreview()).thenReturn(true);
-        when(analysisMode.isIssues()).thenReturn(true);
-        when(context.issues()).thenReturn(issues);
         when(reporterBuilder.build(eq(null), any())).thenReturn(reporter);
 
         commitPublishPostJob.execute(context);
@@ -213,8 +193,6 @@ public class CommitPublishPostJobTest {
         when(reporter.getStatus()).thenReturn("success");
         when(reporter.getStatusDescription()).thenReturn("SonarQube reported no issues");
 
-        when(analysisMode.isPreview()).thenReturn(true);
-        when(context.issues()).thenReturn(issues);
         when(reporterBuilder.build(eq(null), any())).thenReturn(reporter);
 
         commitPublishPostJob.execute(context);
@@ -232,8 +210,6 @@ public class CommitPublishPostJobTest {
         when(reporter.getStatus()).thenReturn("failed");
         when(reporter.getStatusDescription()).thenReturn("SonarQube reported no issues");
 
-        when(analysisMode.isPreview()).thenReturn(true);
-        when(context.issues()).thenReturn(issues);
         when(reporterBuilder.build(eq(null), any())).thenReturn(reporter);
 
         commitPublishPostJob.execute(context);
@@ -253,8 +229,6 @@ public class CommitPublishPostJobTest {
         when(reporter.getStatus()).thenReturn("failed");
         when(reporter.getStatusDescription()).thenReturn("SonarQube reported 2 issues");
 
-        when(analysisMode.isIssues()).thenReturn(true);
-        when(context.issues()).thenReturn(issues);
         when(reporterBuilder.build(eq(null), any())).thenReturn(reporter);
 
         Assertions.assertThatThrownBy(() -> commitPublishPostJob.execute(context)).isInstanceOf(MessageException.class).hasMessage("Report status=failed, desc=SonarQube reported 2 issues");
@@ -272,8 +246,6 @@ public class CommitPublishPostJobTest {
         when(reporter.getStatus()).thenReturn("success");
         when(reporter.getStatusDescription()).thenReturn("SonarQube reported no issues");
 
-        when(analysisMode.isIssues()).thenReturn(true);
-        when(context.issues()).thenReturn(issues);
         when(reporterBuilder.build(eq(null), any())).thenReturn(reporter);
 
         commitPublishPostJob.execute(context);
@@ -293,8 +265,6 @@ public class CommitPublishPostJobTest {
         when(reporter.getStatus()).thenReturn("failed");
         when(reporter.getStatusDescription()).thenReturn("SonarQube reported 2 issues");
 
-        when(analysisMode.isIssues()).thenReturn(true);
-        when(context.issues()).thenReturn(issues);
         when(reporterBuilder.build(eq(null), any())).thenReturn(reporter);
 
         commitPublishPostJob.execute(context);
@@ -312,8 +282,6 @@ public class CommitPublishPostJobTest {
         when(reporter.getStatus()).thenReturn("success");
         when(reporter.getStatusDescription()).thenReturn("SonarQube reported no issues");
 
-        when(analysisMode.isIssues()).thenReturn(true);
-        when(context.issues()).thenReturn(issues);
         when(reporterBuilder.build(eq(null), any())).thenReturn(reporter);
 
         commitPublishPostJob.execute(context);
@@ -324,7 +292,6 @@ public class CommitPublishPostJobTest {
 
     @Test
     public void testUnexpectedExceptionPublish() {
-        when(analysisMode.isPublish()).thenReturn(true);
         // not really realistic unexpected error, but good enough for this test
         when(sonarFacade.loadQualityGate()).thenThrow(new IllegalStateException());
 
@@ -333,7 +300,6 @@ public class CommitPublishPostJobTest {
 
     @Test
     public void testSuccessPublish() {
-        when(analysisMode.isPublish()).thenReturn(true);
 
         QualityGate qualityGate = QualityGate.newBuilder().status(QualityGate.Status.OK).conditions(Collections.emptyList()).build();
         when(sonarFacade.loadQualityGate()).thenReturn(qualityGate);
@@ -353,7 +319,6 @@ public class CommitPublishPostJobTest {
 
     @Test
     public void testFailedPublish() {
-        when(analysisMode.isPublish()).thenReturn(true);
 
         QualityGate qualityGate = QualityGate.newBuilder().status(QualityGate.Status.ERROR).conditions(Arrays.asList(
                 QualityGate.Condition.newBuilder().status(QualityGate.Status.ERROR).metricKey("toto").metricName("Toto").actual("10").symbol("<").warning("Wrong toto").error("").build(),
@@ -381,7 +346,6 @@ public class CommitPublishPostJobTest {
 
     @Test
     public void testSuccessWithWarm() {
-        when(analysisMode.isPublish()).thenReturn(true);
 
         QualityGate qualityGate = QualityGate.newBuilder().status(QualityGate.Status.WARN).conditions(Arrays.asList(
                 QualityGate.Condition.newBuilder().status(QualityGate.Status.WARN).metricKey("toto").metricName("Toto").actual("10").symbol("<").warning("Wrong toto").error("").build(),
@@ -410,8 +374,6 @@ public class CommitPublishPostJobTest {
     public void testFailedWithWarm() {
         settings.setProperty(GitLabPlugin.GITLAB_QUALITY_GATE_FAIL_MODE, QualityGateFailMode.WARN.getMeaning());
 
-        when(analysisMode.isPublish()).thenReturn(true);
-
         QualityGate qualityGate = QualityGate.newBuilder().status(QualityGate.Status.WARN).conditions(Arrays.asList(
                 QualityGate.Condition.newBuilder().status(QualityGate.Status.WARN).metricKey("toto").metricName("Toto").actual("10").symbol("<").warning("Wrong toto").error("").build(),
                 QualityGate.Condition.newBuilder().status(QualityGate.Status.WARN).metricKey("toto").metricName("Toto").actual("10").symbol("<").warning("Wrong toto").error("").build(),
@@ -438,8 +400,6 @@ public class CommitPublishPostJobTest {
     @Test
     public void testFailedNotificationNothingPublish() {
         settings.setProperty(GitLabPlugin.GITLAB_STATUS_NOTIFICATION_MODE, StatusNotificationsMode.NOTHING.getMeaning());
-
-        when(analysisMode.isPublish()).thenReturn(true);
 
         QualityGate qualityGate = QualityGate.newBuilder().status(QualityGate.Status.ERROR).conditions(Arrays.asList(
                 QualityGate.Condition.newBuilder().status(QualityGate.Status.ERROR).metricKey("toto").metricName("Toto").actual("10").symbol("<").warning("Wrong toto").error("").build(),
@@ -469,8 +429,6 @@ public class CommitPublishPostJobTest {
     public void testSuccessNotificationNothingPublish() {
         settings.setProperty(GitLabPlugin.GITLAB_STATUS_NOTIFICATION_MODE, StatusNotificationsMode.NOTHING.getMeaning());
 
-        when(analysisMode.isPublish()).thenReturn(true);
-
         QualityGate qualityGate = QualityGate.newBuilder().status(QualityGate.Status.OK).conditions(Collections.emptyList()).build();
 
         when(sonarFacade.loadQualityGate()).thenReturn(qualityGate);
@@ -491,8 +449,6 @@ public class CommitPublishPostJobTest {
     @Test
     public void testSuccessWithWarnNotificationNothing() {
         settings.setProperty(GitLabPlugin.GITLAB_STATUS_NOTIFICATION_MODE, StatusNotificationsMode.NOTHING.getMeaning());
-
-        when(analysisMode.isPublish()).thenReturn(true);
 
         QualityGate qualityGate = QualityGate.newBuilder().status(QualityGate.Status.WARN).conditions(Arrays.asList(
                 QualityGate.Condition.newBuilder().status(QualityGate.Status.WARN).metricKey("toto").metricName("Toto").actual("10").symbol("<").warning("Wrong toto").error("").build(),
@@ -522,8 +478,6 @@ public class CommitPublishPostJobTest {
         settings.setProperty(GitLabPlugin.GITLAB_STATUS_NOTIFICATION_MODE, StatusNotificationsMode.NOTHING.getMeaning());
         settings.setProperty(GitLabPlugin.GITLAB_QUALITY_GATE_FAIL_MODE, QualityGateFailMode.WARN.getMeaning());
 
-        when(analysisMode.isPublish()).thenReturn(true);
-
         QualityGate qualityGate = QualityGate.newBuilder().status(QualityGate.Status.WARN).conditions(Arrays.asList(
                 QualityGate.Condition.newBuilder().status(QualityGate.Status.WARN).metricKey("toto").metricName("Toto").actual("10").symbol("<").warning("Wrong toto").error("").build(),
                 QualityGate.Condition.newBuilder().status(QualityGate.Status.WARN).metricKey("toto").metricName("Toto").actual("10").symbol("<").warning("Wrong toto").error("").build(),
@@ -550,8 +504,6 @@ public class CommitPublishPostJobTest {
     public void testSuccessNotificationExitPublish() {
         settings.setProperty(GitLabPlugin.GITLAB_STATUS_NOTIFICATION_MODE, StatusNotificationsMode.EXIT_CODE.getMeaning());
 
-        when(analysisMode.isPublish()).thenReturn(true);
-
         QualityGate qualityGate = QualityGate.newBuilder().status(QualityGate.Status.OK).conditions(Collections.emptyList()).build();
 
         when(sonarFacade.loadQualityGate()).thenReturn(qualityGate);
@@ -572,8 +524,6 @@ public class CommitPublishPostJobTest {
     @Test
     public void testSuccessWithWarnNotificationExit() {
         settings.setProperty(GitLabPlugin.GITLAB_STATUS_NOTIFICATION_MODE, StatusNotificationsMode.EXIT_CODE.getMeaning());
-
-        when(analysisMode.isPublish()).thenReturn(true);
 
         QualityGate qualityGate = QualityGate.newBuilder().status(QualityGate.Status.WARN).conditions(Arrays.asList(
                 QualityGate.Condition.newBuilder().status(QualityGate.Status.WARN).metricKey("toto").metricName("Toto").actual("10").symbol("<").warning("Wrong toto").error("").build(),
@@ -601,8 +551,6 @@ public class CommitPublishPostJobTest {
     @Test
     public void testFailedNotificationExitPublish() {
         settings.setProperty(GitLabPlugin.GITLAB_STATUS_NOTIFICATION_MODE, StatusNotificationsMode.EXIT_CODE.getMeaning());
-
-        when(analysisMode.isPublish()).thenReturn(true);
 
         QualityGate qualityGate = QualityGate.newBuilder().status(QualityGate.Status.WARN).conditions(Arrays.asList(
                 QualityGate.Condition.newBuilder().status(QualityGate.Status.WARN).metricKey("toto").metricName("Toto").actual("10").symbol("<").warning("Wrong toto").error("").build(),
@@ -632,8 +580,6 @@ public class CommitPublishPostJobTest {
         settings.setProperty(GitLabPlugin.GITLAB_STATUS_NOTIFICATION_MODE, StatusNotificationsMode.EXIT_CODE.getMeaning());
         settings.setProperty(GitLabPlugin.GITLAB_QUALITY_GATE_FAIL_MODE, QualityGateFailMode.WARN.getMeaning());
 
-        when(analysisMode.isPublish()).thenReturn(true);
-
         QualityGate qualityGate = QualityGate.newBuilder().status(QualityGate.Status.WARN).conditions(Arrays.asList(
                 QualityGate.Condition.newBuilder().status(QualityGate.Status.WARN).metricKey("toto").metricName("Toto").actual("10").symbol("<").warning("Wrong toto").error("").build(),
                 QualityGate.Condition.newBuilder().status(QualityGate.Status.WARN).metricKey("toto").metricName("Toto").actual("10").symbol("<").warning("Wrong toto").error("").build(),
@@ -662,8 +608,6 @@ public class CommitPublishPostJobTest {
     public void testFaileReporterNotificationExit() {
         settings.setProperty(GitLabPlugin.GITLAB_STATUS_NOTIFICATION_MODE, StatusNotificationsMode.EXIT_CODE.getMeaning());
         settings.setProperty(GitLabPlugin.GITLAB_QUALITY_GATE_FAIL_MODE, QualityGateFailMode.WARN.getMeaning());
-
-        when(analysisMode.isPublish()).thenReturn(true);
 
         QualityGate qualityGate = QualityGate.newBuilder().status(QualityGate.Status.WARN).conditions(Arrays.asList(
                 QualityGate.Condition.newBuilder().status(QualityGate.Status.WARN).metricKey("toto").metricName("Toto").actual("10").symbol("<").warning("Wrong toto").error("").build(),

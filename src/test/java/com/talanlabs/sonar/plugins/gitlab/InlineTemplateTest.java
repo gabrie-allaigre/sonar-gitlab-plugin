@@ -23,9 +23,7 @@ import com.talanlabs.sonar.plugins.gitlab.models.ReportIssue;
 import org.assertj.core.api.Assertions;
 import org.junit.Before;
 import org.junit.Test;
-import org.mockito.Mockito;
 import org.sonar.api.CoreProperties;
-import org.sonar.api.batch.AnalysisMode;
 import org.sonar.api.batch.rule.Severity;
 import org.sonar.api.config.PropertyDefinition;
 import org.sonar.api.config.PropertyDefinitions;
@@ -37,8 +35,6 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static org.mockito.Mockito.when;
-
 public class InlineTemplateTest {
 
     private static final String TEMPLATE = "<#list issues() as issue>\n" + "<@p issue=issue/>\n" + "</#list>\n" + "<#macro p issue>\n"
@@ -46,7 +42,6 @@ public class InlineTemplateTest {
 
     private MapSettings settings;
     private GitLabPluginConfiguration config;
-    private AnalysisMode analysisMode;
 
     @Before
     public void setUp() {
@@ -60,11 +55,6 @@ public class InlineTemplateTest {
         config = new GitLabPluginConfiguration(settings.asConfig(), new System2());
 
         settings.setProperty(GitLabPlugin.GITLAB_INLINE_TEMPLATE, TEMPLATE);
-
-        analysisMode = Mockito.mock(AnalysisMode.class);
-        when(analysisMode.isIssues()).thenReturn(false);
-        when(analysisMode.isPreview()).thenReturn(true);
-        when(analysisMode.isPublish()).thenReturn(false);
     }
 
     @Test
@@ -72,7 +62,7 @@ public class InlineTemplateTest {
         ReportIssue r1 =ReportIssue.newBuilder().issue(Utils.newIssue("component", null, 1, Severity.INFO, true, "Issue", "rule")).revision(null).url("lalal").file("file").ruleLink(
                 "http://myserver/coding_rules#rule_key=repo%3Arule").reportedOnDiff(true).build();
 
-        Assertions.assertThat(new InlineCommentBuilder(config, "123", null, 1, Collections.singletonList(r1), new MarkDownUtils(), analysisMode).buildForMarkdown())
+        Assertions.assertThat(new InlineCommentBuilder(config, "123", null, 1, Collections.singletonList(r1), new MarkDownUtils()).buildForMarkdown())
                 .isEqualTo(":information_source: Issue [:blue_book:](http://myserver/coding_rules#rule_key=repo%3Arule)\n");
     }
 
@@ -82,7 +72,7 @@ public class InlineTemplateTest {
                 .map(i ->ReportIssue.newBuilder().issue(Utils.newIssue("component", null, 1, Severity.INFO, true, "Issue", "rule")).revision(null).url("lalal").file("file").ruleLink(
                         "http://myserver/coding_rules#rule_key=repo%3Arule").reportedOnDiff(true).build()).collect(Collectors.toList());
 
-        Assertions.assertThat(new InlineCommentBuilder(config, "123", null, 1, ris, new MarkDownUtils(), analysisMode).buildForMarkdown()).isEqualTo(
+        Assertions.assertThat(new InlineCommentBuilder(config, "123", null, 1, ris, new MarkDownUtils()).buildForMarkdown()).isEqualTo(
                 ":information_source: Issue [:blue_book:](http://myserver/coding_rules#rule_key=repo%3Arule)\n"
                         + ":information_source: Issue [:blue_book:](http://myserver/coding_rules#rule_key=repo%3Arule)\n");
     }
@@ -94,7 +84,7 @@ public class InlineTemplateTest {
         ReportIssue r1 =ReportIssue.newBuilder().issue(Utils.newIssue("component", null, 1, Severity.INFO, true, "Issue", "rule")).revision(null).url("lalal").file("file").ruleLink(
                 "http://myserver/coding_rules#rule_key=repo%3Arule").reportedOnDiff(true).build();
 
-        Assertions.assertThat(new InlineCommentBuilder(config, "123", null, 1, Collections.singletonList(r1), new MarkDownUtils(), analysisMode).buildForMarkdown())
+        Assertions.assertThat(new InlineCommentBuilder(config, "123", null, 1, Collections.singletonList(r1), new MarkDownUtils()).buildForMarkdown())
                 .isEqualTo(":information_source: Issue [:blue_book:](http://myserver/coding_rules#rule_key=repo%3Arule)\nàâéç");
     }
 }

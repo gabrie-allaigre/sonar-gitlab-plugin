@@ -27,17 +27,25 @@ import com.talanlabs.sonar.plugins.gitlab.models.Issue;
 import com.talanlabs.sonar.plugins.gitlab.models.QualityGate;
 import com.talanlabs.sonar.plugins.gitlab.models.Rule;
 import org.sonar.api.CoreProperties;
-import org.sonar.api.batch.InstantiationStrategy;
-import org.sonar.api.batch.ScannerSide;
 import org.sonar.api.batch.rule.Severity;
 import org.sonar.api.config.Configuration;
 import org.sonar.api.measures.CoreMetrics;
 import org.sonar.api.measures.Metric;
 import org.sonar.api.resources.Qualifiers;
+import org.sonar.api.scanner.ScannerSide;
 import org.sonar.api.utils.log.Logger;
 import org.sonar.api.utils.log.Loggers;
-import org.sonarqube.ws.*;
-import org.sonarqube.ws.client.*;
+import org.sonarqube.ws.Ce;
+import org.sonarqube.ws.Issues;
+import org.sonarqube.ws.MediaTypes;
+import org.sonarqube.ws.Qualitygates;
+import org.sonarqube.ws.Rules;
+import org.sonarqube.ws.client.GetRequest;
+import org.sonarqube.ws.client.HttpConnector;
+import org.sonarqube.ws.client.HttpException;
+import org.sonarqube.ws.client.WsClient;
+import org.sonarqube.ws.client.WsClientFactories;
+import org.sonarqube.ws.client.WsResponse;
 import org.sonarqube.ws.client.ce.TaskRequest;
 import org.sonarqube.ws.client.components.ShowRequest;
 import org.sonarqube.ws.client.issues.SearchRequest;
@@ -46,14 +54,20 @@ import org.sonarqube.ws.client.qualitygates.ProjectStatusRequest;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Map;
+import java.util.NoSuchElementException;
+import java.util.Optional;
+import java.util.Properties;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 /**
  * Facade for all WS interaction with Sonar
  */
-@InstantiationStrategy(InstantiationStrategy.PER_BATCH)
 @ScannerSide
 public class SonarFacade {
 
@@ -296,15 +310,7 @@ public class SonarFacade {
             showRequest.setBranch(branch);
         }
 
-        Components.ShowWsResponse showWsResponse = wsClient.components().show(showRequest);
-
-        StringBuilder sb = new StringBuilder(component.getPath());
-        for (Components.Component a : showWsResponse.getAncestorsList()) {
-            if (Qualifiers.MODULE.equals(a.getQualifier()) && a.getPath() != null) {
-                sb.insert(0, a.getPath() + File.separator);
-            }
-        }
-        return new File(sb.toString());
+        return new File(component.getPath());
     }
 
     private Issue toIssue(Issues.Issue issue, File relativeFile) {

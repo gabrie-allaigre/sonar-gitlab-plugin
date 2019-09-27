@@ -31,7 +31,6 @@ import org.mockito.AdditionalMatchers;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 import org.sonar.api.CoreProperties;
-import org.sonar.api.batch.AnalysisMode;
 import org.sonar.api.batch.rule.Severity;
 import org.sonar.api.config.PropertyDefinition;
 import org.sonar.api.config.PropertyDefinitions;
@@ -55,7 +54,6 @@ public class ReporterBuilderTest {
     private ReporterBuilder reporterBuilder;
     private SonarFacade sonarFacade;
     private CommitFacade commitFacade;
-    private AnalysisMode analysisMode;
 
     @Before
     public void prepare() {
@@ -67,14 +65,9 @@ public class ReporterBuilderTest {
         settings.setProperty(CoreProperties.SERVER_BASE_URL, "http://myserver");
         settings.setProperty(GitLabPlugin.GITLAB_COMMIT_SHA, "abc123");
 
-        analysisMode = Mockito.mock(AnalysisMode.class);
-        when(analysisMode.isIssues()).thenReturn(false);
-        when(analysisMode.isPreview()).thenReturn(true);
-        when(analysisMode.isPublish()).thenReturn(false);
-
         GitLabPluginConfiguration config = new GitLabPluginConfiguration(settings.asConfig(), new System2());
 
-        reporterBuilder = new ReporterBuilder(config, sonarFacade, commitFacade, new MarkDownUtils(), analysisMode);
+        reporterBuilder = new ReporterBuilder(config, sonarFacade, commitFacade, new MarkDownUtils());
     }
 
     @Test

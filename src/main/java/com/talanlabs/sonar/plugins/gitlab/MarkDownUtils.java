@@ -19,13 +19,11 @@
  */
 package com.talanlabs.sonar.plugins.gitlab;
 
-import org.sonar.api.batch.InstantiationStrategy;
-import org.sonar.api.batch.ScannerSide;
 import org.sonar.api.batch.rule.Severity;
+import org.sonar.api.scanner.ScannerSide;
 
 import javax.annotation.Nullable;
 
-@InstantiationStrategy(InstantiationStrategy.PER_BATCH)
 @ScannerSide
 public class MarkDownUtils {
 

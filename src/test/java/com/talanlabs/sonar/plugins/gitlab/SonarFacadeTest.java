@@ -39,10 +39,19 @@ import org.sonar.api.config.PropertyDefinitions;
 import org.sonar.api.config.internal.MapSettings;
 import org.sonar.api.resources.Qualifiers;
 import org.sonar.api.utils.System2;
-import org.sonarqube.ws.*;
+import org.sonarqube.ws.Ce;
+import org.sonarqube.ws.Common;
+import org.sonarqube.ws.Components;
+import org.sonarqube.ws.Issues;
+import org.sonarqube.ws.Qualitygates;
+import org.sonarqube.ws.Rules;
 import org.sonarqube.ws.client.HttpException;
 
-import java.io.*;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.text.MessageFormat;
 import java.util.List;
 
@@ -347,7 +356,7 @@ public class SonarFacadeTest {
         createReportTaskFile();
 
         List<Issue> issues = sonarFacade.getNewIssues();
-        Assertions.assertThat(issues).isNotNull().isNotEmpty().hasSize(44);
+        Assertions.assertThat(issues).isNotNull().isNotEmpty().hasSize(10);
     }
 
     @Test
@@ -374,7 +383,7 @@ public class SonarFacadeTest {
 
         createReportTaskFile();
         Assertions.assertThatThrownBy(() -> sonarFacade.getNewIssues()).isInstanceOf(HttpException.class)
-                .hasMessage("Error 404 on http://" + sonar.getHostName() + ":" + sonar.getPort() + "/api/issues/search?componentKeys=com.talanlabs:avatar-generator-parent&p=1&resolved=false : Not Found");
+                .hasMessage("Error 404 on http://" + sonar.getHostName() + ":" + sonar.getPort() + "/api/issues/search?componentKeys=com.talanlabs%3Aavatar-generator-parent&p=1&resolved=false : Not Found");
     }
 
     @Test
@@ -419,8 +428,7 @@ public class SonarFacadeTest {
 
         Components.ShowWsResponse showWsResponse = Components.ShowWsResponse.newBuilder()
                 .addAncestors(Components.Component.newBuilder().setQualifier("RTG").build())
-                .addAncestors(Components.Component.newBuilder().setQualifier(Qualifiers.MODULE).setPath("core").build())
-                .addAncestors(Components.Component.newBuilder().setQualifier(Qualifiers.MODULE).setPath("client").build())
+                .addAncestors(Components.Component.newBuilder().setQualifier(Qualifiers.PROJECT).setPath("core/client").build())
                 .build();
         sonar.enqueue(new MockResponse().setResponseCode(200).addHeader("Content-Type", "application/x-protobuf").setBody(toBuffer(showWsResponse)));
 
@@ -429,7 +437,7 @@ public class SonarFacadeTest {
         List<Issue> issues = sonarFacade.getNewIssues();
         Assertions.assertThat(issues).isNotNull().isNotEmpty().extracting(Issue::getKey, Issue::getComponentKey, Issue::getSeverity, Issue::getLine, Issue::getMessage, Issue::getRuleKey)
                 .contains(Tuple.tuple("123", "moi:toto.java", Severity.BLOCKER, 10, "Error here", "squid:123"));
-        Assertions.assertThat(issues.get(0).getFile().getAbsolutePath()).isEqualTo(new File(projectDir, "client/core/toto.java").getAbsolutePath());
+        Assertions.assertThat(issues.get(0).getFile().getAbsolutePath()).isEqualTo(new File(projectDir, "toto.java").getAbsolutePath());
     }
 
     @Test
@@ -441,8 +449,7 @@ public class SonarFacadeTest {
 
         Components.ShowWsResponse showWsResponse = Components.ShowWsResponse.newBuilder()
                 .addAncestors(Components.Component.newBuilder().setQualifier("RTG").build())
-                .addAncestors(Components.Component.newBuilder().setQualifier(Qualifiers.MODULE).setPath("core").build())
-                .addAncestors(Components.Component.newBuilder().setQualifier(Qualifiers.MODULE).setPath("client").build())
+                .addAncestors(Components.Component.newBuilder().setQualifier(Qualifiers.PROJECT).setPath("client/core").build())
                 .build();
         sonar.enqueue(new MockResponse().setResponseCode(200).addHeader("Content-Type", "application/x-protobuf").setBody(toBuffer(showWsResponse)));
 
@@ -451,7 +458,7 @@ public class SonarFacadeTest {
         List<Issue> issues = sonarFacade.getNewIssues();
         Assertions.assertThat(issues).isNotNull().isNotEmpty().extracting(Issue::getKey, Issue::getComponentKey, Issue::getSeverity, Issue::getLine, Issue::getMessage, Issue::getRuleKey)
                 .contains(Tuple.tuple("123", "moi:test.java", Severity.MAJOR, 42, "Error here", "squid:123"));
-        Assertions.assertThat(issues.get(0).getFile().getAbsolutePath()).isEqualTo(new File(projectDir, "client/core/test.java").getAbsolutePath());
+        Assertions.assertThat(issues.get(0).getFile().getAbsolutePath()).isEqualTo(new File(projectDir, "test.java").getAbsolutePath());
     }
 
     @Test
@@ -469,21 +476,21 @@ public class SonarFacadeTest {
 
         Components.ShowWsResponse showWsResponse1 = Components.ShowWsResponse.newBuilder()
                 .addAncestors(Components.Component.newBuilder().setQualifier("RTG").build())
-                .addAncestors(Components.Component.newBuilder().setQualifier(Qualifiers.MODULE).setPath("core").build())
-                .addAncestors(Components.Component.newBuilder().setQualifier(Qualifiers.MODULE).setPath("client").build())
+                .addAncestors(Components.Component.newBuilder().setQualifier(Qualifiers.PROJECT).setPath("core").build())
+                .addAncestors(Components.Component.newBuilder().setQualifier(Qualifiers.PROJECT).setPath("client").build())
                 .build();
         sonar.enqueue(new MockResponse().setResponseCode(200).addHeader("Content-Type", "application/x-protobuf").setBody(toBuffer(showWsResponse1)));
 
         Components.ShowWsResponse showWsResponse2 = Components.ShowWsResponse.newBuilder()
                 .addAncestors(Components.Component.newBuilder().setQualifier("RTG").build())
-                .addAncestors(Components.Component.newBuilder().setQualifier(Qualifiers.MODULE).setPath("core").build())
+                .addAncestors(Components.Component.newBuilder().setQualifier(Qualifiers.PROJECT).setPath("core").build())
                 .build();
         sonar.enqueue(new MockResponse().setResponseCode(200).addHeader("Content-Type", "application/x-protobuf").setBody(toBuffer(showWsResponse2)));
 
         Components.ShowWsResponse showWsResponseTest = Components.ShowWsResponse.newBuilder()
                 .addAncestors(Components.Component.newBuilder().setQualifier("RTG").build())
-                .addAncestors(Components.Component.newBuilder().setQualifier(Qualifiers.MODULE).setPath("core").build())
-                .addAncestors(Components.Component.newBuilder().setQualifier(Qualifiers.MODULE).setPath("client").build())
+                .addAncestors(Components.Component.newBuilder().setQualifier(Qualifiers.PROJECT).setPath("core").build())
+                .addAncestors(Components.Component.newBuilder().setQualifier(Qualifiers.PROJECT).setPath("client").build())
                 .build();
         sonar.enqueue(new MockResponse().setResponseCode(200).addHeader("Content-Type", "application/x-protobuf").setBody(toBuffer(showWsResponseTest)));
 
@@ -497,10 +504,10 @@ public class SonarFacadeTest {
                         Tuple.tuple("456", "rien:tata.java", Severity.BLOCKER, 10, "Error here", "squid:123"),
                         Tuple.tuple("abc", "moi:test.java", Severity.MAJOR, 5, "Error here", "squid:234")
                 );
-        Assertions.assertThat(issues.get(0).getFile().getAbsolutePath()).isEqualTo(new File(projectDir, "client/core/toto.java").getAbsolutePath());
-        Assertions.assertThat(issues.get(1).getFile().getAbsolutePath()).isEqualTo(new File(projectDir, "client/core/toto.java").getAbsolutePath());
-        Assertions.assertThat(issues.get(2).getFile().getAbsolutePath()).isEqualTo(new File(projectDir, "core/tata.java").getAbsolutePath());
-        Assertions.assertThat(issues.get(3).getFile().getAbsolutePath()).isEqualTo(new File(projectDir, "client/core/test.java").getAbsolutePath());
+        Assertions.assertThat(issues.get(0).getFile().getAbsolutePath()).isEqualTo(new File(projectDir, "toto.java").getAbsolutePath());
+        Assertions.assertThat(issues.get(1).getFile().getAbsolutePath()).isEqualTo(new File(projectDir, "toto.java").getAbsolutePath());
+        Assertions.assertThat(issues.get(2).getFile().getAbsolutePath()).isEqualTo(new File(projectDir, "tata.java").getAbsolutePath());
+        Assertions.assertThat(issues.get(3).getFile().getAbsolutePath()).isEqualTo(new File(projectDir, "test.java").getAbsolutePath());
     }
 
     @Test

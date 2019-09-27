@@ -19,12 +19,14 @@
  */
 package com.talanlabs.sonar.plugins.gitlab;
 
-import com.talanlabs.sonar.plugins.gitlab.models.*;
+import com.talanlabs.sonar.plugins.gitlab.models.Issue;
+import com.talanlabs.sonar.plugins.gitlab.models.JsonMode;
+import com.talanlabs.sonar.plugins.gitlab.models.QualityGate;
+import com.talanlabs.sonar.plugins.gitlab.models.ReportIssue;
+import com.talanlabs.sonar.plugins.gitlab.models.Rule;
 import org.sonar.api.ExtensionPoint;
-import org.sonar.api.batch.AnalysisMode;
-import org.sonar.api.batch.ScannerSide;
-import org.sonar.api.batch.InstantiationStrategy;
 import org.sonar.api.batch.rule.Severity;
+import org.sonar.api.scanner.ScannerSide;
 import org.sonar.api.utils.log.Logger;
 import org.sonar.api.utils.log.Loggers;
 
@@ -35,7 +37,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
 
-@InstantiationStrategy(InstantiationStrategy.PER_BATCH)
 @ScannerSide
 @ExtensionPoint
 public class ReporterBuilder {
@@ -48,14 +49,12 @@ public class ReporterBuilder {
     private final SonarFacade sonarFacade;
     private final CommitFacade commitFacade;
     private final MarkDownUtils markDownUtils;
-    private final AnalysisMode analysisMode;
 
-    public ReporterBuilder(GitLabPluginConfiguration gitLabPluginConfiguration, SonarFacade sonarFacade, CommitFacade commitFacade, MarkDownUtils markDownUtils, AnalysisMode analysisMode) {
+    public ReporterBuilder(GitLabPluginConfiguration gitLabPluginConfiguration, SonarFacade sonarFacade, CommitFacade commitFacade, MarkDownUtils markDownUtils) {
         this.gitLabPluginConfiguration = gitLabPluginConfiguration;
         this.sonarFacade = sonarFacade;
         this.commitFacade = commitFacade;
         this.markDownUtils = markDownUtils;
-        this.analysisMode = analysisMode;
     }
 
     /**
@@ -152,6 +151,7 @@ public class ReporterBuilder {
     }
 
     private void updateReviewComments(Reporter report) {
+        LOG.info("Will try to update review comments.");
         for (Map.Entry<String, Map<File, Map<Integer, List<ReportIssue>>>> entry : report.getFileLineMap().entrySet()) {
             String revision = entry.getKey();
 
@@ -181,7 +181,7 @@ public class ReporterBuilder {
     }
 
     private void updateReviewCommentsPerInline(String revision, String username, File file, Integer lineNumber, List<ReportIssue> reportIssues) {
-        String body = new InlineCommentBuilder(gitLabPluginConfiguration, revision, username, lineNumber, reportIssues, markDownUtils, analysisMode).buildForMarkdown();
+        String body = new InlineCommentBuilder(gitLabPluginConfiguration, revision, username, lineNumber, reportIssues, markDownUtils).buildForMarkdown();
         if (body != null && !body.trim().isEmpty()) {
             boolean exists = commitFacade.hasSameCommitCommentsForFile(revision, file, lineNumber, body);
             if (!exists) {
@@ -192,7 +192,7 @@ public class ReporterBuilder {
 
     private void updateGlobalComments(QualityGate qualityGate, Reporter report) {
         String username = commitFacade.getUsernameForRevision(gitLabPluginConfiguration.commitSHA().get(0));
-        String body = new GlobalCommentBuilder(gitLabPluginConfiguration, username, qualityGate, report, markDownUtils, analysisMode).buildForMarkdown();
+        String body = new GlobalCommentBuilder(gitLabPluginConfiguration, username, qualityGate, report, markDownUtils).buildForMarkdown();
         if (body != null && !body.trim().isEmpty()) {
             commitFacade.addGlobalComment(body);
         }

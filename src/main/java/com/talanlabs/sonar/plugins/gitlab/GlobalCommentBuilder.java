@@ -24,10 +24,14 @@ import com.talanlabs.sonar.plugins.gitlab.freemarker.QualityGateConditionsTempla
 import com.talanlabs.sonar.plugins.gitlab.models.Issue;
 import com.talanlabs.sonar.plugins.gitlab.models.QualityGate;
 import com.talanlabs.sonar.plugins.gitlab.models.ReportIssue;
-import org.sonar.api.batch.AnalysisMode;
 import org.sonar.api.batch.rule.Severity;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 
 public class GlobalCommentBuilder extends AbstractCommentBuilder {
 
@@ -35,9 +39,8 @@ public class GlobalCommentBuilder extends AbstractCommentBuilder {
     private final QualityGate qualityGate;
     private final Reporter reporter;
 
-    public GlobalCommentBuilder(GitLabPluginConfiguration gitLabPluginConfiguration, String author, QualityGate qualityGate, Reporter reporter, MarkDownUtils markDownUtils,
-                                AnalysisMode analysisMode) {
-        super(gitLabPluginConfiguration, gitLabPluginConfiguration.commitSHA().get(0), reporter.getReportIssues(), markDownUtils, analysisMode, "global", gitLabPluginConfiguration.globalTemplate());
+    public GlobalCommentBuilder(GitLabPluginConfiguration gitLabPluginConfiguration, String author, QualityGate qualityGate, Reporter reporter, MarkDownUtils markDownUtils) {
+        super(gitLabPluginConfiguration, gitLabPluginConfiguration.commitSHA().get(0), reporter.getReportIssues(), markDownUtils, "global", gitLabPluginConfiguration.globalTemplate());
 
         this.author = author;
         this.qualityGate = qualityGate;

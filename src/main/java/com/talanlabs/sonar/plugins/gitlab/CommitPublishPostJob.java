@@ -68,10 +68,13 @@ public class CommitPublishPostJob implements PostJob {
 
     @Override
     public void execute(PostJobContext context) {
+        LOG.info("Will execute CommitPublishPostJob of GitlabPlugin.");
         try {
             if (!gitLabPluginConfiguration.isEnabled()) {
                 LOG.info("GitLab plugin is disabled");
                 return;
+            } else {
+                LOG.info("GitLab plugin is enabled");
             }
             File baseDir = fileFromProperty(context, SONAR_PROJECT_BASE_DIR);
             if (baseDir == null) {
@@ -89,13 +92,8 @@ public class CommitPublishPostJob implements PostJob {
             }
             QualityGate qualityGate;
             List<Issue> issues;
-            if (context.analysisMode().isPublish()) {
-                qualityGate = sonarFacade.loadQualityGate();
-                issues = sonarFacade.getNewIssues();
-            } else {
-                qualityGate = null;
-                issues = toIssues(context.issues());
-            }
+            qualityGate = sonarFacade.loadQualityGate();
+            issues = sonarFacade.getNewIssues();
 
             Reporter report = reporterBuilder.build(qualityGate, issues);
             notification(report);

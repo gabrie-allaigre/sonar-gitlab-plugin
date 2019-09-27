@@ -20,7 +20,6 @@
 package com.talanlabs.sonar.plugins.gitlab;
 
 import com.talanlabs.sonar.plugins.gitlab.models.ReportIssue;
-import org.sonar.api.batch.AnalysisMode;
 
 import java.util.List;
 import java.util.Map;
@@ -32,8 +31,8 @@ public class InlineCommentBuilder extends AbstractCommentBuilder {
     private final String author;
 
     public InlineCommentBuilder(GitLabPluginConfiguration gitLabPluginConfiguration, String revision, String author, Integer lineNumber, List<ReportIssue> reportIssues,
-                                MarkDownUtils markDownUtils, AnalysisMode analysisMode) {
-        super(gitLabPluginConfiguration, revision, reportIssues, markDownUtils, analysisMode, "inline", gitLabPluginConfiguration.inlineTemplate());
+                                MarkDownUtils markDownUtils) {
+        super(gitLabPluginConfiguration, revision, reportIssues, markDownUtils, "inline", gitLabPluginConfiguration.inlineTemplate());
 
         this.lineNumber = lineNumber;
         this.author = author;
