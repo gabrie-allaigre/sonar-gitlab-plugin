@@ -184,6 +184,10 @@ public class GitLabPluginConfigurationTest {
         Assertions.assertThat(config.loadRule()).isFalse();
         settings.setProperty(GitLabPlugin.GITLAB_LOAD_RULES, "true");
         Assertions.assertThat(config.loadRule()).isTrue();
+
+        Assertions.assertThat(config.isMergeRequestDiscussionEnabled()).isFalse();
+        settings.setProperty(GitLabPlugin.GITLAB_MERGE_REQUEST_DISCUSSION, "true");
+        Assertions.assertThat(config.isMergeRequestDiscussionEnabled()).isTrue();
     }
 
     @Test

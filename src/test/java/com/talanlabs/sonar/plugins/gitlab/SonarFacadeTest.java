@@ -537,4 +537,5 @@ public class SonarFacadeTest {
         Assertions.assertThat(sonarFacade.getMetricName("toto")).isEqualTo("toto");
         Assertions.assertThat(sonarFacade.getMetricName("security_rating")).isEqualTo("Security Rating");
     }
+
 }
