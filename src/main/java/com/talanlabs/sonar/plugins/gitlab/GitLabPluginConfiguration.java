@@ -24,7 +24,7 @@ import com.talanlabs.sonar.plugins.gitlab.models.QualityGateFailMode;
 import com.talanlabs.sonar.plugins.gitlab.models.StatusNotificationsMode;
 import org.sonar.api.CoreProperties;
 import org.sonar.api.batch.InstantiationStrategy;
-import org.sonar.api.batch.ScannerSide;
+import org.sonar.api.scanner.ScannerSide;
 import org.sonar.api.batch.rule.Severity;
 import org.sonar.api.config.Configuration;
 import org.sonar.api.utils.System2;
@@ -36,7 +36,7 @@ import java.net.*;
 import java.util.Arrays;
 import java.util.List;
 
-@InstantiationStrategy(InstantiationStrategy.PER_BATCH)
+@InstantiationStrategy(InstantiationStrategy.PER_PROJECT)
 @ScannerSide
 public class GitLabPluginConfiguration {
 

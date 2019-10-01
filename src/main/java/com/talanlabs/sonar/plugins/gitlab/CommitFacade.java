@@ -22,7 +22,7 @@ package com.talanlabs.sonar.plugins.gitlab;
 import com.google.common.annotations.VisibleForTesting;
 import com.talanlabs.sonar.plugins.gitlab.models.JsonMode;
 import org.sonar.api.batch.InstantiationStrategy;
-import org.sonar.api.batch.ScannerSide;
+import org.sonar.api.scanner.ScannerSide;
 import org.sonar.api.scan.filesystem.PathResolver;
 import org.sonar.api.utils.MessageException;
 import org.sonar.api.utils.log.Logger;
@@ -41,7 +41,7 @@ import java.nio.file.StandardOpenOption;
 /**
  * Facade for all WS interaction with GitLab.
  */
-@InstantiationStrategy(InstantiationStrategy.PER_BATCH)
+@InstantiationStrategy(InstantiationStrategy.PER_PROJECT)
 @ScannerSide
 public class CommitFacade {
 
