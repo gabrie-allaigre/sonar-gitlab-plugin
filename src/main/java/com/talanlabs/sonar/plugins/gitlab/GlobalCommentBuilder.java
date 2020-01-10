@@ -36,8 +36,9 @@ public class GlobalCommentBuilder extends AbstractCommentBuilder {
     private final Reporter reporter;
 
     public GlobalCommentBuilder(GitLabPluginConfiguration gitLabPluginConfiguration, String author, QualityGate qualityGate, Reporter reporter, MarkDownUtils markDownUtils,
-                                AnalysisMode analysisMode) {
-        super(gitLabPluginConfiguration, gitLabPluginConfiguration.commitSHA().get(0), reporter.getReportIssues(), markDownUtils, analysisMode, "global", gitLabPluginConfiguration.globalTemplate());
+                                AnalysisMode analysisMode, String dashboardUrl) {
+        super(gitLabPluginConfiguration, gitLabPluginConfiguration.commitSHA().get(0), reporter.getReportIssues(), markDownUtils,
+                analysisMode, "global", gitLabPluginConfiguration.globalTemplate(), dashboardUrl);
 
         this.author = author;
         this.qualityGate = qualityGate;

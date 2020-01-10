@@ -26,6 +26,7 @@ import com.talanlabs.gitlab.api.v4.models.projects.GitLabProject;
 import com.talanlabs.gitlab.api.v4.services.GitLabAPICommits;
 import com.talanlabs.gitlab.api.v4.services.GitLabAPIMergeRequestDiff;
 import com.talanlabs.gitlab.api.v4.services.GitLabAPIMergeRequestDiscussion;
+import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Matchers;
 
@@ -41,12 +42,21 @@ import static org.mockito.Mockito.*;
 
 public class GitLabApiV4WrapperTest {
 
+    private GitLabPluginConfiguration gitLabPluginConfiguration;
+    private SonarFacade sonarFacade;
+
+    @Before
+    public void before() {
+        gitLabPluginConfiguration = mock(GitLabPluginConfiguration.class);
+        sonarFacade = mock(SonarFacade.class);
+        when(sonarFacade.getDashboardUrl()).thenReturn("http://sonardashboard");
+    }
+
     @Test
     public void testGetGitLabUrl() {
-        GitLabPluginConfiguration gitLabPluginConfiguration = mock(GitLabPluginConfiguration.class);
         when(gitLabPluginConfiguration.commitSHA()).thenReturn(Collections.singletonList("abc123"));
 
-        GitLabApiV4Wrapper facade = new GitLabApiV4Wrapper(gitLabPluginConfiguration);
+        GitLabApiV4Wrapper facade = new GitLabApiV4Wrapper(gitLabPluginConfiguration, sonarFacade);
 
         GitLabProject gitLabProject = mock(GitLabProject.class);
         when(gitLabProject.getWebUrl()).thenReturn("https://gitLab.com/gaby/test");
@@ -57,17 +67,16 @@ public class GitLabApiV4WrapperTest {
 
     @Test
     public void testStatusSuccess() throws IOException {
-        GitLabPluginConfiguration gitLabPluginConfiguration = mock(GitLabPluginConfiguration.class);
         when(gitLabPluginConfiguration.commitSHA()).thenReturn(Collections.singletonList("1"));
         when(gitLabPluginConfiguration.refName()).thenReturn("master");
 
-        GitLabApiV4Wrapper facade = new GitLabApiV4Wrapper(gitLabPluginConfiguration);
+        GitLabApiV4Wrapper facade = new GitLabApiV4Wrapper(gitLabPluginConfiguration, sonarFacade);
 
         GitLabAPI gitLabAPI = mock(GitLabAPI.class);
         facade.setGitLabAPI(gitLabAPI);
 
         GitLabAPICommits gitLabAPICommits = mock(GitLabAPICommits.class);
-        when(gitLabAPICommits.postCommitStatus(1, "1", "pending", "master", "sonarqube", "server", "")).thenReturn(null);
+        when(gitLabAPICommits.postCommitStatus(1, "1", "pending", "master", "sonarqube", "http://sonardashboard", "")).thenReturn(null);
 
         when(gitLabAPI.getGitLabAPICommits()).thenReturn(gitLabAPICommits);
 
@@ -77,22 +86,21 @@ public class GitLabApiV4WrapperTest {
 
         facade.createOrUpdateSonarQubeStatus("pending", "nothing");
 
-        verify(gitLabAPICommits).postCommitStatus(1, "1", "pending", "master", "sonarqube", null, "nothing");
+        verify(gitLabAPICommits).postCommitStatus(1, "1", "pending", "master", "sonarqube", "http://sonardashboard", "nothing");
     }
 
     @Test
     public void testStatusFailed() throws IOException {
-        GitLabPluginConfiguration gitLabPluginConfiguration = mock(GitLabPluginConfiguration.class);
         when(gitLabPluginConfiguration.commitSHA()).thenReturn(Collections.singletonList("1"));
         when(gitLabPluginConfiguration.refName()).thenReturn("master");
 
-        GitLabApiV4Wrapper facade = new GitLabApiV4Wrapper(gitLabPluginConfiguration);
+        GitLabApiV4Wrapper facade = new GitLabApiV4Wrapper(gitLabPluginConfiguration, sonarFacade);
 
         GitLabAPI gitLabAPI = mock(GitLabAPI.class);
         facade.setGitLabAPI(gitLabAPI);
 
         GitLabAPICommits gitLabAPICommits = mock(GitLabAPICommits.class);
-        when(gitLabAPICommits.postCommitStatus(1, "1", "pending", "master", "sonarqube", null, "nothing")).thenThrow(new IOException());
+        when(gitLabAPICommits.postCommitStatus(1, "1", "pending", "master", "sonarqube", "http://sonardashboard", "nothing")).thenThrow(new IOException());
 
         when(gitLabAPI.getGitLabAPICommits()).thenReturn(gitLabAPICommits);
 
@@ -105,11 +113,10 @@ public class GitLabApiV4WrapperTest {
 
     @Test
     public void testGlobalComment() throws IOException {
-        GitLabPluginConfiguration gitLabPluginConfiguration = mock(GitLabPluginConfiguration.class);
         when(gitLabPluginConfiguration.commitSHA()).thenReturn(Collections.singletonList("1"));
         when(gitLabPluginConfiguration.refName()).thenReturn("master");
 
-        GitLabApiV4Wrapper facade = new GitLabApiV4Wrapper(gitLabPluginConfiguration);
+        GitLabApiV4Wrapper facade = new GitLabApiV4Wrapper(gitLabPluginConfiguration, sonarFacade);
 
         GitLabAPI gitLabAPI = mock(GitLabAPI.class);
         facade.setGitLabAPI(gitLabAPI);
@@ -130,11 +137,10 @@ public class GitLabApiV4WrapperTest {
 
     @Test
     public void testReviewComment() throws IOException {
-        GitLabPluginConfiguration gitLabPluginConfiguration = mock(GitLabPluginConfiguration.class);
         when(gitLabPluginConfiguration.commitSHA()).thenReturn(Collections.singletonList("1"));
         when(gitLabPluginConfiguration.refName()).thenReturn("master");
 
-        GitLabApiV4Wrapper facade = new GitLabApiV4Wrapper(gitLabPluginConfiguration);
+        GitLabApiV4Wrapper facade = new GitLabApiV4Wrapper(gitLabPluginConfiguration, sonarFacade);
 
         GitLabAPI gitLabAPI = mock(GitLabAPI.class);
         facade.setGitLabAPI(gitLabAPI);
@@ -155,11 +161,10 @@ public class GitLabApiV4WrapperTest {
 
     @Test
     public void testCreateReviewDiscussionMissingIidFail() {
-        GitLabPluginConfiguration gitLabPluginConfiguration = mock(GitLabPluginConfiguration.class);
         when(gitLabPluginConfiguration.mergeRequestIid()).thenReturn(-1);
         when(gitLabPluginConfiguration.isMergeRequestDiscussionEnabled()).thenReturn(true);
 
-        GitLabApiV4Wrapper facade = new GitLabApiV4Wrapper(gitLabPluginConfiguration);
+        GitLabApiV4Wrapper facade = new GitLabApiV4Wrapper(gitLabPluginConfiguration, sonarFacade);
 
         GitLabProject gitLabProject = mock(GitLabProject.class);
         when(gitLabProject.getId()).thenReturn(1);
@@ -174,11 +179,10 @@ public class GitLabApiV4WrapperTest {
         Integer projectId = 1;
         Integer mrIid = 1;
 
-        GitLabPluginConfiguration gitLabPluginConfiguration = mock(GitLabPluginConfiguration.class);
         when(gitLabPluginConfiguration.mergeRequestIid()).thenReturn(mrIid);
         when(gitLabPluginConfiguration.isMergeRequestDiscussionEnabled()).thenReturn(true);
 
-        GitLabApiV4Wrapper facade = new GitLabApiV4Wrapper(gitLabPluginConfiguration);
+        GitLabApiV4Wrapper facade = new GitLabApiV4Wrapper(gitLabPluginConfiguration, sonarFacade);
 
         GitLabAPI gitLabAPI = mock(GitLabAPI.class);
         facade.setGitLabAPI(gitLabAPI);
@@ -209,11 +213,10 @@ public class GitLabApiV4WrapperTest {
         Integer projectId = 1;
         Integer mrIid = 1;
 
-        GitLabPluginConfiguration gitLabPluginConfiguration = mock(GitLabPluginConfiguration.class);
         when(gitLabPluginConfiguration.mergeRequestIid()).thenReturn(mrIid);
         when(gitLabPluginConfiguration.isMergeRequestDiscussionEnabled()).thenReturn(true);
 
-        GitLabApiV4Wrapper facade = new GitLabApiV4Wrapper(gitLabPluginConfiguration);
+        GitLabApiV4Wrapper facade = new GitLabApiV4Wrapper(gitLabPluginConfiguration, sonarFacade);
 
         GitLabAPI gitLabAPI = mock(GitLabAPI.class);
         facade.setGitLabAPI(gitLabAPI);

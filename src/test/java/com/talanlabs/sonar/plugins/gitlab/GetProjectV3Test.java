@@ -44,7 +44,8 @@ public class GetProjectV3Test {
     @Rule
     public TemporaryFolder temp = new TemporaryFolder();
 
-    GitLabPluginConfiguration gitLabPluginConfiguration;
+    private GitLabPluginConfiguration gitLabPluginConfiguration;
+    private SonarFacade sonarFacade;
 
     @Before
     public void before() {
@@ -53,6 +54,8 @@ public class GetProjectV3Test {
         when(gitLabPluginConfiguration.userToken()).thenReturn("123456789");
         when(gitLabPluginConfiguration.commitSHA()).thenReturn(Collections.singletonList("123456789"));
         when(gitLabPluginConfiguration.apiVersion()).thenReturn(GitLabPlugin.V3_API_VERSION);
+
+        sonarFacade = mock(SonarFacade.class);
     }
 
     @Test
@@ -61,7 +64,7 @@ public class GetProjectV3Test {
 
         when(gitLabPluginConfiguration.projectId()).thenReturn(null);
 
-        CommitFacade facade = new CommitFacade(gitLabPluginConfiguration);
+        CommitFacade facade = new CommitFacade(gitLabPluginConfiguration, sonarFacade);
         Assertions.assertThatThrownBy(() -> facade.init(gitBasedir)).isInstanceOf(IllegalStateException.class).hasMessageContaining("Unable to find project ID null. Set the property sonar.gitlab.project_id");
     }
 
@@ -86,7 +89,7 @@ public class GetProjectV3Test {
                 "    \"path_with_namespace\": \"diaspora/diaspora-client\"\n" +
                 "}]"));
 
-        CommitFacade facade = new CommitFacade(gitLabPluginConfiguration);
+        CommitFacade facade = new CommitFacade(gitLabPluginConfiguration, sonarFacade);
         Assertions.assertThatThrownBy(() -> facade.init(gitBasedir)).isInstanceOf(IllegalStateException.class).hasMessageContaining("Unable to find project ID 123. Either the project ID is incorrect or you don't have access to this project. Verify the configurations sonar.gitlab.project_id or sonar.gitlab.user_token");
     }
 
@@ -99,7 +102,7 @@ public class GetProjectV3Test {
         gitlab.enqueue(new MockResponse().setResponseCode(404));
         gitlab.enqueue(new MockResponse().setResponseCode(200).setBody("[]"));
 
-        CommitFacade facade = new CommitFacade(gitLabPluginConfiguration);
+        CommitFacade facade = new CommitFacade(gitLabPluginConfiguration, sonarFacade);
         Assertions.assertThatThrownBy(() -> facade.init(gitBasedir)).isInstanceOf(IllegalStateException.class).hasMessageContaining("Unable to find project ID 123. Either the project ID is incorrect or you don't have access to this project. Verify the configurations sonar.gitlab.project_id or sonar.gitlab.user_token");
     }
 
@@ -136,7 +139,7 @@ public class GetProjectV3Test {
                 "    \"path_with_namespace\": \"diaspora/diaspora-client\"\n" +
                 "}]"));
 
-        CommitFacade facade = new CommitFacade(gitLabPluginConfiguration);
+        CommitFacade facade = new CommitFacade(gitLabPluginConfiguration, sonarFacade);
         Assertions.assertThatThrownBy(() -> facade.init(gitBasedir)).isInstanceOf(IllegalStateException.class).hasMessageContaining("Multiple found projects for 4");
     }
 
@@ -164,7 +167,7 @@ public class GetProjectV3Test {
         gitlab.enqueue(new MockResponse().setResponseCode(200).setBody("[]"));
         gitlab.enqueue(new MockResponse().setResponseCode(200).setBody("[]"));
 
-        CommitFacade facade = new CommitFacade(gitLabPluginConfiguration);
+        CommitFacade facade = new CommitFacade(gitLabPluginConfiguration, sonarFacade);
         facade.init(gitBasedir);
     }
 
@@ -192,7 +195,7 @@ public class GetProjectV3Test {
         gitlab.enqueue(new MockResponse().setResponseCode(200).setBody("[]"));
         gitlab.enqueue(new MockResponse().setResponseCode(200).setBody("[]"));
 
-        CommitFacade facade = new CommitFacade(gitLabPluginConfiguration);
+        CommitFacade facade = new CommitFacade(gitLabPluginConfiguration, sonarFacade);
         facade.init(gitBasedir);
     }
 
@@ -220,7 +223,7 @@ public class GetProjectV3Test {
         gitlab.enqueue(new MockResponse().setResponseCode(200).setBody("[]"));
         gitlab.enqueue(new MockResponse().setResponseCode(200).setBody("[]"));
 
-        CommitFacade facade = new CommitFacade(gitLabPluginConfiguration);
+        CommitFacade facade = new CommitFacade(gitLabPluginConfiguration, sonarFacade);
         facade.init(gitBasedir);
     }
 
@@ -248,7 +251,7 @@ public class GetProjectV3Test {
         gitlab.enqueue(new MockResponse().setResponseCode(200).setBody("[]"));
         gitlab.enqueue(new MockResponse().setResponseCode(200).setBody("[]"));
 
-        CommitFacade facade = new CommitFacade(gitLabPluginConfiguration);
+        CommitFacade facade = new CommitFacade(gitLabPluginConfiguration, sonarFacade);
         facade.init(gitBasedir);
     }
 
@@ -276,7 +279,7 @@ public class GetProjectV3Test {
         gitlab.enqueue(new MockResponse().setResponseCode(200).setBody("[]"));
         gitlab.enqueue(new MockResponse().setResponseCode(200).setBody("[]"));
 
-        CommitFacade facade = new CommitFacade(gitLabPluginConfiguration);
+        CommitFacade facade = new CommitFacade(gitLabPluginConfiguration, sonarFacade);
         facade.init(gitBasedir);
     }
 
@@ -304,7 +307,7 @@ public class GetProjectV3Test {
         gitlab.enqueue(new MockResponse().setResponseCode(200).setBody("[]"));
         gitlab.enqueue(new MockResponse().setResponseCode(200).setBody("[]"));
 
-        CommitFacade facade = new CommitFacade(gitLabPluginConfiguration);
+        CommitFacade facade = new CommitFacade(gitLabPluginConfiguration, sonarFacade);
         facade.init(gitBasedir);
     }
 
@@ -432,7 +435,7 @@ public class GetProjectV3Test {
         File inputFile2 = new File(gitBasedir, "src/main/java/com/talanlabs/sonar/plugins/gitlab/Fake.java");
         File inputFile3 = new File(gitBasedir, "src/main/java/com/talanlabs/sonar/plugins/gitlab/Fake2.java");
 
-        CommitFacade facade = new CommitFacade(gitLabPluginConfiguration);
+        CommitFacade facade = new CommitFacade(gitLabPluginConfiguration, sonarFacade);
         facade.init(gitBasedir);
 
         Assertions.assertThat(facade.hasFile(inputFile1)).isFalse();
@@ -495,7 +498,7 @@ public class GetProjectV3Test {
                 "]"));
 
 
-        GitLabApiV3Wrapper facade = new GitLabApiV3Wrapper(gitLabPluginConfiguration);
+        GitLabApiV3Wrapper facade = new GitLabApiV3Wrapper(gitLabPluginConfiguration, sonarFacade);
         facade.setGitLabAPI(GitLabAPI.connect(gitLabPluginConfiguration.url(), gitLabPluginConfiguration.userToken()));
         GitLabProject gitLabProject = Mockito.mock(GitLabProject.class);
         Mockito.when(gitLabProject.getId()).thenReturn(1);
@@ -549,7 +552,7 @@ public class GetProjectV3Test {
                 "]"));
 
 
-        GitLabApiV3Wrapper facade = new GitLabApiV3Wrapper(gitLabPluginConfiguration);
+        GitLabApiV3Wrapper facade = new GitLabApiV3Wrapper(gitLabPluginConfiguration, sonarFacade);
         facade.setGitLabAPI(GitLabAPI.connect(gitLabPluginConfiguration.url(), gitLabPluginConfiguration.userToken()));
         GitLabProject gitLabProject = Mockito.mock(GitLabProject.class);
         Mockito.when(gitLabProject.getId()).thenReturn(1);
@@ -605,7 +608,7 @@ public class GetProjectV3Test {
                 "]"));
 
 
-        GitLabApiV3Wrapper facade = new GitLabApiV3Wrapper(gitLabPluginConfiguration);
+        GitLabApiV3Wrapper facade = new GitLabApiV3Wrapper(gitLabPluginConfiguration, sonarFacade);
         facade.setGitLabAPI(GitLabAPI.connect(gitLabPluginConfiguration.url(), gitLabPluginConfiguration.userToken()));
         GitLabProject gitLabProject = Mockito.mock(GitLabProject.class);
         Mockito.when(gitLabProject.getId()).thenReturn(1);

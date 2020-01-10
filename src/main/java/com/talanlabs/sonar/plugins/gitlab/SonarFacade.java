@@ -236,6 +236,10 @@ public class SonarFacade {
         return issues;
     }
 
+    public String getDashboardUrl() {
+        return readReportTaskProperties().getProperty("dashboardUrl");
+    }
+
     private Issues.SearchWsResponse searchIssues(String componentKey, String branch, int page) {
         SearchRequest searchRequest = new SearchRequest().setComponentKeys(Collections.singletonList(componentKey)).setP(String.valueOf(page)).setResolved("false");
         if (isNotBlankAndNotEmpty(branch)) {

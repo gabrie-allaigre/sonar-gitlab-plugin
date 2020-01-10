@@ -56,15 +56,15 @@ public class CommitFacade {
 
     private IGitLabApiWrapper gitLabWrapper;
 
-    public CommitFacade(GitLabPluginConfiguration gitLabPluginConfiguration) {
+    public CommitFacade(GitLabPluginConfiguration gitLabPluginConfiguration, SonarFacade sonarFacade) {
         this.gitLabPluginConfiguration = gitLabPluginConfiguration;
 
         this.ruleUrlPrefix = gitLabPluginConfiguration.baseUrl();
 
         if (GitLabPlugin.V3_API_VERSION.equals(gitLabPluginConfiguration.apiVersion())) {
-            this.gitLabWrapper = new GitLabApiV3Wrapper(gitLabPluginConfiguration);
+            this.gitLabWrapper = new GitLabApiV3Wrapper(gitLabPluginConfiguration, sonarFacade);
         } else if (GitLabPlugin.V4_API_VERSION.equals(gitLabPluginConfiguration.apiVersion())) {
-            this.gitLabWrapper = new GitLabApiV4Wrapper(gitLabPluginConfiguration);
+            this.gitLabWrapper = new GitLabApiV4Wrapper(gitLabPluginConfiguration, sonarFacade);
         }
     }
 

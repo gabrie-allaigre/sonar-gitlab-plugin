@@ -22,6 +22,7 @@ package com.talanlabs.sonar.plugins.gitlab;
 import com.talanlabs.gitlab.api.v3.GitLabAPI;
 import com.talanlabs.gitlab.api.v3.models.projects.GitLabProject;
 import com.talanlabs.gitlab.api.v3.services.GitLabAPICommits;
+import org.junit.Before;
 import org.junit.Test;
 
 import java.io.IOException;
@@ -32,12 +33,21 @@ import static org.mockito.Mockito.*;
 
 public class GitLabApiV3WrapperTest {
 
+    private GitLabPluginConfiguration gitLabPluginConfiguration;
+    private SonarFacade sonarFacade;
+
+    @Before
+    public void before() {
+        gitLabPluginConfiguration = mock(GitLabPluginConfiguration.class);
+        sonarFacade = mock(SonarFacade.class);
+        when(sonarFacade.getDashboardUrl()).thenReturn("http://sonardashboard");
+    }
+
     @Test
     public void testGetGitLabUrl() {
-        GitLabPluginConfiguration gitLabPluginConfiguration = mock(GitLabPluginConfiguration.class);
         when(gitLabPluginConfiguration.commitSHA()).thenReturn(Collections.singletonList("abc123"));
 
-        GitLabApiV3Wrapper facade = new GitLabApiV3Wrapper(gitLabPluginConfiguration);
+        GitLabApiV3Wrapper facade = new GitLabApiV3Wrapper(gitLabPluginConfiguration, sonarFacade);
 
         GitLabProject gitLabProject = mock(GitLabProject.class);
         when(gitLabProject.getWebUrl()).thenReturn("https://gitLab.com/gaby/test");
@@ -48,17 +58,16 @@ public class GitLabApiV3WrapperTest {
 
     @Test
     public void testStatusSuccess() throws IOException {
-        GitLabPluginConfiguration gitLabPluginConfiguration = mock(GitLabPluginConfiguration.class);
         when(gitLabPluginConfiguration.commitSHA()).thenReturn(Collections.singletonList("1"));
         when(gitLabPluginConfiguration.refName()).thenReturn("master");
 
-        GitLabApiV3Wrapper facade = new GitLabApiV3Wrapper(gitLabPluginConfiguration);
+        GitLabApiV3Wrapper facade = new GitLabApiV3Wrapper(gitLabPluginConfiguration, sonarFacade);
 
         GitLabAPI gitLabAPI = mock(GitLabAPI.class);
         facade.setGitLabAPI(gitLabAPI);
 
         GitLabAPICommits gitLabAPICommits = mock(GitLabAPICommits.class);
-        when(gitLabAPICommits.postCommitStatus(1, "1", "pending", "master", "sonarqube", "server", "")).thenReturn(null);
+        when(gitLabAPICommits.postCommitStatus(1, "1", "pending", "master", "sonarqube", "http://sonardashboard", "")).thenReturn(null);
 
         when(gitLabAPI.getGitLabAPICommits()).thenReturn(gitLabAPICommits);
 
@@ -68,22 +77,21 @@ public class GitLabApiV3WrapperTest {
 
         facade.createOrUpdateSonarQubeStatus("pending", "nothing");
 
-        verify(gitLabAPICommits).postCommitStatus(1, "1", "pending", "master", "sonarqube", null, "nothing");
+        verify(gitLabAPICommits).postCommitStatus(1, "1", "pending", "master", "sonarqube", "http://sonardashboard", "nothing");
     }
 
     @Test
     public void testStatusFailed() throws IOException {
-        GitLabPluginConfiguration gitLabPluginConfiguration = mock(GitLabPluginConfiguration.class);
         when(gitLabPluginConfiguration.commitSHA()).thenReturn(Collections.singletonList("1"));
         when(gitLabPluginConfiguration.refName()).thenReturn("master");
 
-        GitLabApiV3Wrapper facade = new GitLabApiV3Wrapper(gitLabPluginConfiguration);
+        GitLabApiV3Wrapper facade = new GitLabApiV3Wrapper(gitLabPluginConfiguration, sonarFacade);
 
         GitLabAPI gitLabAPI = mock(GitLabAPI.class);
         facade.setGitLabAPI(gitLabAPI);
 
         GitLabAPICommits gitLabAPICommits = mock(GitLabAPICommits.class);
-        when(gitLabAPICommits.postCommitStatus(1, "1", "pending", "master", "sonarqube", null, "nothing")).thenThrow(new IOException());
+        when(gitLabAPICommits.postCommitStatus(1, "1", "pending", "master", "sonarqube", "http://sonardashboard", "nothing")).thenThrow(new IOException());
 
         when(gitLabAPI.getGitLabAPICommits()).thenReturn(gitLabAPICommits);
 
@@ -96,11 +104,10 @@ public class GitLabApiV3WrapperTest {
 
     @Test
     public void testGlobalComment() throws IOException {
-        GitLabPluginConfiguration gitLabPluginConfiguration = mock(GitLabPluginConfiguration.class);
         when(gitLabPluginConfiguration.commitSHA()).thenReturn(Collections.singletonList("1"));
         when(gitLabPluginConfiguration.refName()).thenReturn("master");
 
-        GitLabApiV3Wrapper facade = new GitLabApiV3Wrapper(gitLabPluginConfiguration);
+        GitLabApiV3Wrapper facade = new GitLabApiV3Wrapper(gitLabPluginConfiguration, sonarFacade);
 
         GitLabAPI gitLabAPI = mock(GitLabAPI.class);
         facade.setGitLabAPI(gitLabAPI);
@@ -121,11 +128,10 @@ public class GitLabApiV3WrapperTest {
 
     @Test
     public void testReviewComment() throws IOException {
-        GitLabPluginConfiguration gitLabPluginConfiguration = mock(GitLabPluginConfiguration.class);
         when(gitLabPluginConfiguration.commitSHA()).thenReturn(Collections.singletonList("1"));
         when(gitLabPluginConfiguration.refName()).thenReturn("master");
 
-        GitLabApiV3Wrapper facade = new GitLabApiV3Wrapper(gitLabPluginConfiguration);
+        GitLabApiV3Wrapper facade = new GitLabApiV3Wrapper(gitLabPluginConfiguration, sonarFacade);
 
         GitLabAPI gitLabAPI = mock(GitLabAPI.class);
         facade.setGitLabAPI(gitLabAPI);

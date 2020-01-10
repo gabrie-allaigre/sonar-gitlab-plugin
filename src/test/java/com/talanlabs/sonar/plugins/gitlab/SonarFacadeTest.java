@@ -128,6 +128,7 @@ public class SonarFacadeTest {
         Assertions.assertThat(qualityGate).isNotNull().extracting(QualityGate::getStatus).contains(QualityGate.Status.OK);
     }
 
+
     @Test
     public void testWarning() throws IOException {
         Ce.TaskResponse taskResponse = Ce.TaskResponse.newBuilder().setTask(Ce.Task.newBuilder().setStatus(Ce.TaskStatus.SUCCESS).build()).build();
@@ -538,4 +539,10 @@ public class SonarFacadeTest {
         Assertions.assertThat(sonarFacade.getMetricName("security_rating")).isEqualTo("Security Rating");
     }
 
+    @Test
+    public void testGetDashboardUrl() throws IOException  {
+        createReportTaskFile();
+        String dashboardUrl = sonarFacade.getDashboardUrl();
+        Assertions.assertThat(dashboardUrl).isEqualTo("http://" + sonar.getHostName() + ":" + sonar.getPort() + "/dashboard/index/com.talanlabs:avatar-generator-parent");
+    }
 }

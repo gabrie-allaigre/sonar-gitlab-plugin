@@ -47,6 +47,7 @@ public class InlineTemplateTest {
     private MapSettings settings;
     private GitLabPluginConfiguration config;
     private AnalysisMode analysisMode;
+    private SonarFacade sonarFacade;
 
     @Before
     public void setUp() {
@@ -65,6 +66,9 @@ public class InlineTemplateTest {
         when(analysisMode.isIssues()).thenReturn(false);
         when(analysisMode.isPreview()).thenReturn(true);
         when(analysisMode.isPublish()).thenReturn(false);
+
+        sonarFacade = Mockito.mock(SonarFacade.class);
+        when(sonarFacade.getDashboardUrl()).thenReturn("http://sonardashboard");
     }
 
     @Test
@@ -72,7 +76,7 @@ public class InlineTemplateTest {
         ReportIssue r1 =ReportIssue.newBuilder().issue(Utils.newIssue("component", null, 1, Severity.INFO, true, "Issue", "rule")).revision(null).url("lalal").file("file").ruleLink(
                 "http://myserver/coding_rules#rule_key=repo%3Arule").reportedOnDiff(true).build();
 
-        Assertions.assertThat(new InlineCommentBuilder(config, "123", null, 1, Collections.singletonList(r1), new MarkDownUtils(), analysisMode).buildForMarkdown())
+        Assertions.assertThat(new InlineCommentBuilder(config, "123", null, 1, Collections.singletonList(r1), new MarkDownUtils(), analysisMode, sonarFacade.getDashboardUrl()).buildForMarkdown())
                 .isEqualTo(":information_source: Issue [:blue_book:](http://myserver/coding_rules#rule_key=repo%3Arule)\n");
     }
 
@@ -82,7 +86,7 @@ public class InlineTemplateTest {
                 .map(i ->ReportIssue.newBuilder().issue(Utils.newIssue("component", null, 1, Severity.INFO, true, "Issue", "rule")).revision(null).url("lalal").file("file").ruleLink(
                         "http://myserver/coding_rules#rule_key=repo%3Arule").reportedOnDiff(true).build()).collect(Collectors.toList());
 
-        Assertions.assertThat(new InlineCommentBuilder(config, "123", null, 1, ris, new MarkDownUtils(), analysisMode).buildForMarkdown()).isEqualTo(
+        Assertions.assertThat(new InlineCommentBuilder(config, "123", null, 1, ris, new MarkDownUtils(), analysisMode, sonarFacade.getDashboardUrl()).buildForMarkdown()).isEqualTo(
                 ":information_source: Issue [:blue_book:](http://myserver/coding_rules#rule_key=repo%3Arule)\n"
                         + ":information_source: Issue [:blue_book:](http://myserver/coding_rules#rule_key=repo%3Arule)\n");
     }
@@ -94,7 +98,7 @@ public class InlineTemplateTest {
         ReportIssue r1 =ReportIssue.newBuilder().issue(Utils.newIssue("component", null, 1, Severity.INFO, true, "Issue", "rule")).revision(null).url("lalal").file("file").ruleLink(
                 "http://myserver/coding_rules#rule_key=repo%3Arule").reportedOnDiff(true).build();
 
-        Assertions.assertThat(new InlineCommentBuilder(config, "123", null, 1, Collections.singletonList(r1), new MarkDownUtils(), analysisMode).buildForMarkdown())
+        Assertions.assertThat(new InlineCommentBuilder(config, "123", null, 1, Collections.singletonList(r1), new MarkDownUtils(), analysisMode, sonarFacade.getDashboardUrl()).buildForMarkdown())
                 .isEqualTo(":information_source: Issue [:blue_book:](http://myserver/coding_rules#rule_key=repo%3Arule)\nàâéç");
     }
 }

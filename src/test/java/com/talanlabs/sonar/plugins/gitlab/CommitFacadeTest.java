@@ -21,6 +21,7 @@ package com.talanlabs.sonar.plugins.gitlab;
 
 import com.talanlabs.sonar.plugins.gitlab.models.JsonMode;
 import org.assertj.core.api.Assertions;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
@@ -40,9 +41,18 @@ public class CommitFacadeTest {
     @Rule
     public TemporaryFolder temp = new TemporaryFolder();
 
+    private GitLabPluginConfiguration gitLabPluginConfiguration;
+    private SonarFacade sonarFacade;
+
+    @Before
+    public void before() {
+        gitLabPluginConfiguration = mock(GitLabPluginConfiguration.class);
+        sonarFacade = mock(SonarFacade.class);
+    }
+
     @Test
     public void testInitGitBaseDirNotFound() throws Exception {
-        CommitFacade facade = new CommitFacade(mock(GitLabPluginConfiguration.class));
+        CommitFacade facade = new CommitFacade(gitLabPluginConfiguration, sonarFacade);
         File projectBaseDir = temp.newFolder();
         facade.initGitBaseDir(projectBaseDir);
         assertThat(facade.getPath(new File(projectBaseDir, "src/main/java/Foo.java"))).isEqualTo("src/main/java/Foo.java");
@@ -50,7 +60,7 @@ public class CommitFacadeTest {
 
     @Test
     public void testInitGitBaseDir() throws Exception {
-        CommitFacade facade = new CommitFacade(mock(GitLabPluginConfiguration.class));
+        CommitFacade facade = new CommitFacade(gitLabPluginConfiguration, sonarFacade);
         File gitBaseDir = temp.newFolder();
         Files.createDirectory(gitBaseDir.toPath().resolve(".git"));
         File projectBaseDir = new File(gitBaseDir, "myProject");
@@ -60,11 +70,10 @@ public class CommitFacadeTest {
 
     @Test
     public void testGetPath() throws IOException {
-        GitLabPluginConfiguration gitLabPluginConfiguration = mock(GitLabPluginConfiguration.class);
         when(gitLabPluginConfiguration.commitSHA()).thenReturn(Collections.singletonList("1"));
         when(gitLabPluginConfiguration.refName()).thenReturn("master");
 
-        CommitFacade facade = new CommitFacade(gitLabPluginConfiguration);
+        CommitFacade facade = new CommitFacade(gitLabPluginConfiguration, sonarFacade);
 
         File gitBasedir = temp.newFolder();
         facade.setGitBaseDir(gitBasedir);
@@ -78,9 +87,8 @@ public class CommitFacadeTest {
 
     @Test
     public void testWriteCodeClimateJson() throws IOException {
-        GitLabPluginConfiguration gitLabPluginConfiguration = mock(GitLabPluginConfiguration.class);
         when(gitLabPluginConfiguration.jsonMode()).thenReturn(JsonMode.CODECLIMATE);
-        CommitFacade facade = new CommitFacade(gitLabPluginConfiguration);
+        CommitFacade facade = new CommitFacade(gitLabPluginConfiguration, sonarFacade);
         File projectBaseDir = temp.newFolder();
         facade.initGitBaseDir(projectBaseDir);
 
@@ -92,9 +100,8 @@ public class CommitFacadeTest {
 
     @Test
     public void testWriteSastJson() throws IOException {
-        GitLabPluginConfiguration gitLabPluginConfiguration = mock(GitLabPluginConfiguration.class);
         when(gitLabPluginConfiguration.jsonMode()).thenReturn(JsonMode.SAST);
-        CommitFacade facade = new CommitFacade(gitLabPluginConfiguration);
+        CommitFacade facade = new CommitFacade(gitLabPluginConfiguration, sonarFacade);
         File projectBaseDir = temp.newFolder();
         facade.initGitBaseDir(projectBaseDir);
 
@@ -106,9 +113,8 @@ public class CommitFacadeTest {
 
     @Test
     public void testWriteNoneJson() throws IOException {
-        GitLabPluginConfiguration gitLabPluginConfiguration = mock(GitLabPluginConfiguration.class);
         when(gitLabPluginConfiguration.jsonMode()).thenReturn(JsonMode.NONE);
-        CommitFacade facade = new CommitFacade(gitLabPluginConfiguration);
+        CommitFacade facade = new CommitFacade(gitLabPluginConfiguration, sonarFacade);
         File projectBaseDir = temp.newFolder();
         facade.initGitBaseDir(projectBaseDir);
 
@@ -120,8 +126,7 @@ public class CommitFacadeTest {
 
     @Test
     public void testUsernameForRevision() {
-        GitLabPluginConfiguration gitLabPluginConfiguration = mock(GitLabPluginConfiguration.class);
-        CommitFacade facade = new CommitFacade(gitLabPluginConfiguration);
+        CommitFacade facade = new CommitFacade(gitLabPluginConfiguration, sonarFacade);
         IGitLabApiWrapper gitLabApiWrapper = mock(IGitLabApiWrapper.class);
         facade.setGitLabWrapper(gitLabApiWrapper);
         facade.getUsernameForRevision("123");
@@ -131,8 +136,7 @@ public class CommitFacadeTest {
 
     @Test
     public void testCreateOrUpdateSonarQubeStatus() {
-        GitLabPluginConfiguration gitLabPluginConfiguration = mock(GitLabPluginConfiguration.class);
-        CommitFacade facade = new CommitFacade(gitLabPluginConfiguration);
+        CommitFacade facade = new CommitFacade(gitLabPluginConfiguration, sonarFacade);
         IGitLabApiWrapper gitLabApiWrapper = mock(IGitLabApiWrapper.class);
         facade.setGitLabWrapper(gitLabApiWrapper);
         facade.createOrUpdateSonarQubeStatus("ok", "hello");
@@ -142,11 +146,10 @@ public class CommitFacadeTest {
 
     @Test
     public void testGetGitLabUrl() throws IOException {
-        GitLabPluginConfiguration gitLabPluginConfiguration = mock(GitLabPluginConfiguration.class);
         when(gitLabPluginConfiguration.commitSHA()).thenReturn(Collections.singletonList("1"));
         when(gitLabPluginConfiguration.refName()).thenReturn("master");
 
-        CommitFacade facade = new CommitFacade(gitLabPluginConfiguration);
+        CommitFacade facade = new CommitFacade(gitLabPluginConfiguration, sonarFacade);
         IGitLabApiWrapper gitLabApiWrapper = mock(IGitLabApiWrapper.class);
 
         File gitBasedir = temp.newFolder();
@@ -161,11 +164,10 @@ public class CommitFacadeTest {
 
     @Test
     public void testGetSrc() throws IOException {
-        GitLabPluginConfiguration gitLabPluginConfiguration = mock(GitLabPluginConfiguration.class);
         when(gitLabPluginConfiguration.commitSHA()).thenReturn(Collections.singletonList("1"));
         when(gitLabPluginConfiguration.refName()).thenReturn("master");
 
-        CommitFacade facade = new CommitFacade(gitLabPluginConfiguration);
+        CommitFacade facade = new CommitFacade(gitLabPluginConfiguration, sonarFacade);
 
         File gitBasedir = temp.newFolder();
         facade.setGitBaseDir(gitBasedir);
@@ -181,11 +183,10 @@ public class CommitFacadeTest {
 
     @Test
     public void testCreateOrUpdateReviewComment() throws IOException {
-        GitLabPluginConfiguration gitLabPluginConfiguration = mock(GitLabPluginConfiguration.class);
         when(gitLabPluginConfiguration.commitSHA()).thenReturn(Collections.singletonList("1"));
         when(gitLabPluginConfiguration.refName()).thenReturn("master");
 
-        CommitFacade facade = new CommitFacade(gitLabPluginConfiguration);
+        CommitFacade facade = new CommitFacade(gitLabPluginConfiguration, sonarFacade);
         IGitLabApiWrapper gitLabApiWrapper = mock(IGitLabApiWrapper.class);
 
         File gitBasedir = temp.newFolder();
@@ -199,8 +200,7 @@ public class CommitFacadeTest {
 
     @Test
     public void testAddGlobalComment() {
-        GitLabPluginConfiguration gitLabPluginConfiguration = mock(GitLabPluginConfiguration.class);
-        CommitFacade facade = new CommitFacade(gitLabPluginConfiguration);
+        CommitFacade facade = new CommitFacade(gitLabPluginConfiguration, sonarFacade);
         IGitLabApiWrapper gitLabApiWrapper = mock(IGitLabApiWrapper.class);
         facade.setGitLabWrapper(gitLabApiWrapper);
         facade.addGlobalComment("hello");
@@ -210,10 +210,9 @@ public class CommitFacadeTest {
 
     @Test
     public void testGetRuleLink() {
-        GitLabPluginConfiguration gitLabPluginConfiguration = mock(GitLabPluginConfiguration.class);
         when(gitLabPluginConfiguration.baseUrl()).thenReturn("http://test/");
 
-        CommitFacade facade = new CommitFacade(gitLabPluginConfiguration);
+        CommitFacade facade = new CommitFacade(gitLabPluginConfiguration, sonarFacade);
 
         Assertions.assertThat(facade.getRuleLink("hello")).isEqualTo("http://test/coding_rules#rule_key=hello");
 

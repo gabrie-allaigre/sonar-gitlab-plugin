@@ -44,13 +44,15 @@ public class GitLabApiV3Wrapper implements IGitLabApiWrapper {
     private static final String COMMIT_CONTEXT = "sonarqube";
 
     private final GitLabPluginConfiguration config;
+    private final SonarFacade sonarFacade;
     private GitLabAPI gitLabAPIV3;
     private GitLabProject gitLabProject;
     private Map<String, List<GitLabCommitComments>> commitCommentPerRevision;
     private Map<String, Map<String, Set<Line>>> patchPositionByFile;
 
-    public GitLabApiV3Wrapper(GitLabPluginConfiguration config) {
+    public GitLabApiV3Wrapper(GitLabPluginConfiguration config, SonarFacade sonarFacade) {
         this.config = config;
+        this.sonarFacade = sonarFacade;
     }
 
     @Override
@@ -208,7 +210,7 @@ public class GitLabApiV3Wrapper implements IGitLabApiWrapper {
     @Override
     public void createOrUpdateSonarQubeStatus(String status, String statusDescription) {
         try {
-            gitLabAPIV3.getGitLabAPICommits().postCommitStatus(gitLabProject.getId(), getFirstCommitSHA(), status, config.refName(), COMMIT_CONTEXT, null, statusDescription);
+            gitLabAPIV3.getGitLabAPICommits().postCommitStatus(gitLabProject.getId(), getFirstCommitSHA(), status, config.refName(), COMMIT_CONTEXT, sonarFacade.getDashboardUrl(), statusDescription);
         } catch (IOException e) {
             // Workaround for https://gitlab.com/gitlab-org/gitlab-ce/issues/25807
             if (e.getMessage() != null && e.getMessage().contains("Cannot transition status")) {
