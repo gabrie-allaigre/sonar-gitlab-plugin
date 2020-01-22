@@ -34,7 +34,6 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.sonar.api.CoreProperties;
 import org.sonar.api.batch.rule.Severity;
-import org.sonar.api.config.PropertyDefinition;
 import org.sonar.api.config.PropertyDefinitions;
 import org.sonar.api.config.internal.MapSettings;
 import org.sonar.api.resources.Qualifiers;
@@ -60,10 +59,9 @@ public class SonarFacadeTest {
 
     @Before
     public void prepare() throws IOException {
-        settings = new MapSettings(new PropertyDefinitions(PropertyDefinition.builder(CoreProperties.SERVER_BASE_URL).name("Server base URL")
-                .description("HTTP URL of this SonarQube server, such as <i>http://yourhost.yourdomain/sonar</i>. This value is used i.e. to create links in emails.")
-                .category(CoreProperties.CATEGORY_GENERAL).defaultValue("http://localhost:9000").build()).addComponents(GitLabPlugin.definitions()));
-        settings.setProperty(CoreProperties.SERVER_BASE_URL, String.format("http://%s:%d", sonar.getHostName(), sonar.getPort()));
+        settings = new MapSettings(new PropertyDefinitions(GitLabPlugin.definitions()));
+        settings.setProperty(CoreProperties.SERVER_BASE_URL, "http://whatever");
+        settings.setProperty("sonar.host.url", String.format("http://%s:%d", sonar.getHostName(), sonar.getPort()));
         settings.setProperty(GitLabPlugin.GITLAB_QUERY_MAX_RETRY, 5);
 
         projectDir = temp.newFolder();

@@ -67,6 +67,15 @@ public class GitLabPluginConfigurationTest {
     }
 
     @Test
+    public void testBaseWsUrl() {
+        Assertions.assertThat(config.baseWsUrl()).isEqualTo("http://localhost:9000/");
+
+        settings.setProperty("sonar.host.url", "http://myserver2/");
+        config = new GitLabPluginConfiguration(settings.asConfig(), new System2());
+        Assertions.assertThat(config.baseWsUrl()).isEqualTo("http://myserver2/");
+    }
+
+    @Test
     public void testGlobal() {
         Assertions.assertThat(config.url()).isEqualTo("https://gitlab.com");
         settings.setProperty(GitLabPlugin.GITLAB_URL, "https://gitlab.talanlabs.com/api");
