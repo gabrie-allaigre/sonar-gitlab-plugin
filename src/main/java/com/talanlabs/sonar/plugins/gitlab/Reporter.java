@@ -19,10 +19,13 @@
  */
 package com.talanlabs.sonar.plugins.gitlab;
 
+import com.google.common.base.Charsets;
+import com.google.common.hash.HashCode;
+import com.google.common.hash.HashFunction;
+import com.google.common.hash.Hashing;
 import com.talanlabs.sonar.plugins.gitlab.models.*;
 import org.apache.commons.lang3.StringEscapeUtils;
 import org.sonar.api.batch.rule.Severity;
-import org.sonar.api.internal.apachecommons.codec.binary.Hex;
 
 import javax.annotation.Nullable;
 import java.io.File;
@@ -238,17 +241,14 @@ public class Reporter {
 
         String description = prepareMessageJson(issue.getMessage());
         String location = buildLocationCodeQualityJson(reportIssue);
-        String fingerprint;
 
-        try {
-            MessageDigest md = MessageDigest.getInstance("MD5");
-            md.update(description.getBytes(StandardCharsets.UTF_8));
-            md.update(location.getBytes(StandardCharsets.UTF_8));
+        HashFunction hf = Hashing.md5();
+        HashCode hc = hf.newHasher()
+                .putString(description, Charsets.UTF_8)
+                .putString(location, Charsets.UTF_8)
+                .hash();
 
-            fingerprint = new String(Hex.encodeHex(md.digest()));
-        } catch (NoSuchAlgorithmException e) {
-            throw new RuntimeException(e);
-        }
+        String fingerprint = hc.toString();
 
         StringJoiner sj = new StringJoiner(",", "{", "}");
         sj.add("\"fingerprint\":\"" + fingerprint + "\"");
