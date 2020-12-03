@@ -22,9 +22,14 @@ package com.talanlabs.sonar.plugins.gitlab;
 import com.talanlabs.sonar.plugins.gitlab.models.*;
 import org.apache.commons.lang3.StringEscapeUtils;
 import org.sonar.api.batch.rule.Severity;
+import org.sonar.api.internal.apachecommons.codec.binary.Hex;
 
 import javax.annotation.Nullable;
 import java.io.File;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -231,10 +236,24 @@ public class Reporter {
     private String buildIssueCodeQualityJson(ReportIssue reportIssue) {
         Issue issue = reportIssue.getIssue();
 
+        String description = prepareMessageJson(issue.getMessage());
+        String location = buildLocationCodeQualityJson(reportIssue);
+        String fingerprint;
+
+        try {
+            MessageDigest md = MessageDigest.getInstance("MD5");
+            md.update(description.getBytes(StandardCharsets.UTF_8));
+            md.update(location.getBytes(StandardCharsets.UTF_8));
+
+            fingerprint = new String(Hex.encodeHex(md.digest()));
+        } catch (NoSuchAlgorithmException e) {
+            throw new RuntimeException(e);
+        }
+
         StringJoiner sj = new StringJoiner(",", "{", "}");
-        sj.add("\"fingerprint\":\"" + issue.getKey() + "\"");
-        sj.add("\"description\":\"" + prepareMessageJson(issue.getMessage()) + "\"");
-        sj.add("\"location\":" + buildLocationCodeQualityJson(reportIssue));
+        sj.add("\"fingerprint\":\"" + fingerprint + "\"");
+        sj.add("\"description\":\"" + description + "\"");
+        sj.add("\"location\":" + location);
         return sj.toString();
     }
 
