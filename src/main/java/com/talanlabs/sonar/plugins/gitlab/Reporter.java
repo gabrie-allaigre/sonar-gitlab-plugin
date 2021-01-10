@@ -253,6 +253,7 @@ public class Reporter {
         StringJoiner sj = new StringJoiner(",", "{", "}");
         sj.add("\"fingerprint\":\"" + fingerprint + "\"");
         sj.add("\"description\":\"" + description + "\"");
+        sj.add("\"severity\":\"" + issue.getSeverity().name().toLowerCase() + "\"");
         sj.add("\"location\":" + location);
         return sj.toString();
     }
