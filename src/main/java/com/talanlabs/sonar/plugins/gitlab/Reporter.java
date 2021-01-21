@@ -19,12 +19,20 @@
  */
 package com.talanlabs.sonar.plugins.gitlab;
 
+import com.google.common.base.Charsets;
+import com.google.common.hash.HashCode;
+import com.google.common.hash.HashFunction;
+import com.google.common.hash.Hashing;
 import com.talanlabs.sonar.plugins.gitlab.models.*;
 import org.apache.commons.lang3.StringEscapeUtils;
 import org.sonar.api.batch.rule.Severity;
 
 import javax.annotation.Nullable;
 import java.io.File;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -231,10 +239,22 @@ public class Reporter {
     private String buildIssueCodeQualityJson(ReportIssue reportIssue) {
         Issue issue = reportIssue.getIssue();
 
+        String description = prepareMessageJson(issue.getMessage());
+        String location = buildLocationCodeQualityJson(reportIssue);
+
+        HashFunction hf = Hashing.md5();
+        HashCode hc = hf.newHasher()
+                .putString(description, Charsets.UTF_8)
+                .putString(location, Charsets.UTF_8)
+                .hash();
+
+        String fingerprint = hc.toString();
+
         StringJoiner sj = new StringJoiner(",", "{", "}");
-        sj.add("\"fingerprint\":\"" + issue.getKey() + "\"");
-        sj.add("\"description\":\"" + prepareMessageJson(issue.getMessage()) + "\"");
-        sj.add("\"location\":" + buildLocationCodeQualityJson(reportIssue));
+        sj.add("\"fingerprint\":\"" + fingerprint + "\"");
+        sj.add("\"description\":\"" + description + "\"");
+        sj.add("\"severity\":\"" + issue.getSeverity().name().toLowerCase() + "\"");
+        sj.add("\"location\":" + location);
         return sj.toString();
     }
 
